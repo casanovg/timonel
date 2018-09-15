@@ -42,7 +42,8 @@
 #define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~126 bytes of memory. */
 								/* Change TIMONEL_START in Makefile.inc to 1900 or lower to compile. */
 								
-#define CMD_STPGADDR	false	/* If this is disabled, applications can only be flashed starting */								/* from page 0. This is OK for most standard applications.        */
+#define CMD_STPGADDR	false	/* If this is disabled, applications can only be flashed starting */
+								/* from page 0. This is OK for most standard applications.        */
 								
 #ifndef F_CPU
 	#define F_CPU 8000000UL		/* Default CPU speed for delay.h */
