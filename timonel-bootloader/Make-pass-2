@@ -10,11 +10,6 @@ include $(CONFIGPATH)/Makefile.inc
 ##########    Check these every time you start a new project    ##########
 ##########------------------------------------------------------##########
 
-MCU   = attiny85
-F_CPU = 8000000UL 
-BAUD  = 9600UL
-## Also try BAUD = 19200 or 38400 if you're feeling lucky.
-
 # >>>>>> PASS 2 <<<<<<
 #
 TIMONEL_START = 1900
@@ -78,7 +73,7 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -ffunction-sections -fdata-sections 
 ## Additional bootloader settings
 CFLAGS += -nostartfiles -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
-CFLAGS += -I$(CONFIGPATH) -mmcu=$(DEVICE) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START) 
+CFLAGS += -I$(CONFIGPATH) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START) 
 #LDFLAGS = -Wl,-Map,$(TARGET).map 
 ## Optional, but often ends up with smaller code
 #LDFLAGS += -Wl,--gc-sections 

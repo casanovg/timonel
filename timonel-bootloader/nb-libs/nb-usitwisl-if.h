@@ -4,26 +4,25 @@
  *  Based on USITWISlave by Donald R. Blake
  *  donblake at worldnet.att.net
  *  .................................................. 
- *  Adapted by Gustavo Casanova to work interrupt-free
+ *  Adapted to work interrupt-free
  *  2018-07-15 gustavo.casanova@nicebots.com
  */
 
 #ifndef _NB_USITWISL_IF_H_
 
 	#define _NB_USITWISL_IF_H_
-
+	
 	// Includes
 	#include <stdbool.h>
+	#include <avr/interrupt.h>
 
 	// Prototypes
 	void UsiTwiSlaveInit(uint8_t);
 	void UsiTwiTransmitByte(uint8_t);
 	uint8_t UsiTwiReceiveByte(void);
-	//bool UsiTwiDataInReceiveBuffer(void);
 	void (*_onTwiDataRequest)(void);
 	bool UsiTwiDataInTransmitBuffer(void);
 	uint8_t UsiTwiAmountDataInReceiveBuffer(void);
-	// on_XXX handler pointers
 	void (*Usi_onRequestPtr)(void);
 	void (*Usi_onReceiverPtr)(uint8_t);
 	
