@@ -10,7 +10,7 @@
 //
 // Updater starting address: 0
 //
-// Generated from ./tmlupd-flashable/tml-updater.hex at 2018-09-15 01:45:21 -0300 by casanovg
+// Generated from ./tmlupd-flashable/tml-updater.hex at 2018-09-15 02:21:10 -0300 by casanovg
 
 const byte payldType = 1;    /* Timonel Updater Payload */
 

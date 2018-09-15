@@ -17,17 +17,17 @@
 if [ "$1" != "" ]; then
     payload=$1
 	echo
+	# Parsing application to create payload header ...
 	echo "Parsing" $1 "..."
+	if [ `uname | grep Linux` ]; then
+		./tml-hexparser $payload > ../timonel-i2cmaster/payloads/payload.h
+		./tml-hexparser $payload > ./appl-payload/payload.h
+	else
+		./tml-hexparser.exe $payload > ../timonel-i2cmaster/payloads/payload.h
+		./tml-hexparser.exe $payload > ./appl-payload/payload.h
+	fi	
 else
 	echo
     echo "Usage: MAKE_PAYLOAD path_to_hexfile"
 fi
 
-# Parsing application to create payload header ...
-if [ `uname | grep Linux` ]; then
-	./tml-hexparser $payload > ../timonel-i2cmaster/payloads/payload.h
-	./tml-hexparser $payload > ./appl-payload/payload.h
-else
-	./tml-hexparser.exe $payload > ../timonel-i2cmaster/payloads/payload.h
-	./tml-hexparser.exe $payload > ./appl-payload/payload.h
-fi
