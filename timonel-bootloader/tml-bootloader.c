@@ -70,14 +70,14 @@
 	#pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
 
-#define SR_INIT_1		0		/* Status Register Bit 1 (1)  : Initialized 1 */
-#define SR_INIT_2		1		/* Status Register Bit 2 (2)  : Initialized 2 */
-#define SR_DEL_FLASH	2		/* Status Register Bit 3 (4)  : Delete flash  */
-#define SR_APP_READY	3		/* Status Register Bit 4 (8)  : Application flased OK, ready to run */
-#define SR_EXIT_TML		4		/* Status Register Bit 5 (16) : Exit Timonel & Run Application */
-#define SR_BIT_6		5		/* Status Register Bit 6 (32) : Not used */
-#define SR_BIT_7		6		/* Status Register Bit 7 (64) : Not used */
-#define SR_BIT_8		7		/* Status Register Bit 8 (128): Not used */
+#define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
+#define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */
+#define SR_DEL_FLASH	2		/* Status Bit 3 (4)  : Delete flash  */
+#define SR_APP_READY	3		/* Status Bit 4 (8)  : Application flased OK, ready to run */
+#define SR_EXIT_TML		4		/* Status Bit 5 (16) : Exit Timonel & Run Application */
+#define SR_BIT_6		5		/* Status Bit 6 (32) : Not used */
+#define SR_BIT_7		6		/* Status Bit 7 (64) : Not used */
+#define SR_BIT_8		7		/* Status Bit 8 (128): Not used */
 
 // Type definitions
 typedef uint8_t byte;
@@ -368,29 +368,40 @@ void SetCPUSpeed8MHz(void) {
 	CLKPR = (0x00);					
 }
 
+// // Function DeleteFlash
+// void DeleteFlash(void) {
+	// ClearPageBuffer();				
+    // FixResetVector();				
+    // boot_spm_busy_wait();			
+    // boot_page_erase(0); 			
+    // FlashRaw(0);					
+    // word address = PAGE_SIZE;
+    // FlashPage(address);
+
+    // while (address < TIMONEL_START) {
+        // boot_spm_busy_wait();
+        // boot_page_erase(address);
+        // address += PAGE_SIZE;
+    // }
+// }
+
+// // Function ClearPageBuffer
+// void ClearPageBuffer() {	
+    // for (byte i = 0; i < PAGE_SIZE; i++) {
+        // pageBuffer[i] = 0xff;
+    // }
+// }
+
 // Function DeleteFlash
 void DeleteFlash(void) {
-	ClearPageBuffer();				
-    FixResetVector();				
-    boot_spm_busy_wait();			
-    boot_page_erase(0); 			
-    FlashRaw(0);					
-    word address = PAGE_SIZE;
-    FlashPage(address);
-
-    while (address < TIMONEL_START) {
-        boot_spm_busy_wait();
-        boot_page_erase(address);
-        address += PAGE_SIZE;
-    }
+	word pageAddress = TIMONEL_START;
+	while (pageAddress != 0) {
+		pageAddress -= PAGE_SIZE;
+		boot_page_erase(pageAddress);
+	}
+	flashPageAddr = pageAddress;
 }
 
-// Function ClearPageBuffer
-void ClearPageBuffer() {	
-    for (byte i = 0; i < PAGE_SIZE; i++) {
-        pageBuffer[i] = 0xff;
-    }
-}
 
 // Function FixResetVector
 void FixResetVector() {
