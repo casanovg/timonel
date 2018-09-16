@@ -19,7 +19,7 @@
 #include "nb-usitwisl-if.h"
 #include "nb-i2c-cmd.h"
 
-
+/* This Timonel ... */
 #define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR	0		/* Timonel version major number */
 #define TIMONEL_VER_MNR	69		/* Timonel version major number */
