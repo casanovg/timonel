@@ -15,21 +15,14 @@
 /* Includes */
 //#include <avr/io.h>
 #include <avr/boot.h>
+#include "tml-config.h"
+#include "nb-usitwisl-if.h"
+#include "nb-i2c-cmd.h"
 
-//#include <stddef.h>
 
-#include "nb-libs/nb-usitwisl-if.h"
-#include "nb-libs/nb-i2c-cmd.h"
-
-// Definitions
-#define PAGE_SIZE		64		/* SPM Flash memory page size */
-#define RESET_PAGE		0		/* Interrupt vector table address start location */
-#define MAXBUFFERTXLN	5		/* Maximum page buffer TX size */
-
-#ifndef __AVR_ATtiny85__
-	#define __AVR_ATtiny85__
-	#pragma message "   >>>   Run, Timonel, run!   <<<   "
-#endif
+#define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
+#define TIMONEL_VER_MJR	0		/* Timonel version major number */
+#define TIMONEL_VER_MNR	69		/* Timonel version major number */
 
 #if TIMONEL_START % PAGE_SIZE != 0
 	#error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -38,29 +31,10 @@
 #if PAGE_SIZE > 256
 	#error "Timonel only supports pagesizes up to 256 bytes"
 #endif
-
-#define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~126 bytes of memory. */
-								/* Change TIMONEL_START in Makefile.inc to 1900 or lower to compile. */
-								
-#define CMD_STPGADDR	false	/* If this is disabled, applications can only be flashed starting */
-								/* from page 0. This is OK for most standard applications.        */
 								
 #ifndef F_CPU
 	#define F_CPU 8000000UL		/* Default CPU speed for delay.h */
 #endif
-
-#define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
-
-#define TIMONEL_VER_MJR	0		/* Timonel version major number */
-#define TIMONEL_VER_MNR	73		/* Timonel version major number */
-
-#define LED_UI_PIN		PB1		/* >>> Use PB1 to monitor activity. <<< */
-#define LED_UI_DDR		DDRB	/* >>> WARNING! This is not for use <<< */
-#define LED_UI_PORT		PORTB	/* >>> in production!               <<< */
-#define TOGGLETIME		0xFFFF	/* LED toggle delay before initialization */
-#define I2CDLYTIME		0x7FFF	/* Main loop times to allow the I2C responses to finish */
-#define RXDATASIZE		8		/* RX data size for WRITBUFF command */
-#define CYCLESTOEXIT	20		/* Main loop cycles before exit to app if not initialized */
 
 #if (RXDATASIZE > 8)
 	#pragma GCC warning "Do not set transmission data too high to avoid hurting I2C reliability!"
@@ -69,15 +43,6 @@
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
 	#pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
-
-#define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
-#define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */
-#define SR_DEL_FLASH	2		/* Status Bit 3 (4)  : Delete flash  */
-#define SR_APP_READY	3		/* Status Bit 4 (8)  : Application flased OK, ready to run */
-#define SR_EXIT_TML		4		/* Status Bit 5 (16) : Exit Timonel & Run Application */
-#define SR_BIT_6		5		/* Status Bit 6 (32) : Not used */
-#define SR_BIT_7		6		/* Status Bit 7 (64) : Not used */
-#define SR_BIT_8		7		/* Status Bit 8 (128): Not used */
 
 // Type definitions
 typedef uint8_t byte;
@@ -395,7 +360,7 @@ void SetCPUSpeed8MHz(void) {
 // Function DeleteFlash
 void DeleteFlash(void) {
 	word pageAddress = TIMONEL_START;
-	while (pageAddress != 0) {
+	while (pageAddress != RESET_PAGE) {
 		pageAddress -= PAGE_SIZE;
 		boot_page_erase(pageAddress);
 	}

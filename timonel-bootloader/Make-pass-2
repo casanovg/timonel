@@ -72,8 +72,9 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 ## Splits up object files per function
 CFLAGS += -ffunction-sections -fdata-sections 
 ## Additional bootloader settings
-CFLAGS += -nostartfiles -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
-CFLAGS += -I$(CONFIGPATH) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START) 
+CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START)
+CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
+
 #LDFLAGS = -Wl,-Map,$(TARGET).map 
 ## Optional, but often ends up with smaller code
 #LDFLAGS += -Wl,--gc-sections 

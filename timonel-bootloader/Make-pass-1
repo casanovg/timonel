@@ -36,7 +36,7 @@ CC = avr-gcc
 
 # Options:
 CFLAGS += -I. -g2 -Os -Wall
-CFLAGS += -I$(CONFIGPATH) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START) 
+CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START)
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 #LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map,--cref,--section-start=.appvector=0x0
