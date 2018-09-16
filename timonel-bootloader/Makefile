@@ -21,9 +21,9 @@ CFLAGS =
 CONFIGPATH = $(CONFIG)
 include $(CONFIGPATH)/Makefile.inc
 
-# >>>>>> PASS 3 <<<<<<
+# >>>>>> PASS 1 <<<<<<
 #
-# USE TIMONEL_START VALUE FROM Makefile.inc
+TIMONEL_START = 1900
 
 LIBDIR = ./nb-libs
 
@@ -31,12 +31,12 @@ PROGRAMMER ?= -c USBasp
 # PROGRAMMER contains AVRDUDE options to address your programmer
 
 # Tools:
-AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) 
+AVRDUDE = avrdude $(PROGRAMMER) -p $(MCU) 
 CC = avr-gcc
 
 # Options:
-CFLAGS += -I. -g2 -Os # -Wall
-CFLAGS += -I$(CONFIGPATH) -mmcu=$(DEVICE) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START) 
+CFLAGS += -I. -g2 -Os -Wall
+CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START)
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 #LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map,--cref,--section-start=.appvector=0x0
@@ -64,7 +64,7 @@ flash:	all
 	$(AVRDUDE) -U flash:w:$(TARGET).hex:i -B 20
 
 readflash:
-	$(AVRDUDE) -U flash:r:disassemble.hex:i -B 20
+	$(AVRDUDE) -U flash:r:flashdump.hex:i -B 20
 
 fuse:
 	$(AVRDUDE) $(FUSEOPT) -B 20
@@ -76,10 +76,7 @@ read_fuses:
 	$(UISP) --rd_fuses -B 20
 
 clean:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst
-
-clean_all:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst $(LIBDIR)/*.o	
+	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(LIBDIR)/*.lst $(LIBDIR)/*.o
 
 # file targets:
 $(TARGET).bin:	$(OBJECTS)

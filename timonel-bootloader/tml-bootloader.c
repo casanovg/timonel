@@ -13,27 +13,16 @@
  */
 
 /* Includes */
-#include <avr/io.h>
-#include <avr/wdt.h>
-#include <avr/power.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <stddef.h>
-#include <stdbool.h>
+//#include <avr/io.h>
 #include <avr/boot.h>
-#include <avr/pgmspace.h>
-#include "nb-libs/nb-usitwisl-if.h"
-#include "nb-libs/nb-i2c-cmd.h"
+#include "tml-config.h"
+#include "nb-usitwisl-if.h"
+#include "nb-i2c-cmd.h"
 
-// Definitions
-#define PAGE_SIZE		64		/* SPM Flash memory page size */
-#define RESET_PAGE		0		/* Interrupt vector table address start location */
-#define MAXBUFFERTXLN	5		/* Maximum page buffer TX size */
-
-#ifndef __AVR_ATtiny85__
-	#define __AVR_ATtiny85__
-	#pragma message "   >>>   Run, Timonel, run!   <<<   "
-#endif
+/* This bootloader ... */
+#define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
+#define TIMONEL_VER_MJR	0		/* Timonel version major number */
+#define TIMONEL_VER_MNR	71		/* Timonel version major number */
 
 #if TIMONEL_START % PAGE_SIZE != 0
 	#error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -42,42 +31,18 @@
 #if PAGE_SIZE > 256
 	#error "Timonel only supports pagesizes up to 256 bytes"
 #endif
-
-#define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~126 bytes of memory. */
-								/* Change TIMONEL_START in Makefile.inc to 1900 or lower to compile. */
+								
 #ifndef F_CPU
 	#define F_CPU 8000000UL		/* Default CPU speed for delay.h */
 #endif
-
-#define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
-
-#define TIMONEL_VER_MJR	0		/* Timonel version major number */
-#define TIMONEL_VER_MNR	71		/* Timonel version major number */
-
-#define LED_UI_PIN		PB1		/* >>> Use PB1 to monitor activity. <<< */
-#define LED_UI_DDR		DDRB	/* >>> WARNING! This is not for use <<< */
-#define LED_UI_PORT		PORTB	/* >>> in production!               <<< */
-#define TOGGLETIME		0xFFFF	/* LED toggle delay before initialization */
-#define I2CDLYTIME		0x7FFF	/* Main loop times to allow the I2C responses to finish */
-#define RXDATASIZE		8		/* RX data size for WRITBUFF command */
-#define CYCLESTOEXIT	20		/* Main loop cycles before exit to app if not initialized */
 
 #if (RXDATASIZE > 8)
 	#pragma GCC warning "Do not set transmission data too high to avoid hurting I2C reliability!"
 #endif
 
-#if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
+#if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 20))
 	#pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
-
-#define SR_INIT_1		0		/* Status Register Bit 1 (1)  : Initialized 1 */
-#define SR_INIT_2		1		/* Status Register Bit 2 (2)  : Initialized 2 */
-#define SR_DEL_FLASH	2		/* Status Register Bit 3 (4)  : Delete flash  */
-#define SR_APP_READY	3		/* Status Register Bit 4 (8)  : Application flased OK, ready to run */
-#define SR_EXIT_TML		4		/* Status Register Bit 5 (16) : Exit Timonel & Run Application */
-#define SR_BIT_6		5		/* Status Register Bit 6 (32) : Not used */
-#define SR_BIT_7		6		/* Status Register Bit 7 (64) : Not used */
-#define SR_BIT_8		7		/* Status Register Bit 8 (128): Not used */
 
 // Type definitions
 typedef uint8_t byte;
@@ -108,7 +73,7 @@ void RequestEvent(void);
 void Reset(void);
 void DisableWatchDog(void);
 void DeleteFlash(void);
-void __attribute__ ((noinline)) ClearPageBuffer();
+void ClearPageBuffer();
 void FixResetVector();
 void FlashRaw(word pageAddress);
 void FlashPage(word pageAddress);
@@ -117,9 +82,11 @@ void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte);
 
 // Function Main
 int main() {
-	// ###################
-	// ### Setup Block ###
-	// ###################
+	/*  __________________
+	   |                  | 
+	   |   Setup Block    |
+	   |__________________|
+	*/
 	DisableWatchDog();						/* Disable watchdog to avoid continuous loop after reset */
 	LED_UI_DDR |= (1 << LED_UI_PIN);		/* Set led pin Data Direction Register for output */
 	SetCPUSpeed8MHz();						/* Set the CPU prescaler for 8 MHz */
@@ -129,9 +96,11 @@ int main() {
 	statusRegister = (1 << SR_APP_READY);	/* In principle, we assume that there is a valid app in memory */
 	//TCCR1 = 0;	    					/* Set Timer1 off */
 	cli();									/* Disable Interrupts */
-	// ###################
-	// ###  Main Loop  ###
-	// ###################
+	/*  __________________
+	   |                  | 
+	   |    Main Loop     |
+	   |__________________|
+	*/	
 	for (;;) {
 		// Initialization check
 		if ((statusRegister & ((1 << SR_INIT_1) + (1 << SR_INIT_2))) != \
@@ -264,6 +233,7 @@ void RequestEvent(void) {
 			statusRegister |= (1 << SR_DEL_FLASH);
 			break;
 		}
+#if CMD_STPGADDR		
 		// ******************
 		// * STPGADDR Reply *
 		// ******************
@@ -278,6 +248,7 @@ void RequestEvent(void) {
 			}
 			break;
 		}
+#endif		
 		// ******************
 		// * WRITPAGE Reply *
 		// ******************
@@ -292,7 +263,7 @@ void RequestEvent(void) {
 			}
 			if (reply[1] != command[RXDATASIZE + 1]) {
 				statusRegister &= ~(1 << SR_APP_READY);	 /* Payload received with errors, don't run it !!! */
-				statusRegister |= (1 << SR_DEL_FLASH);	 /* Delete Payload !!!*/
+				statusRegister |= (1 << SR_DEL_FLASH);	 /* Safety payload deletion ... */
 			}
 			for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
@@ -304,9 +275,6 @@ void RequestEvent(void) {
 		// * READPAGE Reply *
 		// ******************
 		case READPAGE: {
-			// command[0] : OpCode
-			// command[1] : Start Position
-			// command[2] : Requested Bytes
 			uint8_t ix = command[1];					/* Second byte received determines start of reply data */
 			const uint8_t ackLng = (command[2] + 2);	/* Third byte received determines the size of reply data */
 			uint8_t reply[ackLng];
@@ -317,16 +285,15 @@ void RequestEvent(void) {
 				reply[ackLng - 1] = 0;
 				for (uint8_t i = 1; i < command[2] + 1; i++) {
 					reply[j] = pageBuffer[ix + i - 2];	/* Data bytes in reply */
-					reply[ackLng - 1] += reply[j];		/* Checksum accumulator to be sent in the last byte of the reply */
+					reply[ackLng - 1] += reply[j];		/* Checksum accumulator to be the in the reply */
 					j++;
 				}
-				//reply[ackLng - 1] = CalculateCRC(reply, ackLng - 1);	/* Prepare CRC for Reply */
 				for (uint8_t i = 0; i < ackLng; i++) {
 					UsiTwiTransmitByte(reply[i]);
 				}
 			}
 			else {
-				UsiTwiTransmitByte(UNKNOWNC);			/* Incorrect operand value received */
+				UsiTwiTransmitByte(UNKNOWNC);			/* Incorrect command received */
 			}
 			break;
 		}
@@ -338,8 +305,8 @@ void RequestEvent(void) {
 			#define INITTINY_RPLYLN 1
 			byte reply[INITTINY_RPLYLN] = { 0 };
 			reply[0] = opCodeAck;
-			//PORTB |= (1 << LED_UI_PIN);				/* turn LED_UI_PIN on, it will be turned off by next toggle */
-			//PORTB &= ~(1 << PB1);						/* turn PB1 off (led pin) */
+			//PORTB |= (1 << LED_UI_PIN);
+			//PORTB &= ~(1 << PB1);
 			//statusRegister |= (1 << (SR_INIT_1 - 1)) + (1 << (SR_INIT_2 - 1)); /* Single-step init */
 			statusRegister |= (1 << SR_INIT_1);			/* Two-step init step 1: receive INITTINY command */
 			for (byte i = 0; i < INITTINY_RPLYLN; i++) {
@@ -365,67 +332,43 @@ void DisableWatchDog(void) {
 
 // Function SetCPUSpeed8MHz
 void SetCPUSpeed8MHz(void) {
-	cli();							/* Disable interrupts */
-	CLKPR = (1 << CLKPCE);			/* Mandatory for setting CPU prescaler */
-	CLKPR = (0x00);					/* Set CPU prescaler 1 (System clock / 1) */
+	cli();							
+	CLKPR = (1 << CLKPCE);			
+	CLKPR = (0x00);					
 }
 
 // Function DeleteFlash
 void DeleteFlash(void) {
-	ClearPageBuffer();				/* Fill page buffer with 0xff */
-    FixResetVector();				/* Preserve Timonel reset vector */
-    boot_spm_busy_wait();			/* Wait while the SPM instruction is busy. */
-    boot_page_erase(0); 			/* Erase the first page or else it will not write correctly */
-    FlashRaw(0);					/* Restore just the initial vector */
-    word address = PAGE_SIZE;
-    FlashPage(address);
-
-    while (address < TIMONEL_START) {
-        boot_spm_busy_wait();
-        boot_page_erase(address);
-        address += PAGE_SIZE;
-    }
+	word pageAddress = TIMONEL_START;
+	while (pageAddress != RESET_PAGE) {
+		pageAddress -= PAGE_SIZE;
+		boot_page_erase(pageAddress);
+	}
+	flashPageAddr = pageAddress;
 }
 
-// Function ClearPageBuffer
-void __attribute__ ((noinline)) ClearPageBuffer() {
-    for (byte i = 0; i < PAGE_SIZE; i++) {
-        pageBuffer[i] = 0xff;
-    }
-}
 
 // Function FixResetVector
 void FixResetVector() {
-	// Replace page buffer payload reset vector with bootloader reset vector
 	pageBuffer[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
 	pageBuffer[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
-	// This only preserves the current reset vector, it doesn't force the bootloader address ...
-    	//for (byte i = 2; i != 0; i--) {
-    	//	pageBuffer[i - 1] = pgm_read_byte(RESET_PAGE + i - 1);
-    	//}
 }
 
 // Function FlashPage
 void FlashPage(word pageAddress) {
-	// Remove page internal addresses, keep only base addresses
-	pageAddress &= ~(PAGE_SIZE - 1);
-	// If this is page 0, modify the reset vector to point to this
-	// bootloader and calculate the application jump trampoline bytes ...
+	pageAddress &= ~(PAGE_SIZE - 1);		/* Keep only pages' base addresses */
 	if (pageAddress == RESET_PAGE) {
-    	// Calculate Trampoline Reset Vector
 		CalculateTrampoline(pageBuffer[0], pageBuffer[1]);
 		FixResetVector();
 	}
-    // If the application uses the trampoline page, fix again trampoline bytes ...
 	if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
-    	pageBuffer[62] = tplJumpLowByte;
-		pageBuffer[63] = tplJumpHighByte;
+    	pageBuffer[62] = tplJumpLowByte;	/* If the application also uses the trampoline */
+		pageBuffer[63] = tplJumpHighByte;	/* page, we fix again the trampoline bytes ...   */
 	}
-	// Protect the bootloader section
 	if (pageAddress >= TIMONEL_START) {
-    	return;
+    	return;								/* Protect the bootloader section */
 	}
-	FlashRaw(pageAddress);				/* Call flashRaw to make the actual writing */
+	FlashRaw(pageAddress);
 	if (pageAddress == RESET_PAGE) {
 		CreateTrampoline();
 		flashPageAddr = RESET_PAGE;
@@ -437,9 +380,8 @@ void FlashRaw(word pageAddress) {
 	for (byte i = 0; i < PAGE_SIZE; i += 2) {
     	word tempWord = ((pageBuffer[i + 1] << 8) | pageBuffer[i]);
 		boot_spm_busy_wait();
-		boot_page_fill(pageAddress + i, tempWord); 	/* Fill the temporary buffer with the given data */
+		boot_page_fill(pageAddress + i, tempWord);
 	}
-	// Write page from temporary buffer to the given location in flash memory
 	boot_spm_busy_wait();
 	boot_page_write(pageAddress);
 }
@@ -463,7 +405,4 @@ void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte) {
 	jumpOffset++;
 	tplJumpLowByte = (jumpOffset & 0xFF);
 	tplJumpHighByte = (((jumpOffset & 0xF00) >> 8) + 0xC0);
-	//
-	// Reference: https://drive.google.com/open?id=1CbJnCkh9XVg-G4aWQpTDD5isyDQ4WarV
-	//
 }

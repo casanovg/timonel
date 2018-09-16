@@ -9,9 +9,6 @@
  */
 
 // Includes
-#include <avr/io.h>
-#include <stdbool.h>
-#include <avr/interrupt.h>
 #include "nb-usitwisl-if.h"
 
 // Device Dependent Defines
