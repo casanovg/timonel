@@ -55,10 +55,10 @@ byte commandLength = 0;  		/* Command number of bytes */
 word ledToggleTimer = 0;		/* Pre-init led toggle timer */
 byte statusRegister = 0;		/* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
 word i2cDly = I2CDLYTIME;		/* Delay to allow I2C execution before jumping to application */
-byte exitDly = CYCLESTOEXIT;	/* Delay to exit Timonel and run the application if not initialized */
+byte exitDly = CYCLESTOEXIT;		/* Delay to exit Timonel and run the application if not initialized */
 byte pageBuffer[PAGE_SIZE];		/* Flash memory page buffer */
-word flashPageAddr = 0x0000;	/* Flash memory page address */
-byte pageIX = 0;				/* Flash memory page index */
+word flashPageAddr = 0x0000;		/* Flash memory page address */
+byte pageIX = 0;			/* Flash memory page index */
 byte tplJumpLowByte = 0;		/* Trampoline jump address LSB */
 byte tplJumpHighByte = 0;		/* Trampoline jump address MSB */
 
@@ -87,15 +87,15 @@ int main() {
 	   |   Setup Block    |
 	   |__________________|
 	*/
-	DisableWatchDog();						/* Disable watchdog to avoid continuous loop after reset */
+	DisableWatchDog();				/* Disable watchdog to avoid continuous loop after reset */
 	LED_UI_DDR |= (1 << LED_UI_PIN);		/* Set led pin Data Direction Register for output */
-	SetCPUSpeed8MHz();						/* Set the CPU prescaler for 8 MHz */
-	UsiTwiSlaveInit(I2C_ADDR);				/* Initialize I2C */
+	SetCPUSpeed8MHz();				/* Set the CPU prescaler for 8 MHz */
+	UsiTwiSlaveInit(I2C_ADDR);			/* Initialize I2C */
 	Usi_onReceiverPtr = ReceiveEvent;		/* I2C Receive Event declaration */
 	Usi_onRequestPtr = RequestEvent;		/* I2C Request Event declaration */
-	statusRegister = (1 << SR_APP_READY);	/* In principle, we assume that there is a valid app in memory */
-	//TCCR1 = 0;	    					/* Set Timer1 off */
-	cli();									/* Disable Interrupts */
+	statusRegister = (1 << SR_APP_READY);		/* In principle, we assume that there is a valid app in memory */
+	//TCCR1 = 0;	    				/* Set Timer1 off */
+	cli();						/* Disable Interrupts */
 	/*  __________________
 	   |                  | 
 	   |    Main Loop     |
@@ -117,8 +117,8 @@ int main() {
 			}
 		}
 		else {
-			if (i2cDly-- <= 0) {		/* Decrease i2cDly on each main loop pass until it    */
-				//						/* reaches 0 before running code to allow I2C replies */
+			if (i2cDly-- <= 0) {				/* Decrease i2cDly on each main loop pass until it    */
+				//					/* reaches 0 before running code to allow I2C replies */
 				//LED_UI_PORT &= ~(1 << LED_UI_PIN);	/* Turn led off to indicate correct initialization ... */
 				//
 				// =======================================
@@ -138,7 +138,7 @@ int main() {
 				if ((statusRegister & (1 << SR_DEL_FLASH)) == (1 << SR_DEL_FLASH)) {
 					LED_UI_PORT |= (1 << LED_UI_PIN);	/* Turn led on to indicate erasing ... */
 					DeleteFlash();
-					RunApplication();					/* Since there is no app anymore, this resets to the bootloader */
+					RunApplication();			/* Since there is no app anymore, this resets to the bootloader */
 				}
 				// ========================================================================
 				// = Write received page to flash memory and prepare to receive a new one =
@@ -158,7 +158,7 @@ int main() {
 		// = whether a USI start handler should be launched =
 		// ==================================================
 		if (USISR & (1 << USISIF)) {
-			UsiStartHandler();			/* If so, run the USI start handler ... */
+			UsiStartHandler();		/* If so, run the USI start handler ... */
 			USISR |= (1 << USISIF);		/* Reset the USI start flag in USISR register to prepare for new ints */
 		}
 		// =====================================================
@@ -194,14 +194,14 @@ void RequestEvent(void) {
 			#define GETTMNLV_RPLYLN 8
 			byte reply[GETTMNLV_RPLYLN] = { 0 };
 			reply[0] = opCodeAck;
-			reply[1] = 78;								/* N */
-			reply[2] = 66;								/* B */
-			reply[3] = 84;								/* T */
-			reply[4] = TIMONEL_VER_MJR;					/* Timonel Major version number	*/
-			reply[5] = TIMONEL_VER_MNR;					/* Timonel Minor version number */
-			reply[6] = ((TIMONEL_START & 0xFF00) >> 8);	/* Timonel Base Address MSB		*/
-			reply[7] = (TIMONEL_START & 0xFF);			/* Timonel Base Address LSB		*/
-			statusRegister |= (1 << SR_INIT_2);			/* Two-step init step 2: receive GETTMNLV command */
+			reply[1] = 78;					/* N */
+			reply[2] = 66;					/* B */
+			reply[3] = 84;					/* T */
+			reply[4] = TIMONEL_VER_MJR;			/* Timonel Major version number	*/
+			reply[5] = TIMONEL_VER_MNR;			/* Timonel Minor version number */
+			reply[6] = ((TIMONEL_START & 0xFF00) >> 8);	/* Timonel Base Address MSB */
+			reply[7] = (TIMONEL_START & 0xFF);		/* Timonel Base Address LSB */
+			statusRegister |= (1 << SR_INIT_2);		/* Two-step init step 2: receive GETTMNLV command */
 			for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
@@ -242,7 +242,7 @@ void RequestEvent(void) {
 			byte reply[STPGADDR_RPLYLN] = { 0 };
 			flashPageAddr = ((command[1] << 8) + command[2]);	/* Sets the flash memory page base address */
 			reply[0] = opCodeAck;
-			reply[1] = (byte)(command[1] + command[2]);			/* Returns the sum of MSB and LSB of the page address */
+			reply[1] = (byte)(command[1] + command[2]);		/* Returns the sum of MSB and LSB of the page address */
 			for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
@@ -275,10 +275,10 @@ void RequestEvent(void) {
 		// * READPAGE Reply *
 		// ******************
 		case READPAGE: {
-			uint8_t ix = command[1];					/* Second byte received determines start of reply data */
+			uint8_t ix = command[1];			/* Second byte received determines start of reply data */
 			const uint8_t ackLng = (command[2] + 2);	/* Third byte received determines the size of reply data */
 			uint8_t reply[ackLng];
-			reply[ackLng - 1] = 0;						/* Checksum initialization */
+			reply[ackLng - 1] = 0;				/* Checksum initialization */
 			reply[0] = opCodeAck;
 			if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= MAXBUFFERTXLN * 2)) {
 				uint8_t j = 1;
@@ -362,11 +362,11 @@ void FlashPage(word pageAddress) {
 		FixResetVector();
 	}
 	if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
-    	pageBuffer[62] = tplJumpLowByte;	/* If the application also uses the trampoline */
+    	pageBuffer[62] = tplJumpLowByte;		/* If the application also uses the trampoline */
 		pageBuffer[63] = tplJumpHighByte;	/* page, we fix again the trampoline bytes ...   */
 	}
 	if (pageAddress >= TIMONEL_START) {
-    	return;								/* Protect the bootloader section */
+    	return;						/* Protect the bootloader section */
 	}
 	FlashRaw(pageAddress);
 	if (pageAddress == RESET_PAGE) {
