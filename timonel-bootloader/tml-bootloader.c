@@ -19,10 +19,10 @@
 #include "nb-usitwisl-if.h"
 #include "nb-i2c-cmd.h"
 
-/* This Timonel ... */
+/* This bootloader ... */
 #define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR	0		/* Timonel version major number */
-#define TIMONEL_VER_MNR	70		/* Timonel version major number */
+#define TIMONEL_VER_MNR	71		/* Timonel version major number */
 
 #if TIMONEL_START % PAGE_SIZE != 0
 	#error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -40,7 +40,7 @@
 	#pragma GCC warning "Do not set transmission data too high to avoid hurting I2C reliability!"
 #endif
 
-#if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
+#if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 20))
 	#pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
 
@@ -82,9 +82,11 @@ void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte);
 
 // Function Main
 int main() {
-	// ###################
-	// ### Setup Block ###
-	// ###################
+	/*  __________________
+	   |                  | 
+	   |   Setup Block    |
+	   |__________________|
+	*/
 	DisableWatchDog();						/* Disable watchdog to avoid continuous loop after reset */
 	LED_UI_DDR |= (1 << LED_UI_PIN);		/* Set led pin Data Direction Register for output */
 	SetCPUSpeed8MHz();						/* Set the CPU prescaler for 8 MHz */
@@ -94,9 +96,11 @@ int main() {
 	statusRegister = (1 << SR_APP_READY);	/* In principle, we assume that there is a valid app in memory */
 	//TCCR1 = 0;	    					/* Set Timer1 off */
 	cli();									/* Disable Interrupts */
-	// ###################
-	// ###  Main Loop  ###
-	// ###################
+	/*  __________________
+	   |                  | 
+	   |    Main Loop     |
+	   |__________________|
+	*/	
 	for (;;) {
 		// Initialization check
 		if ((statusRegister & ((1 << SR_INIT_1) + (1 << SR_INIT_2))) != \
@@ -332,30 +336,6 @@ void SetCPUSpeed8MHz(void) {
 	CLKPR = (1 << CLKPCE);			
 	CLKPR = (0x00);					
 }
-
-// // Function DeleteFlash
-// void DeleteFlash(void) {
-	// ClearPageBuffer();				
-    // FixResetVector();				
-    // boot_spm_busy_wait();			
-    // boot_page_erase(0); 			
-    // FlashRaw(0);					
-    // word address = PAGE_SIZE;
-    // FlashPage(address);
-
-    // while (address < TIMONEL_START) {
-        // boot_spm_busy_wait();
-        // boot_page_erase(address);
-        // address += PAGE_SIZE;
-    // }
-// }
-
-// // Function ClearPageBuffer
-// void ClearPageBuffer() {	
-    // for (byte i = 0; i < PAGE_SIZE; i++) {
-        // pageBuffer[i] = 0xff;
-    // }
-// }
 
 // Function DeleteFlash
 void DeleteFlash(void) {

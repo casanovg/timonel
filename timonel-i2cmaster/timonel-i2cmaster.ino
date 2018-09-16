@@ -20,7 +20,7 @@
 // -----------------------------------
 // a - (STDPB1_1) Set ATtiny85 PB1 = 1
 // s - (STDPB1_0) Set ATtiny85 PB1 = 0
-// z - (INITTINY) Reboot ESP-8266 and initialize ATtiny85newByte
+// z - (RESTART-) Reboot ESP-8266 and initialize ATtiny85
 // x - (RESETINY) Reset ATtiny85
 // ? - (HELP) Command help
 
@@ -67,16 +67,13 @@ void setup() {
 	}
 
 	// Run ATtiny85 initialization command
-	byte cmdTX[1] = { INITTINY };
-	Wire.beginTransmission(slaveAddress);
-	Wire.write(cmdTX[0]);
-	Wire.endTransmission();
-	blockRXSize = Wire.requestFrom(slaveAddress, (byte)1);
-	blockRXSize = 0;
+	InitTiny();
 
 	ClrScr();
 	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.7)");
 	Serial.println("============================================================");
+	TwoStepInit(0);
+	Serial.println("");
 	ShowMenu();
 }
 
@@ -149,6 +146,7 @@ void loop() {
 		case 'e': case 'E': {
 			//Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
 			DeleteFlash();
+			TwoStepInit(1250);
 			break;
 		}
 		// ********************************
@@ -229,7 +227,7 @@ void loop() {
 		// ******************
 		// * ? Help Command *
 		// ******************
-		case '?': case '�': {
+		case '?': {
 			Serial.println("\n\rHelp ...");
 			Serial.println("========");
 			//ShowHelp();
@@ -702,6 +700,23 @@ void ResetTiny(void) {
 		Serial.print(" command! <<< ");
 		Serial.println(ackRX[0]);
 	}
+}
+
+// Function InitTiny
+void InitTiny(void) {
+	byte cmdTX[1] = { INITTINY };
+	Wire.beginTransmission(slaveAddress);
+	Wire.write(cmdTX[0]);
+	Wire.endTransmission();
+	blockRXSize = Wire.requestFrom(slaveAddress, (byte)1);
+	blockRXSize = 0;
+}
+
+// Function TwoStepInit
+void TwoStepInit(word time) {
+	delay(time);
+	InitTiny();				/* Two-step Tiny85 initialization: STEP 1 */
+	GetTimonelVersion();	/* Two-step Tiny85 initialization: STEP 2 */
 }
 
 // Function GetTimonelVersion

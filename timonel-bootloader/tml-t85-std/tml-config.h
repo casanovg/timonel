@@ -35,7 +35,7 @@
 #define TOGGLETIME		0xFFFF	/* LED toggle delay before initialization */
 #define I2CDLYTIME		0x7FFF	/* Main loop times to allow the I2C responses to finish */
 #define RXDATASIZE		8		/* RX data size for WRITBUFF command */
-#define CYCLESTOEXIT	20		/* Main loop cycles before exit to app if not initialized */
+#define CYCLESTOEXIT	15		/* Main loop cycles before exit to app if not initialized */
 
 #define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
 #define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */
