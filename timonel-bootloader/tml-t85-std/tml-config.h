@@ -29,11 +29,6 @@
 	#define F_CPU 8000000UL		/* Default CPU speed for delay.h */
 #endif
 
-#define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
-
-#define TIMONEL_VER_MJR	0		/* Timonel version major number */
-#define TIMONEL_VER_MNR	69		/* Timonel version major number */
-
 #define LED_UI_PIN		PB1		/* >>> Use PB1 to monitor activity. <<< */
 #define LED_UI_DDR		DDRB	/* >>> WARNING! This is not for use <<< */
 #define LED_UI_PORT		PORTB	/* >>> in production!               <<< */

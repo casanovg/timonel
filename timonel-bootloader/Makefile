@@ -21,9 +21,9 @@ CFLAGS =
 CONFIGPATH = $(CONFIG)
 include $(CONFIGPATH)/Makefile.inc
 
-# >>>>>> PASS 3 <<<<<<
+# >>>>>> PASS 1 <<<<<<
 #
-# USE TIMONEL_START VALUE FROM Makefile.inc
+TIMONEL_START = 1900
 
 LIBDIR = ./nb-libs
 
@@ -76,10 +76,7 @@ read_fuses:
 	$(UISP) --rd_fuses -B 20
 
 clean:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst
-
-clean_all:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst $(LIBDIR)/*.o	
+	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(LIBDIR)/*.lst $(LIBDIR)/*.o
 
 # file targets:
 $(TARGET).bin:	$(OBJECTS)
