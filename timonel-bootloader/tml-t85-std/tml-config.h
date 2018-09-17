@@ -2,7 +2,7 @@
  *  File: tml-config-h
  *	Project: Timonel - I2C Bootloader for ATtiny85 MCUs
  *	Author: Gustavo Casanova
- *	...........................................
+ *	.......................................................
  *	2018-09-16 gustavo.casanova@nicebots.com
  */
 
@@ -15,18 +15,21 @@
 #define MAXBUFFERTXLN	5		/* Maximum page buffer TX size */
 
 #ifndef __AVR_ATtiny85__
-	#define __AVR_ATtiny85__
-	#pragma message "   >>>   Run, Timonel, run!   <<<   "
+#define __AVR_ATtiny85__
+#pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
-#define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~126 bytes of memory. */
+#define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~172 bytes of memory. */
 								/* Change TIMONEL_START in Makefile.inc to 1900 or lower to compile. */
 								
-#define CMD_STPGADDR	false	/* If this is disabled, applications can only be flashed starting */
-								/* from page 0. This is OK for most standard applications.        */
+#define CMD_STPGADDR	false	/* If this is disabled, applications can only be flashed starting    */
+								/* from page 0. This is OK for most applications. It takes ~42 bytes */
+								
+#define ENABLE_LED_UI	true	/* If this is enabled, LED_UI_PIN is used to show Timonel status */
+								/* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
 								
 #ifndef F_CPU
-	#define F_CPU 8000000UL		/* Default CPU speed for delay.h */
+#define F_CPU 			8000000UL	/* Default CPU speed for delay.h */
 #endif
 
 #define LED_UI_PIN		PB1		/* >>> Use PB1 to monitor activity. <<< */
@@ -35,7 +38,7 @@
 #define TOGGLETIME		0xFFFF	/* LED toggle delay before initialization */
 #define I2CDLYTIME		0x7FFF	/* Main loop times to allow the I2C responses to finish */
 #define RXDATASIZE		8		/* RX data size for WRITBUFF command */
-#define CYCLESTOEXIT	15		/* Main loop cycles before exit to app if not initialized */
+#define CYCLESTOEXIT	20		/* Main loop cycles before exit to app if not initialized */
 
 #define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
 #define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */

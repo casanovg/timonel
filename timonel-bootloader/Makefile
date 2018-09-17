@@ -1,7 +1,10 @@
-# File: Makefile
-# Project: Timonel Bootloader
-# Based on Makefile from micronucleus bootloader by Jenna Fox
-# Adapter by Gustavo Casanova / Nicebots
+#
+# File: Pass-1 (Makefile)
+# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+# Based on Makefile from micronucleus project
+# .......................................................
+# 2018-08-28 gustavo.casanova@nicebots.com
+#
 
 CONFIG ?= tml-t85-std
 
@@ -23,6 +26,7 @@ include $(CONFIGPATH)/Makefile.inc
 
 # >>>>>> PASS 1 <<<<<<
 #
+# Overwrite Makefile.inc TIMONEL_START value ...
 TIMONEL_START = 1900
 
 LIBDIR = ./nb-libs

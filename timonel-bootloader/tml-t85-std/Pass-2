@@ -1,7 +1,16 @@
+#
+# File: Pass-2 (Makefile)
+# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+# Based on examples from "Make, AVR Programming" book
+# .......................................................
+# 2018-08-28 gustavo.casanova@nicebots.com
+#
+
+CONFIG ?= tml-t85-std
+
 ##########------------------------------------------------------##########
 ##########              Make Environment Setup                  ##########
 ##########------------------------------------------------------##########
-CONFIG ?= tml-t85-std
 CONFIGPATH = $(CONFIG)
 include $(CONFIGPATH)/Makefile.inc
 
@@ -12,6 +21,7 @@ include $(CONFIGPATH)/Makefile.inc
 
 # >>>>>> PASS 2 <<<<<<
 #
+# Overwrite Makefile.inc TIMONEL_START value ...
 TIMONEL_START = 1900
 
 ## A directory for common include files and the simple USART library.

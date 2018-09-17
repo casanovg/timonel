@@ -88,7 +88,9 @@ int main() {
 	   |___________________|
 	*/
 	DisableWatchDog();				/* Disable watchdog to avoid continuous loop after reset */
+#if ENABLE_LED_UI
 	LED_UI_DDR |= (1 << LED_UI_PIN);		/* Set led pin Data Direction Register for output */
+#endif
 	SetCPUSpeed8MHz();				/* Set the CPU prescaler for 8 MHz */
 	UsiTwiSlaveInit(I2C_ADDR);			/* Initialize I2C */
 	Usi_onReceiverPtr = ReceiveEvent;		/* I2C Receive Event declaration */
@@ -110,7 +112,9 @@ int main() {
 			// = Blink led until is initialized by master =
 			// ============================================
 			if (ledToggleTimer++ >= TOGGLETIME) {
+#if ENABLE_LED_UI				
 				LED_UI_PORT ^= (1 << LED_UI_PIN);	/* Blinks on each main loop pass at TOGGLETIME intervals */
+#endif
 				ledToggleTimer = 0;
 				if (exitDly-- == 0) {
 					RunApplication();
@@ -118,10 +122,8 @@ int main() {
 			}
 		}
 		else {
-			if (i2cDly-- <= 0) {				/* Decrease i2cDly on each main loop pass until it    */
+			if (i2cDly-- <= 0) {	/* Decrease i2cDly on each main loop pass until it    */
 				//					/* reaches 0 before running code to allow I2C replies */
-				//LED_UI_PORT &= ~(1 << LED_UI_PIN);	/* Turn led off to indicate correct initialization ... */
-				//
 				// =======================================
 				// = Exit bootloader and run application =
 				// =======================================
@@ -137,7 +139,9 @@ int main() {
 				// = Delete application from flash memory and point reset to this bootloader =
 				// ===========================================================================
 				if ((statusRegister & (1 << SR_DEL_FLASH)) == (1 << SR_DEL_FLASH)) {
+#if ENABLE_LED_UI					
 					LED_UI_PORT |= (1 << LED_UI_PIN);	/* Turn led on to indicate erasing ... */
+#endif					
 					DeleteFlash();
 					RunApplication();			/* Since there is no app anymore, this resets to the bootloader */
 				}
@@ -145,7 +149,9 @@ int main() {
 				// = Write received page to flash memory and prepare to receive a new one =
 				// ========================================================================
 				if ((pageIX == PAGE_SIZE) /* & (flashPageAddr != 0xFFFF)*/) {
+#if ENABLE_LED_UI					
 					LED_UI_PORT ^= (1 << LED_UI_PIN);	/* Turn led on and off to indicate writing ... */
+#endif
 					FlashPage(flashPageAddr);
 					flashPageAddr += PAGE_SIZE;
 					pageIX = 0;
@@ -203,6 +209,9 @@ void RequestEvent(void) {
 			reply[6] = ((TIMONEL_START & 0xFF00) >> 8);	/* Timonel Base Address MSB */
 			reply[7] = (TIMONEL_START & 0xFF);		/* Timonel Base Address LSB */
 			statusRegister |= (1 << SR_INIT_2);		/* Two-step init step 2: receive GETTMNLV command */
+#if ENABLE_LED_UI				
+			LED_UI_PORT &= ~(1 << LED_UI_PIN);		/* Two-step init: Turn led off to indicate correct initialization */
+#endif			
 			for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
@@ -306,8 +315,6 @@ void RequestEvent(void) {
 			#define INITTINY_RPLYLN 1
 			byte reply[INITTINY_RPLYLN] = { 0 };
 			reply[0] = opCodeAck;
-			//PORTB |= (1 << LED_UI_PIN);
-			//PORTB &= ~(1 << PB1);
 			//statusRegister |= (1 << (SR_INIT_1 - 1)) + (1 << (SR_INIT_2 - 1)); /* Single-step init */
 			statusRegister |= (1 << SR_INIT_1);			/* Two-step init step 1: receive INITTINY command */
 			for (byte i = 0; i < INITTINY_RPLYLN; i++) {
@@ -347,7 +354,6 @@ void DeleteFlash(void) {
 	}
 	flashPageAddr = pageAddress;
 }
-
 
 // Function FixResetVector
 void FixResetVector() {

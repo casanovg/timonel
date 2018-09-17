@@ -1,7 +1,10 @@
-# File: Makefile
-# Project: Timonel Bootloader
-# Based on Makefile from micronucleus bootloader by Jenna Fox
-# Adapter by Gustavo Casanova / Nicebots
+#
+# File: Pass-3 (Makefile)
+# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+# Based on Makefile from micronucleus project
+# .......................................................
+# 2018-08-28 gustavo.casanova@nicebots.com
+#
 
 CONFIG ?= tml-t85-std
 
@@ -21,9 +24,9 @@ CFLAGS =
 CONFIGPATH = $(CONFIG)
 include $(CONFIGPATH)/Makefile.inc
 
-# >>>>>> PASS 1 <<<<<<
+# >>>>>> PASS 3 <<<<<<
 #
-TIMONEL_START = 1900
+# USE TIMONEL_START VALUE FROM Makefile.inc
 
 LIBDIR = ./nb-libs
 
@@ -76,11 +79,17 @@ read_fuses:
 	$(UISP) --rd_fuses -B 20
 
 clean:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(LIBDIR)/*.lst $(LIBDIR)/*.o
+	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst
+
+clean_all:
+	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst $(LIBDIR)/*.o	
 
 # file targets:
 $(TARGET).bin:	$(OBJECTS)
 	@$(CC) $(CFLAGS) -o $(TARGET).bin $(OBJECTS) $(LDFLAGS)
+
+$(TARGET).elf: $(OBJECTS)
+	$(CC) $(LDFLAGS) -mmcu=$(MCU) $^ $(LDLIBS) -o $@	
 
 $(TARGET).hex:	$(TARGET).bin
 	@echo
