@@ -5,7 +5,7 @@
 // *  ..................................................  *
 // *  Author: Gustavo Casanova                            *
 // *  ..................................................  *
-// *  Firmware Version: 0.7 | MCU: ESP8266                *
+// *  Firmware Version: 0.8 | MCU: ESP8266                *
 // *  2018-09-09 gustavo.casanova@nicebots.com            *
 // ********************************************************
 //
@@ -70,7 +70,7 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.7)");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.8)");
 	Serial.println("============================================================");
 	TwoStepInit(0);
 	Serial.println("");
