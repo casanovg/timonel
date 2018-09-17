@@ -56,18 +56,20 @@ word ledToggleTimer = 0;                    /* Pre-init led toggle timer */
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
 word i2cDly = I2CDLYTIME;                   /* Delay to allow I2C execution before jumping to application */
 byte exitDly = CYCLESTOEXIT;                /* Delay to exit Timonel and run the application if not initialized */
-byte pageBuffer[PAGE_SIZE];                 /* Flash memory page buffer */
+//byte pageBuffer[PAGE_SIZE];                 /* Flash memory page buffer */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 byte tplJumpLowByte = 0;                    /* Trampoline jump address LSB */
 byte tplJumpHighByte = 0;                   /* Trampoline jump address MSB */
 
+byte appResetL = 0;
+byte appResetH = 0;
+
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
-//const uint8_t rstVector[2]  __attribute__ ((section (".appvector"))) = { 0xaa, 0xbb };
 
 // Function prototypes
-void SetCPUSpeed8MHz (void);
+void SetCPUSpeed8MHz(void);
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
 void Reset(void);
@@ -151,7 +153,18 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-                    FlashPage(flashPageAddr);
+                    //FlashPage(flashPageAddr);
+                    
+                    if ((flashPageAddr + pageIX) == 0) {
+                        CalculateTrampoline(appResetL, appResetH);
+                        boot_page_fill(0, ((0xC000 + (TIMONEL_START / 2) - 1) >> 8) + ((0xC000 + (TIMONEL_START / 2) - 1) & 0xff));
+                        // command[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
+                        // command[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
+                    }                    
+                    
+                    boot_spm_busy_wait();
+                    boot_page_write(flashPageAddr);
+                    
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
@@ -265,11 +278,30 @@ void RequestEvent(void) {
             #define WRITPAGE_RPLYLN 2
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
-            for (uint8_t i = 1; i < (RXDATASIZE + 1); i++) {
-                pageBuffer[pageIX] = (command[i]);
-                reply[1] += (uint8_t)(command[i]);
-                pageIX++;
+            // for (uint8_t i = 1; i < (RXDATASIZE + 1); i++) {
+                // pageBuffer[pageIX] = (command[i]);
+                // reply[1] += (uint8_t)(command[i]);
+                // pageIX++;
+            // }
+            if ((flashPageAddr + pageIX) == 0) {
+                appResetL = command[0];
+                appResetH = command[1];
+                        // CalculateTrampoline(command[0], command[1]);
+                        // command[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
+                        // command[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
             }
+            for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
+                boot_spm_busy_wait();
+                boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+                reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+                pageIX += 2;
+            }
+            
+            // for (byte i = 0; i < PAGE_SIZE; i += 2) {
+                // word tempWord = ((pageBuffer[i + 1] << 8) | pageBuffer[i]);
+                // boot_spm_busy_wait();
+                // boot_page_fill(pageAddress + i, tempWord);
+            // }
             if (reply[1] != command[RXDATASIZE + 1]) {
                 statusRegister &= ~(1 << ST_APP_READY);         /* Payload received with errors, don't run it !!! */
                 statusRegister |= (1 << ST_DEL_FLASH);          /* Safety payload deletion ... */
@@ -293,7 +325,7 @@ void RequestEvent(void) {
                 uint8_t j = 1;
                 reply[ackLng - 1] = 0;
                 for (uint8_t i = 1; i < command[2] + 1; i++) {
-                    reply[j] = pageBuffer[ix + i - 2];          /* Data bytes in reply */
+                    //reply[j] = pageBuffer[ix + i - 2];          /* Data bytes in reply */
                     reply[ackLng - 1] += reply[j];              /* Checksum accumulator to be the in the reply */
                     j++;
                 }
@@ -355,55 +387,55 @@ void DeleteFlash(void) {
 }
 
 // Function FixResetVector
-void FixResetVector() {
-    pageBuffer[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
-    pageBuffer[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
-}
+// void FixResetVector() {
+    // pageBuffer[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
+    // pageBuffer[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
+// }
 
-// Function FlashPage
-void FlashPage(word pageAddress) {
-    pageAddress &= ~(PAGE_SIZE - 1);                    /* Keep only pages' base addresses */
-    if (pageAddress == RESET_PAGE) {
-        CalculateTrampoline(pageBuffer[0], pageBuffer[1]);
-        FixResetVector();
-    }
-    if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
-        pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;     /* If the application also uses the trampoline */
-        pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;    /* page, we fix again the trampoline bytes ...   */
-    }
-    if (pageAddress >= TIMONEL_START) {
-        return;                     /* Protect the bootloader section */
-    }
-    FlashRaw(pageAddress);
-    if (pageAddress == RESET_PAGE) {
-        CreateTrampoline();
-        flashPageAddr = RESET_PAGE;
-    }
-}
+// // Function FlashPage
+// void FlashPage(word pageAddress) {
+    // pageAddress &= ~(PAGE_SIZE - 1);                    /* Keep only pages' base addresses */
+    // if (pageAddress == RESET_PAGE) {
+        // CalculateTrampoline(pageBuffer[0], pageBuffer[1]);
+        // FixResetVector();
+    // }
+    // if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
+        // pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;     /* If the application also uses the trampoline */
+        // pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;    /* page, we fix again the trampoline bytes ...   */
+    // }
+    // if (pageAddress >= TIMONEL_START) {
+        // return;                     /* Protect the bootloader section */
+    // }
+    // FlashRaw(pageAddress);
+    // if (pageAddress == RESET_PAGE) {
+        // CreateTrampoline();
+        // flashPageAddr = RESET_PAGE;
+    // }
+// }
 
 // Function FlashRaw
-void FlashRaw(word pageAddress) {
-    for (byte i = 0; i < PAGE_SIZE; i += 2) {
-        word tempWord = ((pageBuffer[i + 1] << 8) | pageBuffer[i]);
-        boot_spm_busy_wait();
-        boot_page_fill(pageAddress + i, tempWord);
-    }
-    boot_spm_busy_wait();
-    boot_page_write(pageAddress);
-}
+// void FlashRaw(word pageAddress) {
+    // for (byte i = 0; i < PAGE_SIZE; i += 2) {
+        // word tempWord = ((pageBuffer[i + 1] << 8) | pageBuffer[i]);
+        // boot_spm_busy_wait();
+        // boot_page_fill(pageAddress + i, tempWord);
+    // }
+    // boot_spm_busy_wait();
+    // boot_page_write(pageAddress);
+// }
 
-// Function CreateTrampoline
-void CreateTrampoline(void) {
-    if (flashPageAddr < (TIMONEL_START - PAGE_SIZE)) {
-        flashPageAddr = TIMONEL_START - PAGE_SIZE;
-        for (int i = 0; i < PAGE_SIZE - 2; i++) {
-            pageBuffer[i] = 0xff;
-        }
-        pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;
-        pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;
-        FlashRaw(flashPageAddr);
-    }
-}
+// // Function CreateTrampoline
+// void CreateTrampoline(void) {
+    // if (flashPageAddr < (TIMONEL_START - PAGE_SIZE)) {
+        // flashPageAddr = TIMONEL_START - PAGE_SIZE;
+        // for (int i = 0; i < PAGE_SIZE - 2; i++) {
+            // pageBuffer[i] = 0xff;
+        // }
+        // pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;
+        // pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;
+        // FlashRaw(flashPageAddr);
+    // }
+// }
 
 // Function CalculateTrampoline
 void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte) {
