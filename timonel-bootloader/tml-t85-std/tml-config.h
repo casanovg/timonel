@@ -48,14 +48,14 @@
 #define RXDATASIZE		8		/* RX data size: always even values, min = 2, max = 8 */
 
 // Status byte
-#define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
-#define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */
-#define SR_DEL_FLASH	2		/* Status Bit 3 (4)  : Delete flash  */
-#define SR_APP_READY	3		/* Status Bit 4 (8)  : Application flased OK, ready to run */
-#define SR_EXIT_TML		4		/* Status Bit 5 (16) : Exit Timonel & Run Application */
-#define SR_BIT_6		5		/* Status Bit 6 (32) : Not used */
-#define SR_BIT_7		6		/* Status Bit 7 (64) : Not used */
-#define SR_BIT_8		7		/* Status Bit 8 (128): Not used */
+#define ST_INIT_1		0		/* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
+#define ST_INIT_2		1		/* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
+#define ST_DEL_FLASH	2		/* Status Bit 3 (4)  : Delete flash  */
+#define ST_APP_READY	3		/* Status Bit 4 (8)  : Application flased OK, ready to run */
+#define ST_EXIT_TML		4		/* Status Bit 5 (16) : Exit Timonel & Run Application */
+#define ST_BIT_6		5		/* Status Bit 6 (32) : Not used */
+#define ST_BIT_7		6		/* Status Bit 7 (64) : Not used */
+#define ST_BIT_8		7		/* Status Bit 8 (128): Not used */
 
 // Timonel ID characeters
 #define ID_CHAR_1		78;		/* N */

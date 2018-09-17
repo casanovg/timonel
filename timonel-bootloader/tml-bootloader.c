@@ -95,7 +95,7 @@ int main() {
 	UsiTwiSlaveInit(I2C_ADDR);			/* Initialize I2C */
 	Usi_onReceiverPtr = ReceiveEvent;		/* I2C Receive Event declaration */
 	Usi_onRequestPtr = RequestEvent;		/* I2C Request Event declaration */
-	statusRegister = (1 << SR_APP_READY);		/* In principle, we assume that there is a valid app in memory */
+	statusRegister = (1 << ST_APP_READY);		/* In principle, we assume that there is a valid app in memory */
 	//TCCR1 = 0;	    				/* Set Timer1 off */
 	cli();						/* Disable Interrupts */
 	/*  ___________________
@@ -106,8 +106,8 @@ int main() {
 	
 	for (;;) {
 		// Initialization check
-		if ((statusRegister & ((1 << SR_INIT_1) + (1 << SR_INIT_2))) != \
-		((1 << SR_INIT_1) + (1 << SR_INIT_2))) {
+		if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
+		((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
 			// ============================================
 			// = Blink led until is initialized by master =
 			// ============================================
@@ -127,18 +127,18 @@ int main() {
 				// =======================================
 				// = Exit bootloader and run application =
 				// =======================================
-				if ((statusRegister & ((1 << SR_EXIT_TML) + (1 << SR_APP_READY))) == \
-				((1 << SR_EXIT_TML) + (1 << SR_APP_READY))) {
+				if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
+				((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
 					RunApplication();
 				}
-				if ((statusRegister & ((1 << SR_EXIT_TML) + (1 << SR_APP_READY))) == \
-				(1 << SR_EXIT_TML)) {
+				if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
+				(1 << ST_EXIT_TML)) {
 					DeleteFlash();
 				}
 				// ===========================================================================
 				// = Delete application from flash memory and point reset to this bootloader =
 				// ===========================================================================
-				if ((statusRegister & (1 << SR_DEL_FLASH)) == (1 << SR_DEL_FLASH)) {
+				if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
 #if ENABLE_LED_UI					
 					LED_UI_PORT |= (1 << LED_UI_PIN);	/* Turn led on to indicate erasing ... */
 #endif					
@@ -208,7 +208,7 @@ void RequestEvent(void) {
 			reply[5] = TIMONEL_VER_MNR;			/* Timonel Minor version number */
 			reply[6] = ((TIMONEL_START & 0xFF00) >> 8);	/* Timonel Base Address MSB */
 			reply[7] = (TIMONEL_START & 0xFF);		/* Timonel Base Address LSB */
-			statusRegister |= (1 << SR_INIT_2);		/* Two-step init step 2: receive GETTMNLV command */
+			statusRegister |= (1 << ST_INIT_2);		/* Two-step init step 2: receive GETTMNLV command */
 #if ENABLE_LED_UI				
 			LED_UI_PORT &= ~(1 << LED_UI_PIN);		/* Two-step init: Turn led off to indicate correct initialization */
 #endif			
@@ -227,7 +227,7 @@ void RequestEvent(void) {
 			for (byte i = 0; i < EXITTMNL_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
-			statusRegister |= (1 << SR_EXIT_TML);
+			statusRegister |= (1 << ST_EXIT_TML);
 			break;
 		}
 		// ******************
@@ -240,7 +240,7 @@ void RequestEvent(void) {
 			for (byte i = 0; i < DELFLASH_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
-			statusRegister |= (1 << SR_DEL_FLASH);
+			statusRegister |= (1 << ST_DEL_FLASH);
 			break;
 		}
 #if CMD_STPGADDR		
@@ -272,8 +272,8 @@ void RequestEvent(void) {
 				pageIX++;
 			}
 			if (reply[1] != command[RXDATASIZE + 1]) {
-				statusRegister &= ~(1 << SR_APP_READY);	 /* Payload received with errors, don't run it !!! */
-				statusRegister |= (1 << SR_DEL_FLASH);	 /* Safety payload deletion ... */
+				statusRegister &= ~(1 << ST_APP_READY);	 /* Payload received with errors, don't run it !!! */
+				statusRegister |= (1 << ST_DEL_FLASH);	 /* Safety payload deletion ... */
 			}
 			for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
@@ -315,8 +315,8 @@ void RequestEvent(void) {
 			#define INITTINY_RPLYLN 1
 			byte reply[INITTINY_RPLYLN] = { 0 };
 			reply[0] = opCodeAck;
-			//statusRegister |= (1 << (SR_INIT_1 - 1)) + (1 << (SR_INIT_2 - 1)); /* Single-step init */
-			statusRegister |= (1 << SR_INIT_1);			/* Two-step init step 1: receive INITTINY command */
+			//statusRegister |= (1 << (ST_INIT_1 - 1)) + (1 << (ST_INIT_2 - 1)); /* Single-step init */
+			statusRegister |= (1 << ST_INIT_1);			/* Two-step init step 1: receive INITTINY command */
 			for (byte i = 0; i < INITTINY_RPLYLN; i++) {
 				UsiTwiTransmitByte(reply[i]);
 			}
