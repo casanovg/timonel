@@ -1,7 +1,7 @@
 ###############################################################################
 # Name: Makefile
 # Project: Timonel Updater
-# Based on Micronucleus upgrade
+# Based on Micronucleus project
 ###############################################################################
 # Configure the following variables according to your AVR.
 # Program the device with
