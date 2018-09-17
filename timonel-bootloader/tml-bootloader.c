@@ -28,8 +28,8 @@
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
-#if PAGE_SIZE > 256
-    #error "Timonel only supports pagesizes up to 256 bytes"
+#if (PAGE_SIZE > 64)
+    #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
                                 
 #ifndef F_CPU
