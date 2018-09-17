@@ -1,5 +1,5 @@
 /*
- *  File: tml-config-h
+ *	File: tml-config-h
  *	Project: Timonel - I2C Bootloader for ATtiny85 MCUs
  *	Author: Gustavo Casanova
  *	...........................................
