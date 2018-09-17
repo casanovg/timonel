@@ -82,10 +82,10 @@ void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte);
 
 // Function Main
 int main() {
-	/*  __________________
-	   |                  | 
-	   |   Setup Block    |
-	   |__________________|
+	/*  ___________________
+	   |                   | 
+	   |    Setup Block    |
+	   |___________________|
 	*/
 	DisableWatchDog();				/* Disable watchdog to avoid continuous loop after reset */
 	LED_UI_DDR |= (1 << LED_UI_PIN);		/* Set led pin Data Direction Register for output */
@@ -96,11 +96,12 @@ int main() {
 	statusRegister = (1 << SR_APP_READY);		/* In principle, we assume that there is a valid app in memory */
 	//TCCR1 = 0;	    				/* Set Timer1 off */
 	cli();						/* Disable Interrupts */
-	/*  __________________
-	   |                  | 
-	   |    Main Loop     |
-	   |__________________|
-	*/	
+	/*  ___________________
+	   |                   | 
+	   |     Main Loop     |
+	   |___________________|
+	*/
+	
 	for (;;) {
 		// Initialization check
 		if ((statusRegister & ((1 << SR_INIT_1) + (1 << SR_INIT_2))) != \
