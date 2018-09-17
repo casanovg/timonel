@@ -1,11 +1,13 @@
+#
 # File: Makefile.inc
-# Project: Timonel Bootloader
-# Based on Makefile from micronucleus bootloader by Jenna Fox
-# Adapter by Gustavo Casanova / Nicebots
+# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+# Based on Makefile from micronucleus project
+# .......................................................
+# 2018-08-28 gustavo.casanova@nicebots.com
+# 
 
 # Controller type: ATtiny 85 - 16.5 MHz
 # Configuration:   Standard
-# Last Change:     Aug 28, 2018
 
 F_CPU = 16500000
 MCU = attiny85
