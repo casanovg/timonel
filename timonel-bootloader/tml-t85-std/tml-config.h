@@ -12,13 +12,13 @@
 // Definitions
 #define PAGE_SIZE		64		/* SPM Flash memory page size */
 #define RESET_PAGE		0		/* Interrupt vector table address start location */
-#define MAXBUFFERTXLN	5		/* Maximum page buffer TX size */
 
 #ifndef __AVR_ATtiny85__
 #define __AVR_ATtiny85__
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
+// Optional modules implementation
 #define CMD_READPAGE	false	/* This is used mostly for debugging, it takes ~172 bytes of memory. */
 								/* Change TIMONEL_START in Makefile.inc to 1900 or lower to compile. */
 								
@@ -28,18 +28,26 @@
 #define ENABLE_LED_UI	true	/* If this is enabled, LED_UI_PIN is used to show Timonel status */
 								/* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
 								
+// CPU speed
 #ifndef F_CPU
 #define F_CPU 			8000000UL	/* Default CPU speed for delay.h */
 #endif
 
+// Led UI
 #define LED_UI_PIN		PB1		/* >>> Use PB1 to monitor activity. <<< */
 #define LED_UI_DDR		DDRB	/* >>> WARNING! This is not for use <<< */
 #define LED_UI_PORT		PORTB	/* >>> in production!               <<< */
+
+// Operation delays
 #define TOGGLETIME		0xFFFF	/* LED toggle delay before initialization */
 #define I2CDLYTIME		0x7FFF	/* Main loop times to allow the I2C responses to finish */
-#define RXDATASIZE		8		/* RX data size for WRITBUFF command */
 #define CYCLESTOEXIT	20		/* Main loop cycles before exit to app if not initialized */
 
+// I2C TX-RX commands data size
+#define TXDATASIZE		10		/* TX data size: always even values, min = 2, max = 10 */
+#define RXDATASIZE		8		/* RX data size: always even values, min = 2, max = 8 */
+
+// Status byte
 #define SR_INIT_1		0		/* Status Bit 1 (1)  : Initialized 1 */
 #define SR_INIT_2		1		/* Status Bit 2 (2)  : Initialized 2 */
 #define SR_DEL_FLASH	2		/* Status Bit 3 (4)  : Delete flash  */
@@ -48,5 +56,10 @@
 #define SR_BIT_6		5		/* Status Bit 6 (32) : Not used */
 #define SR_BIT_7		6		/* Status Bit 7 (64) : Not used */
 #define SR_BIT_8		7		/* Status Bit 8 (128): Not used */
+
+// Timonel ID characeters
+#define ID_CHAR_1		78;		/* N */
+#define ID_CHAR_2		66;		/* B */
+#define ID_CHAR_3		84;		/* T */
 
 #endif	/* Close ifndef _TML_CONFIG_H_ */

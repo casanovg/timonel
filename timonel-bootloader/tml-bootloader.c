@@ -201,9 +201,9 @@ void RequestEvent(void) {
 			#define GETTMNLV_RPLYLN 8
 			byte reply[GETTMNLV_RPLYLN] = { 0 };
 			reply[0] = opCodeAck;
-			reply[1] = 78;					/* N */
-			reply[2] = 66;					/* B */
-			reply[3] = 84;					/* T */
+			reply[1] = ID_CHAR_1;					/* N */
+			reply[2] = ID_CHAR_2;					/* B */
+			reply[3] = ID_CHAR_3;					/* T */
 			reply[4] = TIMONEL_VER_MJR;			/* Timonel Major version number	*/
 			reply[5] = TIMONEL_VER_MNR;			/* Timonel Minor version number */
 			reply[6] = ((TIMONEL_START & 0xFF00) >> 8);	/* Timonel Base Address MSB */
@@ -290,7 +290,7 @@ void RequestEvent(void) {
 			uint8_t reply[ackLng];
 			reply[ackLng - 1] = 0;				/* Checksum initialization */
 			reply[0] = opCodeAck;
-			if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= MAXBUFFERTXLN * 2)) {
+			if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= TXDATASIZE)) {
 				uint8_t j = 1;
 				reply[ackLng - 1] = 0;
 				for (uint8_t i = 1; i < command[2] + 1; i++) {
