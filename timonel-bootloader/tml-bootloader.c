@@ -8,7 +8,7 @@
  *	Timonel - I2C Bootloader for ATtiny85 MCUs
  *	Author: Gustavo Casanova
  *	...........................................
- *	Version: 0.8 / 2018-09-16
+ *	Version: 0.81 / 2018-09-17
  *	gustavo.casanova@nicebots.com
  */
 
@@ -22,7 +22,7 @@
 /* This bootloader ... */
 #define I2C_ADDR	0x15		/* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR	0		/* Timonel version major number */
-#define TIMONEL_VER_MNR	8		/* Timonel version major number */
+#define TIMONEL_VER_MNR	81		/* Timonel version major number */
 
 #if TIMONEL_START % PAGE_SIZE != 0
 	#error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -55,10 +55,10 @@ byte commandLength = 0;  		/* Command number of bytes */
 word ledToggleTimer = 0;		/* Pre-init led toggle timer */
 byte statusRegister = 0;		/* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
 word i2cDly = I2CDLYTIME;		/* Delay to allow I2C execution before jumping to application */
-byte exitDly = CYCLESTOEXIT;		/* Delay to exit Timonel and run the application if not initialized */
+byte exitDly = CYCLESTOEXIT;	/* Delay to exit Timonel and run the application if not initialized */
 byte pageBuffer[PAGE_SIZE];		/* Flash memory page buffer */
-word flashPageAddr = 0x0000;		/* Flash memory page address */
-byte pageIX = 0;			/* Flash memory page index */
+word flashPageAddr = 0x0000;	/* Flash memory page address */
+byte pageIX = 0;				/* Flash memory page index */
 byte tplJumpLowByte = 0;		/* Trampoline jump address LSB */
 byte tplJumpHighByte = 0;		/* Trampoline jump address MSB */
 
@@ -363,14 +363,14 @@ void FixResetVector() {
 
 // Function FlashPage
 void FlashPage(word pageAddress) {
-	pageAddress &= ~(PAGE_SIZE - 1);		/* Keep only pages' base addresses */
+	pageAddress &= ~(PAGE_SIZE - 1);					/* Keep only pages' base addresses */
 	if (pageAddress == RESET_PAGE) {
 		CalculateTrampoline(pageBuffer[0], pageBuffer[1]);
 		FixResetVector();
 	}
 	if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
-    	pageBuffer[62] = tplJumpLowByte;		/* If the application also uses the trampoline */
-		pageBuffer[63] = tplJumpHighByte;	/* page, we fix again the trampoline bytes ...   */
+    	pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;		/* If the application also uses the trampoline */
+		pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;	/* page, we fix again the trampoline bytes ...   */
 	}
 	if (pageAddress >= TIMONEL_START) {
     	return;						/* Protect the bootloader section */
@@ -400,8 +400,8 @@ void CreateTrampoline(void) {
 		for (int i = 0; i < PAGE_SIZE - 2; i++) {
 			pageBuffer[i] = 0xff;
 		}
-		pageBuffer[62] = tplJumpLowByte;
-		pageBuffer[63] = tplJumpHighByte;
+		pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;
+		pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;
 		FlashRaw(flashPageAddr);
 	}
 }
