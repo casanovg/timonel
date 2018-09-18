@@ -20,9 +20,9 @@
 #include "nb-i2c-cmd.h"
 
 /* This bootloader ... */
-#define I2C_ADDR    0x15                    /* Timonel I2C Address: 0x15 = 21 */
+#define I2C_ADDR        0x15                /* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR 0                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 81                  /* Timonel version major number */
+#define TIMONEL_VER_MNR 85                  /* Timonel version major number */
 
 #if TIMONEL_START % PAGE_SIZE != 0
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -56,7 +56,7 @@ word ledToggleTimer = 0;                    /* Pre-init led toggle timer */
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
 word i2cDly = I2CDLYTIME;                   /* Delay to allow I2C execution before jumping to application */
 byte exitDly = CYCLESTOEXIT;                /* Delay to exit Timonel and run the application if not initialized */
-//byte pageBuffer[PAGE_SIZE];                 /* Flash memory page buffer */
+//byte pageBuffer[PAGE_SIZE];               /* Flash memory page buffer */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 byte tplJumpLowByte = 0;                    /* Trampoline jump address LSB */
@@ -153,17 +153,20 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-                    //FlashPage(flashPageAddr);
-                    
-                    if ((flashPageAddr + pageIX) == 0) {
+                    if ((flashPageAddr) == RESET_PAGE) {
                         CalculateTrampoline(appResetL, appResetH);
-                        boot_page_fill(0, ((0xC000 + (TIMONEL_START / 2) - 1) >> 8) + ((0xC000 + (TIMONEL_START / 2) - 1) & 0xff));
-                        // command[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
-                        // command[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
+                        //boot_page_fill(RESET_PAGE, ((0xC000 + (TIMONEL_START / 2) - 1) >> 8) + ((0xC000 + (TIMONEL_START / 2) - 1) & 0xff));
+                        //boot_page_fill(RESET_PAGE, (0xC000 + (TIMONEL_START / 2) - 1));
+                        boot_page_fill(0, 0xABCD);
+                        //CreateTrampoline();
                     }                    
                     
                     boot_spm_busy_wait();
                     boot_page_write(flashPageAddr);
+                    
+                    if ((flashPageAddr) == RESET_PAGE) {
+                        CreateTrampoline();
+                    }
                     
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
@@ -284,11 +287,11 @@ void RequestEvent(void) {
                 // pageIX++;
             // }
             if ((flashPageAddr + pageIX) == 0) {
-                appResetL = command[0];
-                appResetH = command[1];
-                        // CalculateTrampoline(command[0], command[1]);
-                        // command[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
-                        // command[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
+                appResetH = command[0];
+                appResetL = command[1];
+                // CalculateTrampoline(command[0], command[1]);
+                // command[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
+                // command[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
             }
             for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
                 boot_spm_busy_wait();
@@ -311,34 +314,6 @@ void RequestEvent(void) {
             }
             break;
         }
-#if CMD_READPAGE
-        // ******************
-        // * READPAGE Reply *
-        // ******************
-        case READPAGE: {
-            uint8_t ix = command[1];                            /* Second byte received determines start of reply data */
-            const uint8_t ackLng = (command[2] + 2);            /* Third byte received determines the size of reply data */
-            uint8_t reply[ackLng];
-            reply[ackLng - 1] = 0;                              /* Checksum initialization */
-            reply[0] = opCodeAck;
-            if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= TXDATASIZE)) {
-                uint8_t j = 1;
-                reply[ackLng - 1] = 0;
-                for (uint8_t i = 1; i < command[2] + 1; i++) {
-                    //reply[j] = pageBuffer[ix + i - 2];          /* Data bytes in reply */
-                    reply[ackLng - 1] += reply[j];              /* Checksum accumulator to be the in the reply */
-                    j++;
-                }
-                for (uint8_t i = 0; i < ackLng; i++) {
-                    UsiTwiTransmitByte(reply[i]);
-                }
-            }
-            else {
-                UsiTwiTransmitByte(UNKNOWNC);                   /* Incorrect command received */
-            }
-            break;
-        }
-#endif
         // ******************
         // * INITTINY Reply *
         // ******************
@@ -386,61 +361,33 @@ void DeleteFlash(void) {
     flashPageAddr = pageAddress;
 }
 
-// Function FixResetVector
-// void FixResetVector() {
-    // pageBuffer[0] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) & 0xff);
-    // pageBuffer[1] = (byte)((0xC000 + (TIMONEL_START / 2) - 1) >> 8);
-// }
-
-// // Function FlashPage
-// void FlashPage(word pageAddress) {
-    // pageAddress &= ~(PAGE_SIZE - 1);                    /* Keep only pages' base addresses */
-    // if (pageAddress == RESET_PAGE) {
-        // CalculateTrampoline(pageBuffer[0], pageBuffer[1]);
-        // FixResetVector();
-    // }
-    // if (pageAddress == (TIMONEL_START - PAGE_SIZE)) {
-        // pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;     /* If the application also uses the trampoline */
-        // pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;    /* page, we fix again the trampoline bytes ...   */
-    // }
-    // if (pageAddress >= TIMONEL_START) {
-        // return;                     /* Protect the bootloader section */
-    // }
-    // FlashRaw(pageAddress);
-    // if (pageAddress == RESET_PAGE) {
-        // CreateTrampoline();
-        // flashPageAddr = RESET_PAGE;
-    // }
-// }
-
-// Function FlashRaw
-// void FlashRaw(word pageAddress) {
-    // for (byte i = 0; i < PAGE_SIZE; i += 2) {
-        // word tempWord = ((pageBuffer[i + 1] << 8) | pageBuffer[i]);
-        // boot_spm_busy_wait();
-        // boot_page_fill(pageAddress + i, tempWord);
-    // }
-    // boot_spm_busy_wait();
-    // boot_page_write(pageAddress);
-// }
-
-// // Function CreateTrampoline
-// void CreateTrampoline(void) {
-    // if (flashPageAddr < (TIMONEL_START - PAGE_SIZE)) {
-        // flashPageAddr = TIMONEL_START - PAGE_SIZE;
-        // for (int i = 0; i < PAGE_SIZE - 2; i++) {
-            // pageBuffer[i] = 0xff;
-        // }
-        // pageBuffer[PAGE_SIZE - 2] = tplJumpLowByte;
-        // pageBuffer[PAGE_SIZE - 1] = tplJumpHighByte;
-        // FlashRaw(flashPageAddr);
-    // }
-// }
-
 // Function CalculateTrampoline
 void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte) {
     word jumpOffset = (~(TIMONEL_START - (((((applJumpHighByte << 8) + applJumpLowByte) + 1) & 0x0FFF) << 1)) >> 1);
     jumpOffset++;
     tplJumpLowByte = (jumpOffset & 0xFF);
     tplJumpHighByte = (((jumpOffset & 0xF00) >> 8) + 0xC0);
+}
+
+// // Function CreateTrampoline
+// void CreateTrampoline(void) {
+    // word address = (TIMONEL_START - PAGE_SIZE);
+    // for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+        // boot_spm_busy_wait();
+        // boot_page_fill(address + i, 0xffff);
+    // }
+    // boot_page_fill((TIMONEL_START - 2), ((tplJumpHighByte << 8) + tplJumpLowByte));
+    // boot_spm_busy_wait();
+    // boot_page_write(address);
+// }
+
+void CreateTrampoline(void) {
+    word address = (TIMONEL_START - PAGE_SIZE);
+    for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+        boot_spm_busy_wait();
+        boot_page_fill(address + i, 0xffff);
+    }
+    boot_page_fill((TIMONEL_START - 2), 0xBADC);
+    boot_spm_busy_wait();
+    boot_page_write(address);
 }
