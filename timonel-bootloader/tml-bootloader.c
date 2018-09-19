@@ -158,7 +158,13 @@ int main() {
                     word jumpOffset = ((appResetMSB << 8) | appResetLSB);
                     if ((flashPageAddr) == RESET_PAGE) {
                         jumpOffset = (((~((TIMONEL_START >> 1) - ((jumpOffset + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        //boot_page_fill(RESET_PAGE, (word)(0xC000 + ((TIMONEL_START / 2) - 1)));
+                        //boot_page_fill(RESET_PAGE, 0xDDDD);
                     }
+                    // Find a different solution for this, a page buffer position can be written only once!
+                    // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
+                        // boot_page_fill((TIMONEL_START - 2), jumpOffset);
+                    // }                    
                     boot_page_write(flashPageAddr);
                     if ((flashPageAddr) == RESET_PAGE) {
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -167,9 +173,6 @@ int main() {
                         boot_page_fill((TIMONEL_START - 2), jumpOffset);
                         //boot_spm_busy_wait();
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
-                    }
-                    if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
-                        boot_page_fill((TIMONEL_START - 2), jumpOffset);
                     }
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
@@ -287,7 +290,8 @@ void RequestEvent(void) {
             if ((flashPageAddr + pageIX) == 0) {
                 appResetLSB = command[1];
                 appResetMSB = command[2];
-                boot_page_fill(RESET_PAGE, (word)(0xC000 + ((TIMONEL_START / 2) - 1)));
+                command[1] = 0xBB;
+                command[2] = 0xAA;
             }
             for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
                     boot_spm_busy_wait();
