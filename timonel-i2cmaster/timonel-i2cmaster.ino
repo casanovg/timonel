@@ -757,6 +757,9 @@ void GetTimonelVersion(void) {
 		Serial.print(" >>> Base address: 0x");
 		Serial.print(timonelStart, HEX);
 		Serial.println(" <<<");
+		//
+		//ShowTrampoline();
+		//
 	}
 	else {
 		Serial.print("[Timonel] - Error parsing ");
@@ -982,4 +985,22 @@ void ShowMenu(void) {
 	else {
 		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'b' set address, 'w' write flash, 'q' read flash): ");
 	}
+}
+
+void ShowTrampoline(void) {
+#define TIMONEL_START 0x1A40
+#define LSB 0x0E
+#define MSB	0xC0
+	Serial.print("\nTIMONEL START = 0x");
+	Serial.println(TIMONEL_START, HEX);
+	Serial.print("LSB = 0x");
+	Serial.print(LSB, HEX);
+	Serial.print(" ||| MSB = 0x");
+	Serial.println(MSB, HEX);
+	word jumpOffset = ((MSB << 8) | LSB);
+	Serial.print("QQ = 0x");
+	Serial.println(jumpOffset, HEX);
+	jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+	Serial.print("JUMP ADDRESS = 0x");
+	Serial.println(jumpOffset, HEX);
 }
