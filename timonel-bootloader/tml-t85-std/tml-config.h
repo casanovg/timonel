@@ -50,7 +50,7 @@
 #define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory */
 #define ST_APP_READY    3       /* Status Bit 4 (8)  : Application flased OK, ready to run */
 #define ST_EXIT_TML     4       /* Status Bit 5 (16) : Exit Timonel & Run Application */
-#define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
+#define ST_BIT_6        5       /* Status Bit 6 (32) : Not used --- (RTR) Ready to Receive ---*/
 #define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
 #define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
 
