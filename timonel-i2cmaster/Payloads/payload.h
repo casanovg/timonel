@@ -1,6 +1,6 @@
 // This file contains a new Timonel bootloader version and the Updater
 // code in C header format to include into the I2C master source code.
-// Please verify that the I2C master have this line:
+// Please verify that the I2C master source have this line:
 //
 // #include "payload.h".
 //
