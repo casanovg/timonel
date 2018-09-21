@@ -151,6 +151,18 @@ int main() {
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
+                
+                if ((pageIX == RXDATASIZE) & (flashPageAddr == RESET_PAGE)) {
+                    SPMCSR |= (1 << CTPB);              /* Clear temporary buffer */
+                    SPMCSR &= ~(1 << CTPB);              /* Clear temporary buffer */
+                    boot_spm_busy_wait();
+                    //boot_page_fill(RESET_PAGE, ((command[2] << 8) | command[1]));
+                    boot_page_fill(RESET_PAGE, 0xAABB);
+                    boot_spm_busy_wait();
+                    boot_page_fill(RESET_PAGE + 1, ((command[4] << 8) | command[3]));
+                }
+                
+                
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
@@ -166,7 +178,7 @@ int main() {
                         // boot_page_fill((TIMONEL_START - 2), jumpOffset);
                     // }                    
                     boot_page_write(flashPageAddr);
-                    if ((flashPageAddr) == RESET_PAGE) {
+                    if ((flashPageAddr) == RESET_PAGE) {    /* Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
                         }
@@ -290,11 +302,9 @@ void RequestEvent(void) {
             if ((flashPageAddr + pageIX) == 0) {
                 appResetLSB = command[1];
                 appResetMSB = command[2];
-                //command[1] = 0xBB;
-                //command[2] = 0xAA;
             }
             for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
-                    boot_spm_busy_wait();
+                    //boot_spm_busy_wait();
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (uint8_t)((command[i + 1]) + command[i]);   /* Reply checksum accumulator */
                     pageIX += 2;
