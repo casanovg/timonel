@@ -37,7 +37,7 @@
 #endif
 
 #if (RXDATASIZE > 8)
-	#pragma GCC warning "Do not set transmission data too high to avoid hurting I2C reliability!"
+	#pragma GCC warning "Do not set transmission data size too high to avoid hurting I2C reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 20))
