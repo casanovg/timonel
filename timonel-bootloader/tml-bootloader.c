@@ -152,6 +152,7 @@ int main() {
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
                 
+                //if ((flashPageAddr + pageIX) == RXDATASIZE) {
                 if ((pageIX == RXDATASIZE) & (flashPageAddr == RESET_PAGE)) {
                     SPMCSR |= (1 << CTPB);              /* Clear temporary buffer */
                     SPMCSR &= ~(1 << CTPB);              /* Clear temporary buffer */
