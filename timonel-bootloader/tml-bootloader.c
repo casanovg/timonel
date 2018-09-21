@@ -159,9 +159,9 @@ int main() {
                     //boot_page_fill(RESET_PAGE, ((command[2] << 8) | command[1]));
                     boot_page_fill(RESET_PAGE, 0xAABB);
                     boot_spm_busy_wait();
-                    boot_page_fill(RESET_PAGE + 1, ((command[4] << 8) | command[3]));
+                    //boot_page_fill(RESET_PAGE + 2, ((command[4] << 8) | command[3]));
+                    boot_page_fill(RESET_PAGE + 2, 0xCCDD);
                 }
-                
                 
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #if ENABLE_LED_UI                   
