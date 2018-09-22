@@ -156,22 +156,6 @@ int main() {
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
-<<<<<<< HEAD
-=======
-                
-                //if ((flashPageAddr + pageIX) == RXDATASIZE) {
-                if ((pageIX == RXDATASIZE) & (flashPageAddr == RESET_PAGE)) {
-                    SPMCSR |= (1 << CTPB);              /* Clear temporary buffer */
-                    SPMCSR &= ~(1 << CTPB);              /* Clear temporary buffer */
-                    boot_spm_busy_wait();
-                    //boot_page_fill(RESET_PAGE, ((command[2] << 8) | command[1]));
-                    boot_page_fill(RESET_PAGE, 0xAABB);
-                    boot_spm_busy_wait();
-                    //boot_page_fill(RESET_PAGE + 2, ((command[4] << 8) | command[3]));
-                    boot_page_fill(RESET_PAGE + 2, 0xCCDD);
-                }
-                
->>>>>>> d02f6aa30a2a529d2c90a882accd29a17fd69dc4
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
