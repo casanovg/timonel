@@ -76,6 +76,13 @@ void FlashRaw(word pageAddress);
 void FlashPage(word pageAddress);
 void CreateTrampoline(void);
 void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte);
+// void __jumpMain (void) __attribute__ ((naked)) __attribute__ ((section (".init9")));
+
+// void __jumpMain(void) {   
+    // asm volatile ( ".set __stack, %0" :: "i" (RAMEND) );
+    // asm volatile ( "clr __zero_reg__" );    /* r1 set to 0 */
+    // asm volatile ( "rjmp main");            /*  Jump to main() */   
+// }
 
 // Function Main
 int main() {
@@ -84,22 +91,22 @@ int main() {
        |    Setup Block    |
        |___________________|
     */
-    //DisableWatchDog();                      /* Disable watchdog to avoid continuous loop after reset */
+    //DisableWatchDog();                    /* Disable watchdog to avoid continuous loop after reset */
     MCUSR = 0;
     WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));    
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
+    cli();                                  /* Clear Interrupts */
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin Data Direction Register for output */
 #endif
     //SetCPUSpeed8MHz();                    /* Set the CPU prescaler for 8 MHz */
-    cli();                          
     CLKPR = (1 << CLKPCE);          
     CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event declaration */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event declaration */
     statusRegister = (1 << ST_APP_READY);   /* In principle, we assume that there is a valid app in memory */
-    cli();                                  /* Disable Interrupts */
+    //cli();                                  /* Disable Interrupts */
     /*  ___________________
        |                   | 
        |     Main Loop     |
