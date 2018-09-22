@@ -300,9 +300,9 @@ void RequestEvent(void) {
             }
             else {
                 for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
-                        boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                        reply[1] += (uint8_t)((command[i + 1]) + command[i]);
-                        pageIX += 2;
+                    boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+                    pageIX += 2;
                 }
             }
             if (reply[1] != command[RXDATASIZE + 1]) {
