@@ -37,7 +37,7 @@
 #endif
 
 #if (RXDATASIZE > 8)
-    #pragma GCC warning "Do not set transmission data too high to avoid hurting I2C reliability!"
+    #pragma GCC warning "Do not set transmission data size too high to avoid hurting I2C reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 20))
@@ -56,26 +56,19 @@ word ledToggleTimer = 0;                    /* Pre-init led toggle timer */
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
 word i2cDly = I2CDLYTIME;                   /* Delay to allow I2C execution before jumping to application */
 byte exitDly = CYCLESTOEXIT;                /* Delay to exit Timonel and run the application if not initialized */
-//byte pageBuffer[PAGE_SIZE];               /* Flash memory page buffer */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
-byte tplJumpLowByte = 0;                    /* Trampoline jump address LSB */
-byte tplJumpHighByte = 0;                   /* Trampoline jump address MSB */
 
 byte appResetLSB = 0;
 byte appResetMSB = 0;
-
-//word jumpOffset = 0;
 
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
 
 // Function prototypes
-void SetCPUSpeed8MHz(void);
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
 void Reset(void);
-void DisableWatchDog(void);
 void DeleteFlash(void);
 void ClearPageBuffer();
 void FixResetVector();
@@ -91,11 +84,17 @@ int main() {
        |    Setup Block    |
        |___________________|
     */
-    DisableWatchDog();                      /* Disable watchdog to avoid continuous loop after reset */
+    //DisableWatchDog();                      /* Disable watchdog to avoid continuous loop after reset */
+    MCUSR = 0;
+    WDTCR = ((1 << WDCE) | (1 << WDE));
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));    
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin Data Direction Register for output */
 #endif
-    SetCPUSpeed8MHz();                      /* Set the CPU prescaler for 8 MHz */
+    //SetCPUSpeed8MHz();                    /* Set the CPU prescaler for 8 MHz */
+    cli();                          
+    CLKPR = (1 << CLKPCE);          
+    CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event declaration */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event declaration */
@@ -136,54 +135,42 @@ int main() {
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 (1 << ST_EXIT_TML)) {
-                    DeleteFlash();
+                    // Delete Flash
+                    statusRegister |= (1 << ST_DEL_FLASH);
                 }
-                // ===========================================================================
-                // = Delete application from flash memory and point reset to this bootloader =
-                // ===========================================================================
+                // ========================================
+                // = Delete application from flash memory =
+                // ========================================
                 if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);   /* Turn led on to indicate erasing ... */
 #endif                  
-                    DeleteFlash();
+                    // Delete Flash
+                    word pageAddress = TIMONEL_START;
+                    while (pageAddress != RESET_PAGE) {
+                        pageAddress -= PAGE_SIZE;
+                        boot_page_erase(pageAddress);
+                    }
                     RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
-                
-                if ((pageIX == RXDATASIZE) & (flashPageAddr == RESET_PAGE)) {
-                    SPMCSR |= (1 << CTPB);              /* Clear temporary buffer */
-                    SPMCSR &= ~(1 << CTPB);              /* Clear temporary buffer */
-                    boot_spm_busy_wait();
-                    //boot_page_fill(RESET_PAGE, ((command[2] << 8) | command[1]));
-                    boot_page_fill(RESET_PAGE, 0xAABB);
-                    boot_spm_busy_wait();
-                    //boot_page_fill(RESET_PAGE + 2, ((command[4] << 8) | command[3]));
-                    boot_page_fill(RESET_PAGE + 2, 0xCCDD);
-                }
-                
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-                    word jumpOffset = ((appResetMSB << 8) | appResetLSB);
-                    if ((flashPageAddr) == RESET_PAGE) {
-                        jumpOffset = (((~((TIMONEL_START >> 1) - ((jumpOffset + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-                        //boot_page_fill(RESET_PAGE, (word)(0xC000 + ((TIMONEL_START / 2) - 1)));
-                        //boot_page_fill(RESET_PAGE, 0xDDDD);
-                    }
                     // Find a different solution, a page buffer position can be written only once
                     // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
                         // boot_page_fill((TIMONEL_START - 2), jumpOffset);
                     // }                    
+                    boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
-                    if ((flashPageAddr) == RESET_PAGE) {    /* Write Trampoline */
+                    if (flashPageAddr == RESET_PAGE) {    /* Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
                         }
-                        boot_page_fill((TIMONEL_START - 2), jumpOffset);
-                        //boot_spm_busy_wait();
+                        boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
                     flashPageAddr += PAGE_SIZE;
@@ -299,15 +286,24 @@ void RequestEvent(void) {
             #define WRITPAGE_RPLYLN 2
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
-            if ((flashPageAddr + pageIX) == 0) {
+            if ((flashPageAddr + pageIX) == RESET_PAGE) {
                 appResetLSB = command[1];
                 appResetMSB = command[2];
-            }
-            for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
-                    //boot_spm_busy_wait();
+                boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
+                reply[1] += (uint8_t)((command[2]) + command[1]);       /* Reply checksum accumulator */
+                pageIX += 2;
+                for (uint8_t i = 3; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);   /* Reply checksum accumulator */
+                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     pageIX += 2;
+                }                
+            }
+            else {
+                for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
+                        boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+                        reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+                        pageIX += 2;
+                }
             }
             if (reply[1] != command[RXDATASIZE + 1]) {
                 statusRegister &= ~(1 << ST_APP_READY);                 /* Payload received with errors, don't run it !!! */
@@ -341,26 +337,3 @@ void RequestEvent(void) {
     }
 }
 
-// Function DisableWatchDog
-void DisableWatchDog(void) {
-    MCUSR = 0;
-    WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
-}
-
-// Function SetCPUSpeed8MHz
-void SetCPUSpeed8MHz(void) {
-    cli();                          
-    CLKPR = (1 << CLKPCE);          
-    CLKPR = (0x00);                 
-}
-
-// Function DeleteFlash
-void DeleteFlash(void) {
-    word pageAddress = TIMONEL_START;
-    while (pageAddress != RESET_PAGE) {
-        pageAddress -= PAGE_SIZE;
-        boot_page_erase(pageAddress);
-    }
-    flashPageAddr = pageAddress;
-}
