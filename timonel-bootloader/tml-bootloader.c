@@ -24,7 +24,7 @@
 #define TIMONEL_VER_MJR 0                   /* Timonel version major number */
 #define TIMONEL_VER_MNR 85                  /* Timonel version major number */
 
-#if TIMONEL_START % PAGE_SIZE != 0
+#if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
