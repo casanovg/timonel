@@ -741,22 +741,28 @@ void GetTimonelVersion(void) {
 		ackRX[i] = Wire.read();
 	}
 	if (ackRX[0] == ACKTMNLV) {
-		timonelStart = (ackRX[6] << 8) + ackRX[7];
+		//timonelStart = (ackRX[6] << 8) + ackRX[7];
+		timonelStart = (ackRX[4] << 8) + ackRX[5];
 		Serial.print("[Timonel] - Command ");
 		Serial.print(cmdTX[0]);
 		Serial.print(" parsed OK <<< ");
 		Serial.println(ackRX[0]);
-		Serial.print(">>> ");
+		Serial.print("[ ");
 		Serial.print((char)ackRX[1]);
-		Serial.print((char)ackRX[2]);
-		Serial.print((char)ackRX[3]);
-		Serial.print(" <<< Version: ");
-		Serial.print(ackRX[4]);
+		//Serial.print((char)ackRX[2]);
+		//Serial.print((char)ackRX[3]);
+		Serial.print(" ] Version: ");
+		//Serial.print(ackRX[4]);
+		Serial.print(ackRX[2]);
 		Serial.print(".");
-		Serial.print(ackRX[5]);
-		Serial.print(" >>> Base address: 0x");
+		//Serial.print(ackRX[5]);
+		Serial.print(ackRX[3]);
+		Serial.print(" [ Base address: 0x");
 		Serial.print(timonelStart, HEX);
-		Serial.println(" <<<");
+		Serial.print(" ] [ App Jump: ");
+		Serial.print(ackRX[6], HEX);
+		Serial.print(ackRX[7], HEX);
+		Serial.println(" ]");
 		//
 		//ShowTrampoline();
 		//

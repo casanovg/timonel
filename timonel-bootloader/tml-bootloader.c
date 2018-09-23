@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 0.85 / 2018-09-17
+ *  Version: 0.86 / 2018-09-22
  *  gustavo.casanova@nicebots.com
  */
 
@@ -22,7 +22,7 @@
 /* This bootloader ... */
 #define I2C_ADDR        0x15                /* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR 0                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 85                  /* Timonel version major number */
+#define TIMONEL_VER_MNR 86                  /* Timonel version major number */
 
 #if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -69,13 +69,6 @@ fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
 void Reset(void);
-void DeleteFlash(void);
-void ClearPageBuffer();
-void FixResetVector();
-void FlashRaw(word pageAddress);
-void FlashPage(word pageAddress);
-void CreateTrampoline(void);
-void CalculateTrampoline(byte applJumpLowByte, byte applJumpHighByte);
 // void __jumpMain (void) __attribute__ ((naked)) __attribute__ ((section (".init9")));
 
 // void __jumpMain(void) {   
@@ -170,8 +163,10 @@ int main() {
                     // Find a different solution, a page buffer position can be written only once
                     // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
                         // boot_page_fill((TIMONEL_START - 2), jumpOffset);
-                    // }                    
+                    // }
+                    boot_spm_busy_wait();
                     boot_page_erase(flashPageAddr);
+                    boot_spm_busy_wait();
                     boot_page_write(flashPageAddr);
                     if (flashPageAddr == RESET_PAGE) {    /* Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -220,6 +215,10 @@ void ReceiveEvent(byte commandBytes) {
 // I2C Request Event
 void RequestEvent(void) {
     byte opCodeAck = ~command[0];                       /* Command Operation Code reply => Command Bitwise "Not" */
+    const __flash unsigned char * addrl;
+    const __flash unsigned char * addrh;
+    addrl = (void *)(TIMONEL_START - 2);
+    addrh = (void *)(TIMONEL_START - 1);
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -228,13 +227,16 @@ void RequestEvent(void) {
             #define GETTMNLV_RPLYLN 8
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
-            reply[1] = ID_CHAR_1;                       /* N */
-            reply[2] = ID_CHAR_2;                       /* B */
-            reply[3] = ID_CHAR_3;                       /* T */
-            reply[4] = TIMONEL_VER_MJR;                 /* Timonel Major version number */
-            reply[5] = TIMONEL_VER_MNR;                 /* Timonel Minor version number */
-            reply[6] = ((TIMONEL_START & 0xFF00) >> 8); /* Timonel Base Address MSB */
-            reply[7] = (TIMONEL_START & 0xFF);          /* Timonel Base Address LSB */
+            // reply[1] = ID_CHAR_1;                       /* N */
+            // reply[2] = ID_CHAR_2;                       /* B */
+            // reply[3] = ID_CHAR_3;                       /* T */
+            reply[1] = ID_CHAR_3;                       /* T */            
+            reply[2] = TIMONEL_VER_MJR;                 /* Timonel Major version number */
+            reply[3] = TIMONEL_VER_MNR;                 /* Timonel Minor version number */
+            reply[4] = ((TIMONEL_START & 0xFF00) >> 8); /* Timonel Base Address MSB */
+            reply[5] = (TIMONEL_START & 0xFF);          /* Timonel Base Address LSB */
+            reply[6] = (*addrl & 0xFF);
+            reply[7] = (*addrh & 0xFF);
             statusRegister |= (1 << ST_INIT_2);         /* Two-step init step 2: receive GETTMNLV command */
 #if ENABLE_LED_UI               
             LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Two-step init: Turn led off to indicate correct initialization */
