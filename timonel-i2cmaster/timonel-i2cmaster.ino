@@ -192,6 +192,7 @@ void loop() {
 		case 'w': case 'W': {
 			//Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
 			WriteFlash();
+			GetTimonelVersion();
 			//WriteFlashTest();
 			//FlashTrampoline();
 			break;
@@ -743,6 +744,7 @@ void GetTimonelVersion(void) {
 	if (ackRX[0] == ACKTMNLV) {
 		//timonelStart = (ackRX[6] << 8) + ackRX[7];
 		timonelStart = (ackRX[4] << 8) + ackRX[5];
+		word trampolineJump = (ackRX[4] << 7) + ackRX[6];
 		Serial.print("[Timonel] - Command ");
 		Serial.print(cmdTX[0]);
 		Serial.print(" parsed OK <<< ");
@@ -760,8 +762,8 @@ void GetTimonelVersion(void) {
 		Serial.print(" [ Base address: 0x");
 		Serial.print(timonelStart, HEX);
 		Serial.print(" ] [ App Jump: ");
-		Serial.print(ackRX[6], HEX);
 		Serial.print(ackRX[7], HEX);
+		Serial.print(ackRX[6], HEX);
 		Serial.println(" ]");
 		//
 		//ShowTrampoline();
