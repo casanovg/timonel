@@ -227,9 +227,6 @@ void RequestEvent(void) {
             #define GETTMNLV_RPLYLN 8
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
-            // reply[1] = ID_CHAR_1;                       /* N */
-            // reply[2] = ID_CHAR_2;                       /* B */
-            // reply[3] = ID_CHAR_3;                       /* T */
             reply[1] = ID_CHAR_3;                       /* T */            
             reply[2] = TIMONEL_VER_MJR;                 /* Timonel Major version number */
             reply[3] = TIMONEL_VER_MNR;                 /* Timonel Minor version number */
