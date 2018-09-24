@@ -45,7 +45,9 @@ bool newByte = false;
 bool newWord = false;
 bool appMode = true;
 char key = '\0';
-word flashPageAddr = 0xFFFF;	/* Current flash  page address to be written. Tiny85 allowed values are 0 to 0x2000, so 0xFFFF means 'not set' */
+bool memoryLoaded = false;
+//word flashPageAddr = 0xFFFF;	/* Current flash  page address to be written. Tiny85 allowed values are 0 to 0x2000, so 0xFFFF means 'not set' */
+word flashPageAddr = 0x0;
 word timonelStart = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set'. Use Timonel 'version' command to get it */
 
 //
@@ -191,8 +193,37 @@ void loop() {
 		// ********************************
 		case 'w': case 'W': {
 			//Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
-			WriteFlash();
-			GetTimonelVersion();
+			const byte retryCount = 3;
+			int retry = 0;
+			int err = 0;
+			while (retry++ < retryCount) {
+				Serial.println("%%%%%%%%%%%%");
+				Serial.print("%% Attempt ");
+				Serial.println(retry);
+				Serial.println("%%%%%%%%%%%%");
+				err = WriteFlash();
+				GetTimonelVersion();
+				if ((err == 0) && (memoryLoaded == true)) {
+					retry = retryCount;
+				}
+				else {
+					err = 0;
+					flashPageAddr = 0;
+					GetTimonelVersion();
+					delay(2000);
+					DeleteFlash();
+					TwoStepInit(1250);
+					delay(2000);
+					DeleteFlash();
+					TwoStepInit(1250);
+					delay(2000);
+					DeleteFlash();
+					TwoStepInit(1250);
+					GetTimonelVersion();
+					Serial.println("");
+					delay(1000);
+				}
+			}
 			//WriteFlashTest();
 			//FlashTrampoline();
 			break;
@@ -651,7 +682,6 @@ int WritePageBuff(uint8_t dataArray[]) {
 				exit(commErrors);
 			}
 		}
-
 	}
 	else {
 		Serial.print("[Timonel] - Error parsing ");
@@ -736,15 +766,16 @@ void GetTimonelVersion(void) {
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
-	blockRXSize = Wire.requestFrom(slaveAddress, (byte)8);
-	byte ackRX[8] = { 0 };   // Data received from slave
+	blockRXSize = Wire.requestFrom(slaveAddress, (byte)9);
+	byte ackRX[9] = { 0 };   // Data received from slave
 	for (int i = 0; i < blockRXSize; i++) {
 		ackRX[i] = Wire.read();
 	}
 	if (ackRX[0] == ACKTMNLV) {
 		//timonelStart = (ackRX[6] << 8) + ackRX[7];
 		timonelStart = (ackRX[4] << 8) + ackRX[5];
-		word trampolineJump = (ackRX[4] << 7) + ackRX[6];
+		word trampolineJump = (~(((ackRX[6] << 8) | ackRX[7]) & 0xFFF));
+		trampolineJump = ((((timonelStart >> 1) - ++trampolineJump) & 0xFFF) << 1);
 		Serial.print("[Timonel] - Command ");
 		Serial.print(cmdTX[0]);
 		Serial.print(" parsed OK <<< ");
@@ -764,10 +795,23 @@ void GetTimonelVersion(void) {
 		Serial.print(" ] [ App Jump: ");
 		Serial.print(ackRX[7], HEX);
 		Serial.print(ackRX[6], HEX);
-		Serial.println(" ]");
-		//
-		//ShowTrampoline();
-		//
+		if ((ackRX[7] == 0xFF) && (ackRX[6] == 0xFF)) {
+			Serial.print(" (Not Set");
+		}
+		else {
+			Serial.print(" (0x");
+			Serial.print(trampolineJump, HEX);
+		}
+		Serial.print(") ]");
+		if (ackRX[8] == 0) {
+			Serial.print(" [ Flash Memory Clear ]");
+			memoryLoaded = false;
+		}
+		else {
+			Serial.print(" [ Flash Memory Loaded ]");
+			memoryLoaded = true;
+		}
+		Serial.println("");
 	}
 	else {
 		Serial.print("[Timonel] - Error parsing ");
@@ -935,8 +979,8 @@ int WriteFlash(void) {
 	//}
 	Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
 	Serial.print(pageCount);
-	Serial.print(" - Address ");
-	Serial.println(flashPageAddr);
+	Serial.print(" - Address 0x");
+	Serial.println(flashPageAddr, HEX);
 	for (int i = 0; i < payloadSize; i++) {
 		if (i < (payloadSize - padding)) {
 			dataPacket[packet] = payload[i];		/* If there are data to fill the page, use it ... */
@@ -957,6 +1001,10 @@ int WriteFlash(void) {
 			packet = 0;
 			delay(10);								/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
 		}
+		if (wrtErrors > 0) {
+			Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+			return(wrtErrors);
+		}
 		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
 
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
@@ -965,14 +1013,10 @@ int WriteFlash(void) {
 			if (i < (payloadSize - 1)) {
 				Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
 				Serial.print(++pageCount);
-				Serial.print(" - Address ");
-				Serial.println(flashPageAddr + 1 + i);
+				Serial.print(" - Address 0x");
+				Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
 				pageEnd = 0;
 			}
-		}
-		if (wrtErrors > 10) {
-			Serial.println("\n\r==== WriteFlash: too many errors, aborting ...");
-			i = payloadSize;
 		}
 	}
 	if (wrtErrors == 0) {
@@ -983,6 +1027,7 @@ int WriteFlash(void) {
 		Serial.print(wrtErrors);
 		Serial.println(" ===");
 	}
+	return(wrtErrors);
 }
 
 //Function ShowMenu

@@ -151,6 +151,13 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+                    
+                    // boot_page_fill(RESET_PAGE, (0xC000 + ((TIMONEL_START / 2) - 1)));
+                    // for (int i = 2; i < PAGE_SIZE; i += 2) {
+                        // boot_page_fill(i, 0xFFFF);
+                    // }
+                    // boot_page_write(RESET_PAGE);        
+                    
                     RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
@@ -215,16 +222,14 @@ void ReceiveEvent(byte commandBytes) {
 // I2C Request Event
 void RequestEvent(void) {
     byte opCodeAck = ~command[0];                       /* Command Operation Code reply => Command Bitwise "Not" */
-    const __flash unsigned char * addrl;
-    const __flash unsigned char * addrh;
-    addrl = (void *)(TIMONEL_START - 2);
-    addrh = (void *)(TIMONEL_START - 1);
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
         // ******************
         case GETTMNLV: {
-            #define GETTMNLV_RPLYLN 8
+            #define GETTMNLV_RPLYLN 9
+            //const __flash unsigned char * flashAddr;
+            //flashAddr = (void *)(TIMONEL_START - 1);
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             reply[1] = ID_CHAR_3;                       /* T */            
@@ -232,9 +237,18 @@ void RequestEvent(void) {
             reply[3] = TIMONEL_VER_MNR;                 /* Timonel Minor version number */
             reply[4] = ((TIMONEL_START & 0xFF00) >> 8); /* Timonel Base Address MSB */
             reply[5] = (TIMONEL_START & 0xFF);          /* Timonel Base Address LSB */
-            reply[6] = (*addrl & 0xFF);
-            reply[7] = (*addrh & 0xFF);
-            statusRegister |= (1 << ST_INIT_2);         /* Two-step init step 2: receive GETTMNLV command */
+            //reply[6] = (*flashAddr & 0xFF);             /* Trampoline Second Byte MSB */
+            //reply[7] = (*(--flashAddr) & 0xFF);         /* Trampoline First Byte LSB */
+            // for (uint16_t i = 0; i < 100; i++) {
+                // flashAddr = (void *)(i);
+                // reply[8] += (byte)~(*flashAddr);
+            // }
+            reply[6] = 0;
+            reply[7] = 0;
+            reply[8] = 0;
+
+            statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));          /* Single-step init */
+            //statusRegister |= (1 << ST_INIT_2);       /* Two-step init step 2: receive GETTMNLV command */
 #if ENABLE_LED_UI               
             LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Two-step init: Turn led off to indicate correct initialization */
 #endif          
@@ -323,17 +337,17 @@ void RequestEvent(void) {
         // ******************
         // * INITTINY Reply *
         // ******************
-        case INITTINY: {
-            #define INITTINY_RPLYLN 1
-            byte reply[INITTINY_RPLYLN] = { 0 };
-            reply[0] = opCodeAck;
-            //statusRegister |= (1 << (ST_INIT_1 - 1)) + (1 << (ST_INIT_2 - 1)); /* Single-step init */
-            statusRegister |= (1 << ST_INIT_1);                 /* Two-step init step 1: receive INITTINY command */
-            for (byte i = 0; i < INITTINY_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
-            }
-            break;
-        }
+        // case INITTINY: {
+            // #define INITTINY_RPLYLN 1
+            // byte reply[INITTINY_RPLYLN] = { 0 };
+            // reply[0] = opCodeAck;
+            // //statusRegister |= (1 << (ST_INIT_1)) + (1 << (ST_INIT_2)); /* Single-step init */
+            // statusRegister |= (1 << ST_INIT_1);                 /* Two-step init step 1: receive INITTINY command */
+            // for (byte i = 0; i < INITTINY_RPLYLN; i++) {
+                // UsiTwiTransmitByte(reply[i]);
+            // }
+            // break;
+        // }
         default: {
             for (byte i = 0; i < commandLength; i++) {
                 UsiTwiTransmitByte(UNKNOWNC);
