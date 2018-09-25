@@ -25,6 +25,9 @@
 #define ENABLE_LED_UI   true    /* If this is enabled, LED_UI_PIN is used to show Timonel status */
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
                                 
+#define TWO_STEP_INIT   true   /* If this is enabled, Timonel expects a two-step initialization from  */
+                                /* an I2C master for starting. Otherwise, single-step init is enough   */                                
+                                
 // CPU speed
 #ifndef F_CPU
 #define F_CPU 8000000UL         /* Default CPU speed for delay.h */

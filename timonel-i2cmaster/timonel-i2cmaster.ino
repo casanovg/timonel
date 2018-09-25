@@ -192,40 +192,39 @@ void loop() {
 		// * Timonel ::: WRITPAGE Command *
 		// ********************************
 		case 'w': case 'W': {
-			//Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
-			const byte retryCount = 3;
-			int retry = 0;
-			int err = 0;
-			while (retry++ < retryCount) {
-				Serial.println("%%%%%%%%%%%%");
-				Serial.print("%% Attempt ");
-				Serial.println(retry);
-				Serial.println("%%%%%%%%%%%%");
-				err = WriteFlash();
-				GetTimonelVersion();
-				if ((err == 0) && (memoryLoaded == true)) {
-					retry = retryCount;
-				}
-				else {
-					err = 0;
-					flashPageAddr = 0;
-					GetTimonelVersion();
-					delay(2000);
-					DeleteFlash();
-					TwoStepInit(1250);
-					delay(2000);
-					DeleteFlash();
-					TwoStepInit(1250);
-					delay(2000);
-					DeleteFlash();
-					TwoStepInit(1250);
-					GetTimonelVersion();
-					Serial.println("");
-					delay(1000);
-				}
-			}
-			//WriteFlashTest();
-			//FlashTrampoline();
+			Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
+			WriteFlash();
+			//const byte retryCount = 3;
+			//int retry = 0;
+			//int err = 0;
+			//while (retry++ < retryCount) {
+			//	Serial.println("%%%%%%%%%%%%");
+			//	Serial.print("%% Attempt ");
+			//	Serial.println(retry);
+			//	Serial.println("%%%%%%%%%%%%");
+			//	err = WriteFlash();
+			//	GetTimonelVersion();
+			//	if ((err == 0) && (memoryLoaded == true)) {
+			//		retry = retryCount;
+			//	}
+			//	else {
+			//		err = 0;
+			//		flashPageAddr = 0;
+			//		GetTimonelVersion();
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		GetTimonelVersion();
+			//		Serial.println("");
+			//		delay(1000);
+			//	}
+			//}
 			break;
 		}
 		// ********************************

@@ -213,15 +213,15 @@ int main() {
 
 // I2C Receive Event
 void ReceiveEvent(byte commandBytes) {
-    commandLength = commandBytes;                       /* Save the number of bytes sent by the I2C master */
+    commandLength = commandBytes;                                   /* Save the number of bytes sent by the I2C master */
     for (byte i = 0; i < commandLength; i++) {
-        command[i] = UsiTwiReceiveByte();               /* Store the data sent by the I2C master in the data buffer */
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the I2C master in the data buffer */
     }
 }
 
 // I2C Request Event
 void RequestEvent(void) {
-    byte opCodeAck = ~command[0];                       /* Command Operation Code reply => Command Bitwise "Not" */
+    byte opCodeAck = ~command[0];                                   /* Command Operation Code reply => Command Bitwise "Not" */
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -232,13 +232,13 @@ void RequestEvent(void) {
             //flashAddr = (void *)(TIMONEL_START - 1);
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
-            reply[1] = ID_CHAR_3;                       /* T */            
-            reply[2] = TIMONEL_VER_MJR;                 /* Timonel Major version number */
-            reply[3] = TIMONEL_VER_MNR;                 /* Timonel Minor version number */
-            reply[4] = ((TIMONEL_START & 0xFF00) >> 8); /* Timonel Base Address MSB */
-            reply[5] = (TIMONEL_START & 0xFF);          /* Timonel Base Address LSB */
-            //reply[6] = (*flashAddr & 0xFF);             /* Trampoline Second Byte MSB */
-            //reply[7] = (*(--flashAddr) & 0xFF);         /* Trampoline First Byte LSB */
+            reply[1] = ID_CHAR_3;                                   /* T */            
+            reply[2] = TIMONEL_VER_MJR;                             /* Timonel Major version number */
+            reply[3] = TIMONEL_VER_MNR;                             /* Timonel Minor version number */
+            reply[4] = ((TIMONEL_START & 0xFF00) >> 8);             /* Timonel Base Address MSB */
+            reply[5] = (TIMONEL_START & 0xFF);                      /* Timonel Base Address LSB */
+            //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline Second Byte MSB */
+            //reply[7] = (*(--flashAddr) & 0xFF);                   /* Trampoline First Byte LSB */
             // for (uint16_t i = 0; i < 100; i++) {
                 // flashAddr = (void *)(i);
                 // reply[8] += (byte)~(*flashAddr);
@@ -246,12 +246,15 @@ void RequestEvent(void) {
             reply[6] = 0;
             reply[7] = 0;
             reply[8] = 0;
-
-            statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));          /* Single-step init */
-            //statusRegister |= (1 << ST_INIT_2);       /* Two-step init step 2: receive GETTMNLV command */
-#if ENABLE_LED_UI               
-            LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Two-step init: Turn led off to indicate correct initialization */
-#endif          
+#if !(TWO_STEP_INIT)
+            statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
+#endif
+#if TWO_STEP_INIT
+            statusRegister |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
+#endif
+#if ENABLE_LED_UI
+            LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
+#endif 
             for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -290,9 +293,9 @@ void RequestEvent(void) {
         case STPGADDR: {
             #define STPGADDR_RPLYLN 2
             byte reply[STPGADDR_RPLYLN] = { 0 };
-            flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
+            flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
             reply[0] = opCodeAck;
-            reply[1] = (byte)(command[1] + command[2]);         /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -310,7 +313,7 @@ void RequestEvent(void) {
                 appResetLSB = command[1];
                 appResetMSB = command[2];
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (uint8_t)((command[2]) + command[1]);       /* Reply checksum accumulator */
+                reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
                 pageIX += 2;
                 for (uint8_t i = 3; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
@@ -326,28 +329,29 @@ void RequestEvent(void) {
                 }
             }
             if (reply[1] != command[RXDATASIZE + 1]) {
-                statusRegister &= ~(1 << ST_APP_READY);                 /* Payload received with errors, don't run it !!! */
-                statusRegister |= (1 << ST_DEL_FLASH);                  /* Safety payload deletion ... */
+                statusRegister &= ~(1 << ST_APP_READY);             /* Payload received with errors, don't run it !!! */
+                statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
         }
+#if TWO_STEP_INIT
         // ******************
         // * INITTINY Reply *
         // ******************
-        // case INITTINY: {
-            // #define INITTINY_RPLYLN 1
-            // byte reply[INITTINY_RPLYLN] = { 0 };
-            // reply[0] = opCodeAck;
-            // //statusRegister |= (1 << (ST_INIT_1)) + (1 << (ST_INIT_2)); /* Single-step init */
-            // statusRegister |= (1 << ST_INIT_1);                 /* Two-step init step 1: receive INITTINY command */
-            // for (byte i = 0; i < INITTINY_RPLYLN; i++) {
-                // UsiTwiTransmitByte(reply[i]);
-            // }
-            // break;
-        // }
+        case INITTINY: {
+            #define INITTINY_RPLYLN 1
+            byte reply[INITTINY_RPLYLN] = { 0 };
+            reply[0] = opCodeAck;
+            statusRegister |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITTINY command */
+            for (byte i = 0; i < INITTINY_RPLYLN; i++) {
+                UsiTwiTransmitByte(reply[i]);
+            }
+            break;
+        }
+#endif
         default: {
             for (byte i = 0; i < commandLength; i++) {
                 UsiTwiTransmitByte(UNKNOWNC);
