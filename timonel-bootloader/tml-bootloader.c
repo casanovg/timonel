@@ -79,27 +79,28 @@ void Reset(void);
 
 // Function Main
 int main() {
+    
     /*  ___________________
        |                   | 
        |    Setup Block    |
        |___________________|
     */
-    //DisableWatchDog();                    /* Disable watchdog to avoid continuous loop after reset */
-    MCUSR = 0;
+    
+    MCUSR = 0;                              /* Disable watchdog */
     WDTCR = ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
-    cli();                                  /* Clear Interrupts */
+    cli();                                  /* Disable Interrupts */
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin Data Direction Register for output */
 #endif
-    //SetCPUSpeed8MHz();                    /* Set the CPU prescaler for 8 MHz */
-    CLKPR = (1 << CLKPCE);          
+    CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler for 8 MHz */
     CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event declaration */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event declaration */
-    statusRegister = (1 << ST_APP_READY);   /* In principle, we assume that there is a valid app in memory */
-    //cli();                                  /* Disable Interrupts */
+    statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
+    SPMCSR |= (1 << CTPB);                  /* Clear temporary page buffer */
+    
     /*  ___________________
        |                   | 
        |     Main Loop     |
