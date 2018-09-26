@@ -151,8 +151,8 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    flashPageAddr = 0;
-                    pageIX = 0;
+                    //flashPageAddr = 0;
+                    //pageIX = 0;
                     
                     // flashPageAddr = TIMONEL_START;
                     // while (flashPageAddr != RESET_PAGE) {
@@ -160,18 +160,12 @@ int main() {
                         // boot_page_erase(flashPageAddr);
                     // }
                     
-                    // *addrIX = TIMONEL_START;
-                    // while (*addrIX != 0) {
-                        // *addrIX -= 64;
-                        // boot_page_erase(*addrIX);
-                    // }
-                    
                     // boot_page_fill(RESET_PAGE, (0xC000 + ((TIMONEL_START / 2) - 1)));
                     // for (int i = 2; i < PAGE_SIZE; i += 2) {
                         // boot_page_fill(i, 0xFFFF);
                     // }
                     // boot_page_write(RESET_PAGE);        
-                    //SPMCSR |= (1 << CTPB);              /* Clear temporary page buffer */
+
                     RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
@@ -343,9 +337,10 @@ void RequestEvent(void) {
                     pageIX += 2;
                 }
             }
-            if (reply[1] != command[RXDATASIZE + 1]) {
+            if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE) || ((statusRegister & 0x3) < 0x3 )) {
                 statusRegister &= ~(1 << ST_APP_READY);             /* Payload received with errors, don't run it !!! */
                 statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
+                reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
