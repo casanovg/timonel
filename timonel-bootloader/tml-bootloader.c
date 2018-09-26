@@ -59,8 +59,8 @@ byte exitDly = CYCLESTOEXIT;                /* Delay to exit Timonel and run the
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 
-byte appResetLSB = 0;
-byte appResetMSB = 0;
+byte appResetLSB = 0xFF;
+byte appResetMSB = 0xFF;
 
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
@@ -69,6 +69,7 @@ fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
 void Reset(void);
+//void checksumCalc(void);
 // void __jumpMain (void) __attribute__ ((naked)) __attribute__ ((section (".init9")));
 
 // void __jumpMain(void) {   
@@ -79,7 +80,6 @@ void Reset(void);
 
 // Function Main
 int main() {
-    
     /*  ___________________
        |                   | 
        |    Setup Block    |
@@ -99,8 +99,7 @@ int main() {
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event declaration */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event declaration */
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
-    SPMCSR |= (1 << CTPB);                  /* Clear temporary page buffer */
-    
+    //SPMCSR |= (1 << CTPB);                  /* Clear temporary page buffer */
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -158,7 +157,7 @@ int main() {
                         // boot_page_fill(i, 0xFFFF);
                     // }
                     // boot_page_write(RESET_PAGE);        
-                    
+                    SPMCSR |= (1 << CTPB);              /* Clear temporary page buffer */
                     RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
@@ -311,6 +310,7 @@ void RequestEvent(void) {
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
+                //SPMCSR |= (1 << CTPB);                  /* Clear temporary page buffer */
                 appResetLSB = command[1];
                 appResetMSB = command[2];
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
@@ -361,4 +361,14 @@ void RequestEvent(void) {
         }
     }
 }
+
+// Function checksumCalc
+// void checksumCalc(void) {
+    // byte chkAcc = 0;
+    // const __flash unsigned char * flashAddr;
+    // for word (i = 2; i < (TIMONEL_START - 2); i++) {
+        // flashAddr = (void *)(i);
+        // chkAcc += (byte)~(*flashAddr);
+    // }
+// }
 
