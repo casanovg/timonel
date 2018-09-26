@@ -15,6 +15,7 @@
 /* Includes */
 //#include <avr/io.h>
 #include <avr/boot.h>
+#include <avr/wdt.h>
 #include "tml-config.h"
 #include "nb-usitwisl-if.h"
 #include "nb-i2c-cmd.h"
@@ -151,6 +152,10 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+                    
+                    wdt_enable(WDTO_2S);  /* RESETTING ... WARNING!!! */
+                    for (;;) {};
+                    
                     //flashPageAddr = 0;
                     //pageIX = 0;
                     
@@ -166,7 +171,7 @@ int main() {
                     // }
                     // boot_page_write(RESET_PAGE);        
 
-                    RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
+                    //RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
@@ -337,9 +342,10 @@ void RequestEvent(void) {
                     pageIX += 2;
                 }
             }
-            if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE) || ((statusRegister & 0x3) < 0x3 )) {
-                statusRegister &= ~(1 << ST_APP_READY);             /* Payload received with errors, don't run it !!! */
+            if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
+                //statusRegister &= ~(1 << ST_APP_READY);             /* Payload received with errors, don't run it !!! */
                 statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
+                //statusRegister = (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
