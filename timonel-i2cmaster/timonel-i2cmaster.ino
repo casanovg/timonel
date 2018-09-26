@@ -148,7 +148,7 @@ void loop() {
 		case 'e': case 'E': {
 			//Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
 			DeleteFlash();
-			TwoStepInit(1250);
+			TwoStepInit(3000);
 			break;
 		}
 		// ********************************

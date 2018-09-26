@@ -146,32 +146,13 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);   /* Turn led on to indicate erasing ... */
 #endif                  
-                    // Delete Flash
-                    word pageAddress = TIMONEL_START;
+                    word pageAddress = TIMONEL_START;   /* Erase Flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    
-                    wdt_enable(WDTO_2S);  /* RESETTING ... WARNING!!! */
+                    wdt_enable(WDTO_2S);                /* RESETTING ... WARNING!!! */
                     for (;;) {};
-                    
-                    //flashPageAddr = 0;
-                    //pageIX = 0;
-                    
-                    // flashPageAddr = TIMONEL_START;
-                    // while (flashPageAddr != RESET_PAGE) {
-                        // flashPageAddr -= PAGE_SIZE;
-                        // boot_page_erase(flashPageAddr);
-                    // }
-                    
-                    // boot_page_fill(RESET_PAGE, (0xC000 + ((TIMONEL_START / 2) - 1)));
-                    // for (int i = 2; i < PAGE_SIZE; i += 2) {
-                        // boot_page_fill(i, 0xFFFF);
-                    // }
-                    // boot_page_write(RESET_PAGE);        
-
-                    //RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
@@ -184,9 +165,9 @@ int main() {
                     // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
                         // boot_page_fill((TIMONEL_START - 2), jumpOffset);
                     // }
-                    boot_spm_busy_wait();
+                    //boot_spm_busy_wait();
                     boot_page_erase(flashPageAddr);
-                    boot_spm_busy_wait();
+                    //boot_spm_busy_wait();
                     boot_page_write(flashPageAddr);
                     if (flashPageAddr == RESET_PAGE) {    /* Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -343,9 +324,8 @@ void RequestEvent(void) {
                 }
             }
             if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                //statusRegister &= ~(1 << ST_APP_READY);             /* Payload received with errors, don't run it !!! */
+                //statusRegister &= ~(1 << ST_APP_READY);           /* Payload received with errors, don't run it !!! */
                 statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
-                //statusRegister = (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
