@@ -29,7 +29,7 @@
 #endif
 
 #if PAGE_SIZE > 256
-	#error "Timonel only supports pagesizes up to 256 bytes"
+	#error "Timonel only supports page sizes up to 64 bytes"
 #endif
 								
 #ifndef F_CPU
