@@ -3,7 +3,7 @@
 // Start Address: 0x0 
 // End Address: 0x4bc 
 //
-const byte payldType = 0;    /* Application Payload */
+const byte payldType = 0;    /* Application Payload (SOS blinker) */
 
 const byte payload[1213] = {
     0x0e, 0xc0, 0x28, 0xc0, 0x27, 0xc0, 0x26, 0xc0, 
