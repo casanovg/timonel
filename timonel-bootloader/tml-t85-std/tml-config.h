@@ -22,7 +22,7 @@
 #define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting    */
                                 /* from page 0. This is OK for most applications. It takes ~42 bytes */
                                 
-#define ENABLE_LED_UI   true    /* If this is enabled, LED_UI_PIN is used to show Timonel status */
+#define ENABLE_LED_UI   false    /* If this is enabled, LED_UI_PIN is used to show Timonel status */
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
                                 
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
