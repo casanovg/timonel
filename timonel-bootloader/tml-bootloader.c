@@ -151,13 +151,27 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+                    flashPageAddr = 0;
+                    pageIX = 0;
+                    
+                    // flashPageAddr = TIMONEL_START;
+                    // while (flashPageAddr != RESET_PAGE) {
+                        // flashPageAddr -= PAGE_SIZE;
+                        // boot_page_erase(flashPageAddr);
+                    // }
+                    
+                    // *addrIX = TIMONEL_START;
+                    // while (*addrIX != 0) {
+                        // *addrIX -= 64;
+                        // boot_page_erase(*addrIX);
+                    // }
                     
                     // boot_page_fill(RESET_PAGE, (0xC000 + ((TIMONEL_START / 2) - 1)));
                     // for (int i = 2; i < PAGE_SIZE; i += 2) {
                         // boot_page_fill(i, 0xFFFF);
                     // }
                     // boot_page_write(RESET_PAGE);        
-                    SPMCSR |= (1 << CTPB);              /* Clear temporary page buffer */
+                    //SPMCSR |= (1 << CTPB);              /* Clear temporary page buffer */
                     RunApplication();                   /* Since there is no app anymore, this resets to the bootloader */
                 }
                 // ========================================================================
