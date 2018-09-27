@@ -148,7 +148,7 @@ void loop() {
 		case 'e': case 'E': {
 			//Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
 			DeleteFlash();
-			TwoStepInit(3000);
+			TwoStepInit(2000);
 			break;
 		}
 		// ********************************
@@ -1002,6 +1002,9 @@ int WriteFlash(void) {
 		}
 		if (wrtErrors > 0) {
 			Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+			DeleteFlash();
+			TwoStepInit(2000);
+			ESP.restart();
 			return(wrtErrors);
 		}
 		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
@@ -1025,6 +1028,9 @@ int WriteFlash(void) {
 		Serial.print("\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
 		Serial.print(wrtErrors);
 		Serial.println(" ===");
+		DeleteFlash();
+		TwoStepInit(2000);
+		ESP.restart();
 	}
 	return(wrtErrors);
 }
