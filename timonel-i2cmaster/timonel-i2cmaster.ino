@@ -1041,7 +1041,7 @@ void ShowMenu(void) {
 		Serial.print("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
 	}
 	else {
-		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'b' set address, 'w' write flash, 'q' read flash): ");
+		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash): ");
 	}
 }
 
