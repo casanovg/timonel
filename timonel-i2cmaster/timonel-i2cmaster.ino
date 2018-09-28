@@ -72,8 +72,8 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.8)");
-	Serial.println("============================================================");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.88)");
+	Serial.println("=============================================================");
 	TwoStepInit(0);
 	Serial.println("");
 	ShowMenu();
@@ -148,7 +148,7 @@ void loop() {
 		case 'e': case 'E': {
 			//Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
 			DeleteFlash();
-			TwoStepInit(2000);
+			TwoStepInit(750);
 			break;
 		}
 		// ********************************
@@ -989,12 +989,13 @@ int WriteFlash(void) {
 		}
 		if (packet++ == (TXDATASIZE - 1)) {			/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
-				Serial.print("0x");
-				if (dataPacket[b] < 0x10) {
-					Serial.print("0");
-				}
-				Serial.print(dataPacket[b], HEX);
-				Serial.print(" ");
+				//Serial.print("0x");
+				//if (dataPacket[b] < 0x10) {
+				//	Serial.print("0");
+				//}
+				//Serial.print(dataPacket[b], HEX);
+				//Serial.print(" ");
+				Serial.print(".");
 			}
 			wrtErrors += WritePageBuff(dataPacket);	/* Send data to T85 through I2C */
 			packet = 0;

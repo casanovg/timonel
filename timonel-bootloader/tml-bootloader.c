@@ -183,7 +183,7 @@ int main() {
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
-                dlyCounter = I2CDLYTIME;
+                //dlyCounter = I2CDLYTIME;
             }
         }
         // ==================================================
