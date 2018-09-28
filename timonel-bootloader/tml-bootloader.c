@@ -152,7 +152,7 @@ int main() {
                     boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
 
-                    if (flashPageAddr == RESET_PAGE) {    /* Write Trampoline */
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
                         }
@@ -161,11 +161,13 @@ int main() {
                     }
 
                     // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
-                        // // Read the last page before Timonel start
-                        // // Store it in a temporary buffer
-                        // // Check if the last two bytes are 0xFF
-                        // // If yes, then the the application fits in memory, flash the trampoline again
-                        // // If no, it means that the application is too big, erase the application
+                        // Read the last page before Timonel start
+                        // Store it in a temporary buffer
+                        // Check if the last two bytes are 0xFF
+                        // If yes, then the the application fits in memory, flash the trampoline again
+                        // If no, it means that the application is too big, erase the application
+                        // implement ALLOW_USE_TPL_PG (allow use trampoline page)
+                        
                         // //tmpPage[PAGE_SIZE] = { 0xFF };
                         // const __flash unsigned char * flashAddr;
                         // word flashAddr = 0;
@@ -237,7 +239,7 @@ void RequestEvent(void) {
             //reply[7] = (*(--flashAddr) & 0xFF);                   /* Trampoline First Byte LSB */
             // for (uint16_t i = 0; i < 100; i++) {
                 // flashAddr = (void *)(i);
-                // reply[8] += (byte)~(*flashAddr);
+                // reply[8] += (byte)~(*flashAddr);                 /* Check the first 100 bytes to determine if there is an app flashed */
             // }
             reply[6] = 0;
             reply[7] = 0;
