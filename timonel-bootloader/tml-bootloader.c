@@ -148,14 +148,10 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-                    // Find a different solution, a page buffer position can be written only once
-                    // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
-                        // boot_page_fill((TIMONEL_START - 2), jumpOffset);
-                    // }
-                    //boot_spm_busy_wait();
+
                     boot_page_erase(flashPageAddr);
-                    //boot_spm_busy_wait();
                     boot_page_write(flashPageAddr);
+
                     if (flashPageAddr == RESET_PAGE) {    /* Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
@@ -163,6 +159,27 @@ int main() {
                         boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
+
+                    // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
+                        // // Read the last page before Timonel start
+                        // // Store it in a temporary buffer
+                        // // Check if the last two bytes are 0xFF
+                        // // If yes, then the the application fits in memory, flash the trampoline again
+                        // // If no, it means that the application is too big, erase the application
+                        // //tmpPage[PAGE_SIZE] = { 0xFF };
+                        // const __flash unsigned char * flashAddr;
+                        // word flashAddr = 0;
+                        // //flashAddr = (void *)(TIMONEL_START - PAGE_SIZE);
+                        // for (byte i = 0; i < PAGE_SIZE; i++) {
+                            // flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
+                            // tmpPage[i] = (byte)(*flashAddr);
+                            // //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline Second Byte MSB */
+                            // //reply[7] = (*(--flashAddr) & 0xFF);
+                        // }
+                        // if (tmpPage[i] =)
+                            
+                    // }   
+                    
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
@@ -265,6 +282,7 @@ void RequestEvent(void) {
             #define STPGADDR_RPLYLN 2
             byte reply[STPGADDR_RPLYLN] = { 0 };
             flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
+            flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
             reply[0] = opCodeAck;
             reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
