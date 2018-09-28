@@ -166,7 +166,8 @@ int main() {
                         // Check if the last two bytes are 0xFF
                         // If yes, then the the application fits in memory, flash the trampoline again
                         // If no, it means that the application is too big, erase the application
-                        // implement ALLOW_USE_TPL_PG (allow use trampoline page)
+                        // TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page)
+                        // TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash)
                         
                         // //tmpPage[PAGE_SIZE] = { 0xFF };
                         // const __flash unsigned char * flashAddr;
