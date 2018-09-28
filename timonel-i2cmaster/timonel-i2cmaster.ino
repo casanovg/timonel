@@ -192,7 +192,7 @@ void loop() {
 		// * Timonel ::: WRITPAGE Command *
 		// ********************************
 		case 'w': case 'W': {
-			Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
+			//Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
 			WriteFlash();
 			//const byte retryCount = 3;
 			//int retry = 0;
@@ -626,7 +626,7 @@ int WritePageBuff(uint8_t dataArray[]) {
 	byte cmdTX[txSize] = { 0 };
 	int commErrors = 0;					/* I2C communication error counter */
 	uint8_t checksum = 0;
-	Serial.println("");
+	//Serial.println("");
 	cmdTX[0] = WRITPAGE;
 	for (int b = 1; b < txSize - 1; b++) {
 		cmdTX[b] = dataArray[b - 1];
@@ -644,7 +644,7 @@ int WritePageBuff(uint8_t dataArray[]) {
 		//	if (i < txSize - 1) {
 		//		Serial.print("0x");
 		//		Serial.print(cmdTX[i], HEX);
-		//		Serial.print(" ");
+		//		Serial.print(" ");WritePageBuff
 		//	}
 		//	else {
 		//		Serial.print("\n\r[Timonel] - Sending CRC >>> ");
@@ -969,17 +969,15 @@ int WriteFlash(void) {
 		padding = ((((uint)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
 		payloadSize += padding;
 	}
-	//Serial.println("\n1-Deleting flash ...\n\r");
-	//Serial.println("\n2-Writing payload to flash ...\n\n\r");
 	Serial.println("\nWriting payload to flash ...\n\r");
 	//if (flashPageAddr == 0xFFFF) {
 	//	Serial.println("Warning: Flash page start address no set, please use 'b' command to set it ...\n\r");
 	//	return(1);
 	//}
-	Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-	Serial.print(pageCount);
-	Serial.print(" - Address 0x");
-	Serial.println(flashPageAddr, HEX);
+	//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+	//Serial.print(pageCount);
+	//Serial.print(" - Address 0x");
+	//Serial.println(flashPageAddr, HEX);
 	for (int i = 0; i < payloadSize; i++) {
 		if (i < (payloadSize - padding)) {
 			dataPacket[packet] = payload[i];		/* If there are data to fill the page, use it ... */
@@ -1002,7 +1000,7 @@ int WriteFlash(void) {
 			delay(10);								/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
 		}
 		if (wrtErrors > 0) {
-			Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+			//Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
 			DeleteFlash();
 			TwoStepInit(2000);
 			ESP.restart();
@@ -1014,19 +1012,19 @@ int WriteFlash(void) {
 			delay(100);								/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
 			if (i < (payloadSize - 1)) {
-				Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-				Serial.print(++pageCount);
-				Serial.print(" - Address 0x");
-				Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
+				//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+				//Serial.print(++pageCount);
+				//Serial.print(" - Address 0x");
+				//Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
 				pageEnd = 0;
 			}
 		}
 	}
 	if (wrtErrors == 0) {
-		Serial.println("\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
+		Serial.println("\n\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
 	}
 	else {
-		Serial.print("\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
+		Serial.print("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
 		Serial.print(wrtErrors);
 		Serial.println(" ===");
 		DeleteFlash();
