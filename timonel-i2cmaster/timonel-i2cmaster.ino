@@ -72,8 +72,8 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.88)");
-	Serial.println("=============================================================");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.9)");
+	Serial.println("============================================================");
 	TwoStepInit(0);
 	Serial.println("");
 	ShowMenu();

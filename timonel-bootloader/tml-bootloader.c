@@ -21,7 +21,7 @@
 #include "nb-i2c-cmd.h"
 
 /* This bootloader ... */
-#define I2C_ADDR        0x15                /* Timonel I2C Address: 0x15 = 21 */
+#define I2C_ADDR        0x15                /* Timonel I2C address: 0x15 = 21 */
 #define TIMONEL_VER_MJR 0                   /* Timonel version major number */
 #define TIMONEL_VER_MNR 9                   /* Timonel version major number */
 
@@ -34,7 +34,7 @@
 #endif
                                 
 #ifndef F_CPU
-    #define F_CPU 8000000UL                 /* Default CPU speed for delay.h */
+    #define F_CPU 8000000UL                 /* Default CPU speed */
 #endif
 
 #if (RXDATASIZE > 8)
@@ -61,7 +61,7 @@ byte appResetMSB = 0xFF;
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
 
-// Function prototypes
+// Prototypes
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
 void Reset(void);
@@ -73,28 +73,26 @@ int main() {
        |    Setup Block    |
        |___________________|
     */
-    
     MCUSR = 0;                              /* Disable watchdog */
     WDTCR = ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
     cli();                                  /* Disable Interrupts */
 #if ENABLE_LED_UI
-    LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin Data Direction Register for output */
+    LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
 #endif
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler for 8 MHz */
     CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
-    Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event declaration */
-    Usi_onRequestPtr = RequestEvent;        /* I2C Request Event declaration */
+    Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
+    Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
     word dlyCounter = TOGGLETIME;
-    byte exitDly = CYCLESTOEXIT;            /* Delay to exit Timonel and run the application if not initialized */
+    byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
        |     Main Loop     |
        |___________________|
     */
-    
     for (;;) {
         // Initialization check
         if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
@@ -133,11 +131,13 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif                  
-                    word pageAddress = TIMONEL_START;       /* Erase Flash ... */
+                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+                    //SPMCSR |= (1 << CTPB);                  /* Clear temporary buffer */
+                    //SPMCSR &= ~(1 << CTPB);                 /* Is this necessary? */
                     wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
                     for (;;) {};
                 }
@@ -148,67 +148,71 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-
                     boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
-
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-                    
-                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and Write Trampoline */
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
                         }
                         //boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
-
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
-
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
                         /*
-                        Read the last page before Timonel start
-                        Write it to the temporary buffer
-                        Check if the last two bytes are 0xFF
-                        If yes, then the the application fits in memory, flash the trampoline again
-                        If no, it means that the application is too big, erase the application
-                        TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page)
-                        TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash)
-                        TODO: Implement a GETTMNLV reply code that indicates the commands available
+                        Read the previous page to the bootloader start  - OK!
+                        Write it to the temporary buffer                - OK!
+                        Check if the last two bytes are 0xFF            - OK!
+                        If yes, then the the application fits in memory, flash the trampoline again - OK!
+                        If no, it means that the application is too big, erase it!                  - OK!
+                        TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page).
+                        TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash), if it is not
+                              selected, the i2c master has to calculate the trampoline jump and pass it,
+                              maybe with GETTMNLV.
+                        TODO: Implement a GETTMNLV reply code that indicates the commands available.
                         */
-                        
                         const __flash unsigned char * flashAddr;
-
                         for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
                             word pgData = (*flashAddr & 0xFF);
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
                         }
-                        boot_page_fill(TIMONEL_START - 2, tpl);
-                        boot_page_erase(TIMONEL_START - PAGE_SIZE);
-                        boot_page_write(TIMONEL_START - PAGE_SIZE);
-                    }   
-                    
+                        flashAddr = (void *)(TIMONEL_START - 2);
+                        word pgData = (*flashAddr & 0xFF);
+                        pgData += ((*(++flashAddr) & 0xFF) << 8);
+                        if (pgData == 0xFFFF) {
+                            boot_page_fill(TIMONEL_START - 2, tpl);
+                            boot_page_erase(TIMONEL_START - PAGE_SIZE);
+                            boot_page_write(TIMONEL_START - PAGE_SIZE);
+                        }
+                        else {                                      /* Application too big to fit in memory! */
+                            statusRegister |= (1 << ST_DEL_FLASH);  /* Set Erase flash */
+                        }
+                    }
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
                 //dlyCounter = I2CDLYTIME;
             }
         }
-        // ==================================================
-        // = I2C Interrupt Emulation ********************** =
-        // = Check the USI Status Register to verify        =
-        // = whether a USI start handler should be launched =
-        // ==================================================
+        /* ..................................................
+           . I2C Interrupt Emulation ...................... .
+           . Check the USI Status Register to verify        .
+           . whether a USI start handler should be launched .
+           ..................................................
+        */
         if (USISR & (1 << USISIF)) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
             USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
         }
-        // =====================================================
-        // = I2C Interrupt Emulation ************************* =
-        // = Check the USI Status Register to verify           =
-        // = whether a USI counter overflow should be launched =
-        // =====================================================
+        /* .....................................................
+           . I2C Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI counter overflow should be launched .
+           .....................................................
+        */
         if (USISR & (1 << USIOIF)) {
             UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
             USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
@@ -226,7 +230,7 @@ void ReceiveEvent(byte commandBytes) {
 
 // I2C Request Event
 void RequestEvent(void) {
-    byte opCodeAck = ~command[0];                                   /* Command Operation Code reply => Command Bitwise "Not" */
+    byte opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -238,12 +242,12 @@ void RequestEvent(void) {
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             reply[1] = ID_CHAR_3;                                   /* T */            
-            reply[2] = TIMONEL_VER_MJR;                             /* Timonel Major version number */
-            reply[3] = TIMONEL_VER_MNR;                             /* Timonel Minor version number */
-            reply[4] = ((TIMONEL_START & 0xFF00) >> 8);             /* Timonel Base Address MSB */
-            reply[5] = (TIMONEL_START & 0xFF);                      /* Timonel Base Address LSB */
-            //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline Second Byte MSB */
-            //reply[7] = (*(--flashAddr) & 0xFF);                   /* Trampoline First Byte LSB */
+            reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
+            reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
+            reply[4] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
+            reply[5] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
+            //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline second byte (MSB) */
+            //reply[7] = (*(--flashAddr) & 0xFF);                   /* Trampoline first byte (LSB) */
             // for (uint16_t i = 0; i < 100; i++) {
                 // flashAddr = (void *)(i);
                 // reply[8] += (byte)~(*flashAddr);                 /* Check the first 100 bytes to determine if there is an app flashed */
@@ -269,7 +273,6 @@ void RequestEvent(void) {
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
-            #define EXITTMNL_RPLYLN 1
             UsiTwiTransmitByte(opCodeAck);
             statusRegister |= (1 << ST_EXIT_TML);
             break;
@@ -278,7 +281,6 @@ void RequestEvent(void) {
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
-            #define DELFLASH_RPLYLN 1
             UsiTwiTransmitByte(opCodeAck);
             statusRegister |= (1 << ST_DEL_FLASH);
             break;
@@ -342,7 +344,6 @@ void RequestEvent(void) {
         // * INITTINY Reply *
         // ******************
         case INITTINY: {
-            #define INITTINY_RPLYLN 1
             statusRegister |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITTINY command */
             UsiTwiTransmitByte(opCodeAck);
             break;
