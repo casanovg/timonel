@@ -45,7 +45,9 @@ bool newByte = false;
 bool newWord = false;
 bool appMode = true;
 char key = '\0';
-word flashPageAddr = 0xFFFF;	/* Current flash  page address to be written. Tiny85 allowed values are 0 to 0x2000, so 0xFFFF means 'not set' */
+bool memoryLoaded = false;
+//word flashPageAddr = 0xFFFF;	/* Current flash  page address to be written. Tiny85 allowed values are 0 to 0x2000, so 0xFFFF means 'not set' */
+word flashPageAddr = 0x0;
 word timonelStart = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set'. Use Timonel 'version' command to get it */
 
 //
@@ -70,8 +72,8 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.8)");
-	Serial.println("============================================================");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.88)");
+	Serial.println("=============================================================");
 	TwoStepInit(0);
 	Serial.println("");
 	ShowMenu();
@@ -146,7 +148,7 @@ void loop() {
 		case 'e': case 'E': {
 			//Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
 			DeleteFlash();
-			TwoStepInit(1250);
+			TwoStepInit(750);
 			break;
 		}
 		// ********************************
@@ -192,8 +194,37 @@ void loop() {
 		case 'w': case 'W': {
 			//Serial.println("\nBootloader Cmd >>> Write new app firmware to T85 flash memory ...");
 			WriteFlash();
-			//WriteFlashTest();
-			//FlashTrampoline();
+			//const byte retryCount = 3;
+			//int retry = 0;
+			//int err = 0;
+			//while (retry++ < retryCount) {
+			//	Serial.println("%%%%%%%%%%%%");
+			//	Serial.print("%% Attempt ");
+			//	Serial.println(retry);
+			//	Serial.println("%%%%%%%%%%%%");
+			//	err = WriteFlash();
+			//	GetTimonelVersion();
+			//	if ((err == 0) && (memoryLoaded == true)) {
+			//		retry = retryCount;
+			//	}
+			//	else {
+			//		err = 0;
+			//		flashPageAddr = 0;
+			//		GetTimonelVersion();
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		delay(2000);
+			//		DeleteFlash();
+			//		TwoStepInit(1250);
+			//		GetTimonelVersion();
+			//		Serial.println("");
+			//		delay(1000);
+			//	}
+			//}
 			break;
 		}
 		// ********************************
@@ -595,7 +626,7 @@ int WritePageBuff(uint8_t dataArray[]) {
 	byte cmdTX[txSize] = { 0 };
 	int commErrors = 0;					/* I2C communication error counter */
 	uint8_t checksum = 0;
-	Serial.println("");
+	//Serial.println("");
 	cmdTX[0] = WRITPAGE;
 	for (int b = 1; b < txSize - 1; b++) {
 		cmdTX[b] = dataArray[b - 1];
@@ -613,7 +644,7 @@ int WritePageBuff(uint8_t dataArray[]) {
 		//	if (i < txSize - 1) {
 		//		Serial.print("0x");
 		//		Serial.print(cmdTX[i], HEX);
-		//		Serial.print(" ");
+		//		Serial.print(" ");WritePageBuff
 		//	}
 		//	else {
 		//		Serial.print("\n\r[Timonel] - Sending CRC >>> ");
@@ -650,7 +681,6 @@ int WritePageBuff(uint8_t dataArray[]) {
 				exit(commErrors);
 			}
 		}
-
 	}
 	else {
 		Serial.print("[Timonel] - Error parsing ");
@@ -735,28 +765,52 @@ void GetTimonelVersion(void) {
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
-	blockRXSize = Wire.requestFrom(slaveAddress, (byte)8);
-	byte ackRX[8] = { 0 };   // Data received from slave
+	blockRXSize = Wire.requestFrom(slaveAddress, (byte)9);
+	byte ackRX[9] = { 0 };   // Data received from slave
 	for (int i = 0; i < blockRXSize; i++) {
 		ackRX[i] = Wire.read();
 	}
 	if (ackRX[0] == ACKTMNLV) {
-		timonelStart = (ackRX[6] << 8) + ackRX[7];
+		//timonelStart = (ackRX[6] << 8) + ackRX[7];
+		timonelStart = (ackRX[4] << 8) + ackRX[5];
+		word trampolineJump = (~(((ackRX[6] << 8) | ackRX[7]) & 0xFFF));
+		trampolineJump = ((((timonelStart >> 1) - ++trampolineJump) & 0xFFF) << 1);
 		Serial.print("[Timonel] - Command ");
 		Serial.print(cmdTX[0]);
 		Serial.print(" parsed OK <<< ");
 		Serial.println(ackRX[0]);
-		Serial.print(">>> ");
+		Serial.print("[ ");
 		Serial.print((char)ackRX[1]);
-		Serial.print((char)ackRX[2]);
-		Serial.print((char)ackRX[3]);
-		Serial.print(" <<< Version: ");
-		Serial.print(ackRX[4]);
+		//Serial.print((char)ackRX[2]);
+		//Serial.print((char)ackRX[3]);
+		Serial.print(" ] Version: ");
+		//Serial.print(ackRX[4]);
+		Serial.print(ackRX[2]);
 		Serial.print(".");
-		Serial.print(ackRX[5]);
-		Serial.print(" >>> Base address: 0x");
+		//Serial.print(ackRX[5]);
+		Serial.print(ackRX[3]);
+		Serial.print(" [ Base address: 0x");
 		Serial.print(timonelStart, HEX);
-		Serial.println(" <<<");
+		Serial.print(" ] [ App Jump: ");
+		Serial.print(ackRX[7], HEX);
+		Serial.print(ackRX[6], HEX);
+		if ((ackRX[7] == 0xFF) && (ackRX[6] == 0xFF)) {
+			Serial.print(" (Not Set");
+		}
+		else {
+			Serial.print(" (0x");
+			Serial.print(trampolineJump, HEX);
+		}
+		Serial.print(") ]");
+		if (ackRX[8] == 0) {
+			Serial.print(" [ Flash Memory Clear ]");
+			memoryLoaded = false;
+		}
+		else {
+			Serial.print(" [ Flash Memory Loaded ]");
+			memoryLoaded = true;
+		}
+		Serial.println("");
 	}
 	else {
 		Serial.print("[Timonel] - Error parsing ");
@@ -915,17 +969,15 @@ int WriteFlash(void) {
 		padding = ((((uint)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
 		payloadSize += padding;
 	}
-	//Serial.println("\n1-Deleting flash ...\n\r");
-	//Serial.println("\n2-Writing payload to flash ...\n\n\r");
 	Serial.println("\nWriting payload to flash ...\n\r");
 	//if (flashPageAddr == 0xFFFF) {
 	//	Serial.println("Warning: Flash page start address no set, please use 'b' command to set it ...\n\r");
 	//	return(1);
 	//}
-	Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-	Serial.print(pageCount);
-	Serial.print(" - Address ");
-	Serial.println(flashPageAddr);
+	//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+	//Serial.print(pageCount);
+	//Serial.print(" - Address 0x");
+	//Serial.println(flashPageAddr, HEX);
 	for (int i = 0; i < payloadSize; i++) {
 		if (i < (payloadSize - padding)) {
 			dataPacket[packet] = payload[i];		/* If there are data to fill the page, use it ... */
@@ -935,43 +987,52 @@ int WriteFlash(void) {
 		}
 		if (packet++ == (TXDATASIZE - 1)) {			/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
-				Serial.print("0x");
-				if (dataPacket[b] < 0x10) {
-					Serial.print("0");
-				}
-				Serial.print(dataPacket[b], HEX);
-				Serial.print(" ");
+				//Serial.print("0x");
+				//if (dataPacket[b] < 0x10) {
+				//	Serial.print("0");
+				//}
+				//Serial.print(dataPacket[b], HEX);
+				//Serial.print(" ");
+				Serial.print(".");
 			}
 			wrtErrors += WritePageBuff(dataPacket);	/* Send data to T85 through I2C */
 			packet = 0;
 			delay(10);								/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
 		}
+		if (wrtErrors > 0) {
+			//Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+			DeleteFlash();
+			TwoStepInit(2000);
+			ESP.restart();
+			return(wrtErrors);
+		}
 		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
 
+			Serial.print(pageCount++);
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
 			delay(100);								/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
 			if (i < (payloadSize - 1)) {
-				Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-				Serial.print(++pageCount);
-				Serial.print(" - Address ");
-				Serial.println(flashPageAddr + 1 + i);
+				//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+				//Serial.print(++pageCount);
+				//Serial.print(" - Address 0x");
+				//Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
 				pageEnd = 0;
 			}
 		}
-		if (wrtErrors > 10) {
-			Serial.println("\n\r==== WriteFlash: too many errors, aborting ...");
-			i = payloadSize;
-		}
 	}
 	if (wrtErrors == 0) {
-		Serial.println("\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
+		Serial.println("\n\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
 	}
 	else {
-		Serial.print("\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
+		Serial.print("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
 		Serial.print(wrtErrors);
 		Serial.println(" ===");
+		DeleteFlash();
+		TwoStepInit(2000);
+		ESP.restart();
 	}
+	return(wrtErrors);
 }
 
 //Function ShowMenu
@@ -980,6 +1041,24 @@ void ShowMenu(void) {
 		Serial.print("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
 	}
 	else {
-		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'b' set address, 'w' write flash, 'q' read flash): ");
+		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash): ");
 	}
+}
+
+void ShowTrampoline(void) {
+#define TIMONEL_START 0x1A40
+#define LSB 0x0E
+#define MSB	0xC0
+	Serial.print("\nTIMONEL START = 0x");
+	Serial.println(TIMONEL_START, HEX);
+	Serial.print("LSB = 0x");
+	Serial.print(LSB, HEX);
+	Serial.print(" ||| MSB = 0x");
+	Serial.println(MSB, HEX);
+	word jumpOffset = ((MSB << 8) | LSB);
+	Serial.print("QQ = 0x");
+	Serial.println(jumpOffset, HEX);
+	jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+	Serial.print("JUMP ADDRESS = 0x");
+	Serial.println(jumpOffset, HEX);
 }
