@@ -64,7 +64,6 @@ fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
 // Prototypes
 void ReceiveEvent(byte commandBytes);
 void RequestEvent(void);
-void Reset(void);
 
 // Function Main
 int main() {
