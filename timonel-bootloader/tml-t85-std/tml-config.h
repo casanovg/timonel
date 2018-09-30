@@ -26,7 +26,10 @@
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
                                 
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
-                                /* an I2C master for starting. Otherwise, single-step init is enough   */                                
+                                /* an I2C master for starting. Otherwise, single-step init is enough   */
+
+#define APP_USE_TPL_PG  true    /* Allow the application to use trampoline page */
+#define AUTO_TPL_CALC   true    /* Auto-trampoline calculation & flash */
                                 
 // CPU speed
 #ifndef F_CPU
