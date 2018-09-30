@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 0.88 / 2018-09-27
+ *  Version: 0.9 / 2018-09-29
  *  gustavo.casanova@nicebots.com
  */
 
@@ -23,7 +23,7 @@
 /* This bootloader ... */
 #define I2C_ADDR        0x15                /* Timonel I2C Address: 0x15 = 21 */
 #define TIMONEL_VER_MJR 0                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 88                  /* Timonel version major number */
+#define TIMONEL_VER_MNR 9                   /* Timonel version major number */
 
 #if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -152,37 +152,42 @@ int main() {
                     boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
 
+                    word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                    
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and Write Trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
                         }
-                        boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
+                        //boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
+
+                        boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
 
-                    // if ((flashPageAddr) == TIMONEL_START - PAGE_SIZE) {
-                        // Read the last page before Timonel start
-                        // Store it in a temporary buffer
-                        // Check if the last two bytes are 0xFF
-                        // If yes, then the the application fits in memory, flash the trampoline again
-                        // If no, it means that the application is too big, erase the application
-                        // TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page)
-                        // TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash)
-                        // TODO: Implement a GETTMNLV reply code that indicates the commands available
+                    if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
+                        /*
+                        Read the last page before Timonel start
+                        Write it to the temporary buffer
+                        Check if the last two bytes are 0xFF
+                        If yes, then the the application fits in memory, flash the trampoline again
+                        If no, it means that the application is too big, erase the application
+                        TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page)
+                        TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash)
+                        TODO: Implement a GETTMNLV reply code that indicates the commands available
+                        */
                         
-                        // //tmpPage[PAGE_SIZE] = { 0xFF };
-                        // const __flash unsigned char * flashAddr;
-                        // word flashAddr = 0;
-                        // //flashAddr = (void *)(TIMONEL_START - PAGE_SIZE);
-                        // for (byte i = 0; i < PAGE_SIZE; i++) {
-                            // flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
-                            // tmpPage[i] = (byte)(*flashAddr);
-                            // //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline Second Byte MSB */
-                            // //reply[7] = (*(--flashAddr) & 0xFF);
-                        // }
-                        // if (tmpPage[i] =)
-                            
-                    // }   
+                        const __flash unsigned char * flashAddr;
+
+                        for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
+                            flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
+                            word pgData = (*flashAddr & 0xFF);
+                            pgData += ((*(++flashAddr) & 0xFF) << 8); 
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
+                        }
+                        boot_page_fill(TIMONEL_START - 2, tpl);
+                        boot_page_erase(TIMONEL_START - PAGE_SIZE);
+                        boot_page_write(TIMONEL_START - PAGE_SIZE);
+                    }   
                     
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;

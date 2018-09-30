@@ -1008,6 +1008,7 @@ int WriteFlash(void) {
 		}
 		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
 
+			Serial.print(pageCount++);
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
 			delay(100);								/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
