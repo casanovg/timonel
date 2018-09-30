@@ -13,6 +13,7 @@ In these examples, it's handy to have the chance of updating the AVRs firmware s
 * It doesn't have a specific peripheral for I2C, only the USI.
 * It lacks a protected memory area for the bootloader.
 * It is not possible to redirect the interruption vectors to the bootloader.
+
 That's why I started writing this one.
 
 Usage:
