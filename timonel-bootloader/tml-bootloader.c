@@ -98,25 +98,24 @@ int main() {
             // Initialization check
             if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
             ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
-                // ============================================
-                // = Blink led until is initialized by master =
-                // ============================================
+                // ===========================================
+                // = Run this until is initialized by master =
+                // ===========================================
 #if ENABLE_LED_UI               
                 LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at TOGGLETIME intervals */
 #endif
                 if (exitDly-- == 0) {
-                    RunApplication();
+                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
-            else {                                  /* Decrease dlyCounter on each main loop pass until it */
-                //                                  /* reaches 0 before running code to allow I2C replies  */
+            else {
                 // =======================================
                 // = Exit bootloader and run application =
                 // =======================================
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
-                    //asm volatile("ldi r31, 0");
-                    RunApplication();                       /* Launch application */
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 in r31 */
+                    RunApplication();                       /* Exit to the application */
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 (1 << ST_EXIT_TML)) {               
@@ -134,16 +133,21 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));    /* Clear temporary buffer */
-                    asm volatile("spm");
-                    //asm volatile("ldi r31, 0");
-                    RunApplication(); 
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 in r31 */
+                    RunApplication();                       /* Exit to the application, in this case restarts the bootloader */
                     //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
                     //for (;;) {};
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
+                /*
+                    TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page).
+                    TODO: Implement AUTO_CALC_TPL (auto-calculate & flash trampoline), if it is not
+                          selected, the i2c master has to calculate the trampoline jump and pass it,
+                          maybe with GETTMNLV.
+                    TODO: Implement a GETTMNLV reply code that indicates the commands available.
+                */
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
     #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
@@ -160,18 +164,8 @@ int main() {
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
-                        /*
-                        Read the previous page to the bootloader start  - OK!
-                        Write it to the temporary buffer                - OK!
-                        Check if the last two bytes are 0xFF            - OK!
-                        If yes, then the the application fits in memory, flash the trampoline again - OK!
-                        If no, it means that the application is too big, erase it!                  - OK!
-                        TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page).
-                        TODO: Implement AUTO_TPL_CALC (auto-trampoline calculation & flash), if it is not
-                              selected, the i2c master has to calculate the trampoline jump and pass it,
-                              maybe with GETTMNLV.
-                        TODO: Implement a GETTMNLV reply code that indicates the commands available.
-                        */
+                        // - Read the previous page to the bootloader start.
+                        // - Write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
                         for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
@@ -179,23 +173,24 @@ int main() {
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
                         }
+                        // - Check if the last two bytes of the trampoline page are 0xFF.
                         flashAddr = (void *)(TIMONEL_START - 2);
                         word pgData = (*flashAddr & 0xFF);
                         pgData += ((*(++flashAddr) & 0xFF) << 8);
                         if (pgData == 0xFFFF) {
+                            // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
                             boot_page_fill(TIMONEL_START - 2, tpl);
                             boot_page_erase(TIMONEL_START - PAGE_SIZE);
                             boot_page_write(TIMONEL_START - PAGE_SIZE);
                         }
-                        else {                                      /* Application too big to fit in memory! */
-                            statusRegister |= (1 << ST_DEL_FLASH);  /* Set Erase flash */
+                        else {
+                            // -- If no, it means that the application is too big for this setup, erase it! 
+                            statusRegister |= (1 << ST_DEL_FLASH);
                         }
                     }
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
-                //dlyCounter = I2CDLYTIME;
-                //dlyCounter = TOGGLETIME;
             }
         }
         /* ..................................................
@@ -311,7 +306,8 @@ void RequestEvent(void) {
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
-                //SPMCSR |= (1 << CTPB);                            /* Clear temporary page buffer */
+                __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+                asm volatile("spm"); 
                 appResetLSB = command[1];
                 appResetMSB = command[2];
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
