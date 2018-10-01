@@ -52,7 +52,7 @@ typedef void (*fptr_t)(void);
 
 // Global variables
 byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from I2C master */
-byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used, 4: exit, 3: delete flash, 2, 1: initialized */
+byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 byte appResetLSB = 0xFF;
@@ -93,30 +93,29 @@ int main() {
        |___________________|
     */
     for (;;) {
-        // Initialization check
-        if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
-        ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
-            // ============================================
-            // = Blink led until is initialized by master =
-            // ============================================
-            if (dlyCounter-- <= 0) {
+        if (dlyCounter-- <= 0) {
+            dlyCounter = TOGGLETIME;
+            // Initialization check
+            if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
+            ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
+                // ============================================
+                // = Blink led until is initialized by master =
+                // ============================================
 #if ENABLE_LED_UI               
                 LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at TOGGLETIME intervals */
 #endif
-                dlyCounter = TOGGLETIME;
                 if (exitDly-- == 0) {
                     RunApplication();
                 }
             }
-        }
-        else {
-            if (dlyCounter-- <= 0) {                /* Decrease dlyCounter on each main loop pass until it */
+            else {                                  /* Decrease dlyCounter on each main loop pass until it */
                 //                                  /* reaches 0 before running code to allow I2C replies  */
                 // =======================================
                 // = Exit bootloader and run application =
                 // =======================================
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
+                    //asm volatile("ldi r31, 0");
                     RunApplication();                       /* Launch application */
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
@@ -127,9 +126,9 @@ int main() {
                 // = Delete application from flash memory =
                 // ========================================
                 if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
-#if ENABLE_LED_UI                   
+    #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
-#endif                  
+    #endif                  
                     word pageAddress = TIMONEL_START;       /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
@@ -137,16 +136,20 @@ int main() {
                     }
                     //SPMCSR |= (1 << CTPB);                  /* Clear temporary buffer */
                     //SPMCSR &= ~(1 << CTPB);                 /* Is this necessary? */
-                    wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
-                    for (;;) {};
+                    __SPM_REG=(_BV(CTPB)|_BV(__SPM_ENABLE));
+                    asm volatile("spm");
+                    //asm volatile("ldi r31, 0");
+                    RunApplication(); 
+                    //wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
+                    //for (;;) {};
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
-#if ENABLE_LED_UI                   
+    #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
-#endif
+    #endif
                     boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
@@ -194,6 +197,7 @@ int main() {
                     pageIX = 0;
                 }
                 //dlyCounter = I2CDLYTIME;
+                //dlyCounter = TOGGLETIME;
             }
         }
         /* ..................................................
