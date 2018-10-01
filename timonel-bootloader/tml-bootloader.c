@@ -114,7 +114,7 @@ int main() {
                 // =======================================
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
-                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 in r31 */
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
@@ -133,7 +133,7 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 in r31 */
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application, in this case restarts the bootloader */
                     //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
                     //for (;;) {};
