@@ -44,7 +44,7 @@
 // Operation delays
 #define TOGGLETIME      0xFFFF  /* LED toggle delay before initialization */
 //#define I2CDLYTIME      0x7FFF  /* Main loop times to allow the I2C responses to finish */
-#define CYCLESTOEXIT    20      /* Main loop cycles before exit to app if not initialized */
+#define CYCLESTOEXIT    40      /* Main loop cycles before exit to app if not initialized */
 
 // I2C TX-RX commands data size
 #define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */

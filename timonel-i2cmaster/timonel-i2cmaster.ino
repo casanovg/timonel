@@ -1001,7 +1001,7 @@ int WriteFlash(void) {
 		}
 		if (wrtErrors > 0) {
 			//Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
-			DeleteFlash();
+			//DeleteFlash();
 			TwoStepInit(2000);
 			ESP.restart();
 			return(wrtErrors);
@@ -1028,7 +1028,7 @@ int WriteFlash(void) {
 		Serial.print("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
 		Serial.print(wrtErrors);
 		Serial.println(" ===");
-		DeleteFlash();
+		//DeleteFlash();
 		TwoStepInit(2000);
 		ESP.restart();
 	}

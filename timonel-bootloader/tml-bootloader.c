@@ -134,13 +134,11 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    //SPMCSR |= (1 << CTPB);                  /* Clear temporary buffer */
-                    //SPMCSR &= ~(1 << CTPB);                 /* Is this necessary? */
-                    __SPM_REG=(_BV(CTPB)|_BV(__SPM_ENABLE));
+                    __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));    /* Clear temporary buffer */
                     asm volatile("spm");
                     //asm volatile("ldi r31, 0");
                     RunApplication(); 
-                    //wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
+                    //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
                     //for (;;) {};
                 }
                 // ========================================================================

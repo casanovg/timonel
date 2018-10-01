@@ -20,7 +20,7 @@ MCU = attiny85
 
 #Test addresses: 1AC0 1A40 C80
 
-TIMONEL_START = C80
+TIMONEL_START = 1A40
 
 FUSEOPT = -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
 FUSEOPT_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
