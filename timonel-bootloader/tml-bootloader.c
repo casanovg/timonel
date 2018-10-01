@@ -84,6 +84,9 @@ int main() {
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
+    //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+    //asm volatile("spm");
+    SPMCSR |= (1 << CTPB);
     word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
@@ -305,8 +308,6 @@ void RequestEvent(void) {
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
-                __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
-                asm volatile("spm"); 
                 appResetLSB = command[1];
                 appResetMSB = command[2];
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
