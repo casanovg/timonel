@@ -13,7 +13,6 @@
  */
 
 /* Includes */
-//#include <avr/io.h>
 #include <avr/boot.h>
 #include <avr/wdt.h>
 #include "tml-config.h"
