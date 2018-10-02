@@ -1,7 +1,7 @@
 Bootloader temporary page buffer tests
 ======================================
-Test 1 (FAILS)
---------------
+Test 1 (IT FAILS)
+-----------------
 a. Temporary page buffer cleared with
     //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));
     //asm volatile("spm");
@@ -10,8 +10,8 @@ a. Temporary page buffer cleared with
 b. Bit 7 of R31 cleared before RunApplication()
     asm volatile("cbr r31, 0x80");
 
-Test 2 (WORKS)
---------------
+Test 2 (IT WORKS)
+-----------------
 a. Temporary page buffer cleared with
     __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));
     asm volatile("spm");
@@ -20,8 +20,8 @@ a. Temporary page buffer cleared with
 b. Bit 7 of R31 NOT cleared before RunApplication()
     //asm volatile("cbr r31, 0x80");
 
-Test 3 (WORKS)
---------------
+Test 3 (ITWORKS)
+----------------
 a. Temporary page buffer cleared with
     //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));
     //asm volatile("spm");
