@@ -101,7 +101,7 @@ int main() {
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
     //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     //asm volatile("spm");
-    /SPMCSR |= (1 << CTPB);
+    //SPMCSR |= (1 << CTPB);
     boot_temp_buff_erase();
     //word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
