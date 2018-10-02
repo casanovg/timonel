@@ -74,6 +74,7 @@ word dlyCounter = TOGGLETIME;
 
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
+fptr_t RestartTimonel = (fptr_t)((TIMONEL_START) / 2);
 
 // Prototypes
 void ReceiveEvent(byte commandBytes);
@@ -151,8 +152,8 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
-                    RunApplication();                       /* Exit to the application, in this case restarts the bootloader */
+                    //asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
                     //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
                     //for (;;) {};
                 }
