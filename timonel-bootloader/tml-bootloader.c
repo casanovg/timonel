@@ -60,7 +60,7 @@
 // Type definitions
 typedef uint8_t byte;
 typedef uint16_t word;
-typedef void (*fptr_t)(void);
+typedef void (* const fptr_t)(void);
 
 // Global variables
 byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from I2C master */
@@ -73,8 +73,8 @@ byte appResetMSB = 0xFF;
 word dlyCounter = TOGGLETIME;
 
 // Jump to trampoline
-fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
-fptr_t RestartTimonel = (fptr_t)((TIMONEL_START) / 2);
+static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 
 // Prototypes
 void ReceiveEvent(byte commandBytes);
