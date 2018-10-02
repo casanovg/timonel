@@ -44,6 +44,19 @@
     #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
 
+#define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
+#define boot_temp_buff_erase()                   \
+(__extension__({                                 \
+    __asm__ __volatile__                         \
+    (                                            \
+        "sts %0, %1\n\t"                         \
+        "spm\n\t"                                \
+        :                                        \
+        : "i" (_SFR_MEM_ADDR(__SPM_REG)),        \
+          "r" ((uint8_t)(BOOT_TEMP_BUFF_ERASE))  \
+    );                                           \
+}))
+
 // Type definitions
 typedef uint8_t byte;
 typedef uint16_t word;
@@ -56,6 +69,8 @@ word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 byte appResetLSB = 0xFF;
 byte appResetMSB = 0xFF;
+
+word dlyCounter = TOGGLETIME;
 
 // Jump to trampoline
 fptr_t RunApplication = (fptr_t)((TIMONEL_START - 2) / 2);
@@ -86,8 +101,9 @@ int main() {
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
     //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     //asm volatile("spm");
-    SPMCSR |= (1 << CTPB);
-    word dlyCounter = TOGGLETIME;
+    //SPMCSR |= (1 << CTPB);
+    boot_temp_buff_erase();
+    //word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -351,4 +367,5 @@ void RequestEvent(void) {
             break;
         }
     }
+    dlyCounter = TOGGLETIME;
 }
