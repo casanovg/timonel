@@ -368,5 +368,5 @@ void RequestEvent(void) {
             break;
         }
     }
-    dlyCounter = TOGGLETIME;
+    //dlyCounter = TOGGLETIME;
 }
