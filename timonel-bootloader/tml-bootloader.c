@@ -44,19 +44,6 @@
     #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
 #endif
 
-#define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
-#define boot_temp_buff_erase()                   \
-(__extension__({                                 \
-    __asm__ __volatile__                         \
-    (                                            \
-        "sts %0, %1\n\t"                         \
-        "spm\n\t"                                \
-        :                                        \
-        : "i" (_SFR_MEM_ADDR(__SPM_REG)),        \
-          "r" ((uint8_t)(BOOT_TEMP_BUFF_ERASE))  \
-    );                                           \
-}))
-
 // Type definitions
 typedef uint8_t byte;
 typedef uint16_t word;
@@ -73,7 +60,7 @@ byte appResetMSB = 0xFF;
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
 // Restart this bootloader
-static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
+//static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 
 // Prototypes
 void ReceiveEvent(byte commandBytes);
@@ -101,8 +88,6 @@ int main() {
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
     //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     //asm volatile("spm");
-    //SPMCSR |= (1 << CTPB);
-    boot_temp_buff_erase();
     word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
@@ -132,7 +117,7 @@ int main() {
                 // =======================================
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
-                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    //asm volatile("cbr r31, 0x80");        /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
@@ -143,33 +128,32 @@ int main() {
                 // = Delete application from flash memory =
                 // ========================================
                 if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
-    #if ENABLE_LED_UI                   
+#if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
-    #endif                  
+#endif                  
                     word pageAddress = TIMONEL_START;       /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    //asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
-                    RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
-                    //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
-                    //for (;;) {};
+                    //asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
+                    //RestartTimonel();                   /* Exit to the application, in this case restarts the bootloader */
+                    wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
+                    for (;;) {};
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
                 /*
-                    TODO: Implement ALLOW_USE_TPL_PG (allow use trampoline page).
                     TODO: Implement AUTO_CALC_TPL (auto-calculate & flash trampoline), if it is not
                           selected, the i2c master has to calculate the trampoline jump and pass it,
                           maybe with GETTMNLV.
                     TODO: Implement a GETTMNLV reply code that indicates the commands available.
                 */
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
-    #if ENABLE_LED_UI                   
+#if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
-    #endif
+#endif
                     boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
@@ -181,6 +165,7 @@ int main() {
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
+#if APP_USE_TPL_PG                    
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
                         // - Read the previous page to the bootloader start.
                         // - Write it to the temporary buffer.
@@ -206,6 +191,7 @@ int main() {
                             statusRegister |= (1 << ST_DEL_FLASH);
                         }
                     }
+#endif                    
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }

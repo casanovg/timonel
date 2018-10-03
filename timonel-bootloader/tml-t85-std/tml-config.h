@@ -20,15 +20,16 @@
 
 // Optional modules implementation
 #define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting    */
-                                /* from page 0. This is OK for most applications. It takes ~42 bytes */
+                                /* from page 0. This is OK for most applications. */
                                 
-#define ENABLE_LED_UI   true    /* If this is enabled, LED_UI_PIN is used to show Timonel status */
-                                /* PLEASE DISABLE THIS FOR PRODUCTION! It takes ~30 bytes        */
+#define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to show Timonel status */
+                                /* PLEASE DISABLE THIS FOR PRODUCTION!                           */
                                 
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
                                 /* an I2C master for starting. Otherwise, single-step init is enough   */
 
-#define APP_USE_TPL_PG  true    /* Allow the application to use trampoline page */
+#define APP_USE_TPL_PG  false   /* Allow the application to also use the trampoline page */
+
 #define AUTO_TPL_CALC   true    /* Auto-trampoline calculation & flash */
                                 
 // CPU speed
@@ -42,9 +43,9 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define TOGGLETIME      0xFFFF  /* LED toggle delay before initialization */
-//#define I2CDLYTIME      0x7FFF  /* Main loop times to allow the I2C responses to finish */
-#define CYCLESTOEXIT    40      /* Main loop cycles before exit to app if not initialized */
+#define TOGGLETIME      0xFFFF  /* Main loop counter to allow the I2C replies to complete. */
+                                /* Also used as LED toggle delay before initialization.    */
+#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
 
 // I2C TX-RX commands data size
 #define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
@@ -64,5 +65,19 @@
 #define ID_CHAR_1       78;     /* N */
 #define ID_CHAR_2       66;     /* B */
 #define ID_CHAR_3       84;     /* T */
+
+// Erase temporary page buffer
+#define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
+#define boot_temp_buff_erase()                   \
+(__extension__({                                 \
+    __asm__ __volatile__                         \
+    (                                            \
+        "sts %0, %1\n\t"                         \
+        "spm\n\t"                                \
+        :                                        \
+        : "i" (_SFR_MEM_ADDR(__SPM_REG)),        \
+          "r" ((uint8_t)(BOOT_TEMP_BUFF_ERASE))  \
+    );                                           \
+}))
 
 #endif  /* Close ifndef _TML_CONFIG_H_ */
