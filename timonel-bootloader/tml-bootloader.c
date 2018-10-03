@@ -60,7 +60,7 @@ byte appResetMSB = 0xFF;
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
 // Restart this bootloader
-//static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
+static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 
 // Prototypes
 void ReceiveEvent(byte commandBytes);
@@ -86,8 +86,8 @@ int main() {
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
-    //__SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
-    //asm volatile("spm");
+    __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+    asm volatile("spm");
     word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
@@ -117,7 +117,7 @@ int main() {
                 // =======================================
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
                 ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
-                    //asm volatile("cbr r31, 0x80");        /* Clear bit 7 of r31 */
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
@@ -137,9 +137,9 @@ int main() {
                         boot_page_erase(pageAddress);
                     }
                     //asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
-                    //RestartTimonel();                   /* Exit to the application, in this case restarts the bootloader */
-                    wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
-                    for (;;) {};
+                    RestartTimonel();                   /* Exit to the application, in this case restarts the bootloader */
+                    //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
+                    //for (;;) {};
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
@@ -150,18 +150,21 @@ int main() {
                           maybe with GETTMNLV.
                     TODO: Implement a GETTMNLV reply code that indicates the commands available.
                 */
+#if APP_USE_TPL_PG                
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
+#else
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
+#endif
 #if ENABLE_LED_UI                   
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif
-                    boot_page_erase(flashPageAddr);
+                    //boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
-                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xffff);
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
                         }
-                        //boot_page_fill((TIMONEL_START - 2), (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000));
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }

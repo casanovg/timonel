@@ -28,8 +28,10 @@
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
                                 /* an I2C master for starting. Otherwise, single-step init is enough   */
 
-#define APP_USE_TPL_PG  false   /* Allow the application to also use the trampoline page */
-
+#define APP_USE_TPL_PG  false   /* Allow the application to also use the trampoline page: this is more */
+                                /* a safety measure since enabling this takes 2 extra memory pagas.    */
+                                /* In the end, disabling this allows 1 more application page.          */
+                                
 #define AUTO_TPL_CALC   true    /* Auto-trampoline calculation & flash */
                                 
 // CPU speed
