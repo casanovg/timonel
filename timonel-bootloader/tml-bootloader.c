@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.0 "Sandra" / 2018-10-05
+ *  Version: 0.99 "Sandra" / 2018-10-03
  *  gustavo.casanova@nicebots.com
  */
 
@@ -21,8 +21,8 @@
 
 /* This bootloader ... */
 #define I2C_ADDR        0x15                /* Timonel I2C address: 0x15 = 21 */
-#define TIMONEL_VER_MJR 1                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 0                   /* Timonel version major number */
+#define TIMONEL_VER_MJR 0                   /* Timonel version major number */
+#define TIMONEL_VER_MNR 99                  /* Timonel version major number */
 
 #if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
