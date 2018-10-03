@@ -70,10 +70,9 @@ byte pageIX = 0;                            /* Flash memory page index */
 byte appResetLSB = 0xFF;
 byte appResetMSB = 0xFF;
 
-word dlyCounter = TOGGLETIME;
-
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+// Restart this bootloader
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 
 // Prototypes
@@ -104,7 +103,7 @@ int main() {
     //asm volatile("spm");
     //SPMCSR |= (1 << CTPB);
     boot_temp_buff_erase();
-    //word dlyCounter = TOGGLETIME;
+    word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -368,5 +367,4 @@ void RequestEvent(void) {
             break;
         }
     }
-    //dlyCounter = TOGGLETIME;
 }
