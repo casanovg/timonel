@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.0 / 2018-10-01 (Sandra)
+ *  Version: 1.0 "Sandra" / 2018-10-01
  *  gustavo.casanova@nicebots.com
  */
 
@@ -86,7 +86,8 @@ int main() {
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
     statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
-    __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+    __SPM_REG = (_BV(CTPB) | \
+    _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
     word dlyCounter = TOGGLETIME;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
