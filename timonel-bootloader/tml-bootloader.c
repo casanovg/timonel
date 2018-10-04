@@ -8,21 +8,22 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 0.99 "Sandra" / 2018-10-03
+ *  Version: 1.0 "Sandra" / 2018-10-05
  *  gustavo.casanova@nicebots.com
  */
 
 /* Includes */
 #include <avr/boot.h>
 #include <avr/wdt.h>
+#include <stdbool.h>
 #include "tml-config.h"
 #include "nb-usitwisl-if.h"
 #include "nb-i2c-cmd.h"
 
 /* This bootloader ... */
 #define I2C_ADDR        0x15                /* Timonel I2C address: 0x15 = 21 */
-#define TIMONEL_VER_MJR 0                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 99                  /* Timonel version major number */
+#define TIMONEL_VER_MJR 1                   /* Timonel version major number */
+#define TIMONEL_VER_MNR 0                   /* Timonel version major number */
 
 #if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
@@ -145,9 +146,6 @@ int main() {
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
-                /*
-                    TODO: Implement a GETTMNLV reply code that indicates the commands available.
-                */
 #if APP_USE_TPL_PG
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
@@ -259,8 +257,8 @@ void RequestEvent(void) {
             // }
             reply[6] = 0;
             reply[7] = 0;
-            reply[7] = 0;
-            //reply[8] = featuresCode;
+            //reply[8] = 0;
+            reply[8] = TML_FEATURES;
 #if !(TWO_STEP_INIT)
             statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
 #endif /* !TWO_STEP_INIT */

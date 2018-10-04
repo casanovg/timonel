@@ -17,8 +17,10 @@
 /* ------------------------- */
 /* Timonel optional features */
 /* ------------------------- */
+#define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
+
 #define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to show Timonel status */
-                                /* PLEASE DISABLE THIS FOR PRODUCTION!                           */
+                                /* PLEASE DISABLE THIS FOR PRODUCTION!  */
 
 #define AUTO_TPL_CALC   true    /* Automatic trampoline calculation & flash. If this is disabled, the */
                                 /* trampoline has to be calculated and written by the I2C master.     */
@@ -37,9 +39,10 @@
                                 
 #define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
 
-/* ---------------------------------------------------------------------- */
-/* Timonel internal configuration. Do not change anything below this line */
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------- */
+/* ---   Timonel internal configuration. Do not change anything below this line   --- */
+/* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
+/* ---------------------------------------------------------------------------------- */
 
 // CPU speed
 #ifndef F_CPU
@@ -50,8 +53,7 @@
 #define PAGE_SIZE       64      /* SPM Flash memory page size */
 #define RESET_PAGE      0       /* Interrupt vector table address start location */
 
-// Led UI
-#define LED_UI_PIN      PB1     /* >>> Use PB1 to monitor activity. <<< */
+// Led UI Port
 #define LED_UI_DDR      DDRB    /* >>> WARNING! This is not for use <<< */
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
@@ -72,10 +74,9 @@
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
 #define ST_INIT_2       1       /* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
 #define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory */
-//#define ST_APP_READY   3       /* Status Bit 4 (8)  : Application flashed OK, ready to run */
-#define ST_BIT_4        3       /* Status Bit 4 (8)  : Not used */
-#define ST_EXIT_TML     4       /* Status Bit 5 (16) : Exit Timonel & Run Application */
-#define ST_BIT_6        5       /* Status Bit 6 (32) : Not used --- (RTR) Ready to Receive ---*/
+#define ST_EXIT_TML     3       /* Status Bit 5 (16) : Exit Timonel & Run Application */
+#define ST_BIT_4        4       /* Status Bit 4 (8)  : Not used --- (RTR) Ready to Receive ? --- */
+#define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
 #define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
 #define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
 
@@ -93,39 +94,39 @@
     );                                           \
 }))
 
+// Features code calculation for GETTMNLV replies
+#if (ENABLE_LED_UI == true)
+    #define FT_BIT_0    1
+#else
+    #define FT_BIT_0    0
+#endif
+#if (AUTO_TPL_CALC == true)
+    #define FT_BIT_1    2
+#else
+    #define FT_BIT_1    0
+#endif
+#if (APP_USE_TPL_PG == true)
+    #define FT_BIT_2    4
+#else
+    #define FT_BIT_2    0
+#endif
+#if (CMD_STPGADDR == true)
+    #define FT_BIT_3    8
+#else
+    #define FT_BIT_3    0
+#endif
+#if (TWO_STEP_INIT == true)
+    #define FT_BIT_4    16
+#else
+    #define FT_BIT_4    0
+#endif
+#if (USE_WDT_RESET == true)
+    #define FT_BIT_5    32
+#else
+    #define FT_BIT_5    0
+#endif
+#define FT_BIT_6    0
+#define FT_BIT_7    0
+#define TML_FEATURES (FT_BIT_7 + FT_BIT_6 + FT_BIT_5 + FT_BIT_4 + FT_BIT_3 + FT_BIT_2 + FT_BIT_1 + FT_BIT_0)
+
 #endif /* _TML_CONFIG_H_ */
-
-// Features code to reply in GETTMNLV
-//#define FEATURES_CODE = 0
-//volatile uint8_t featuresCode = 0;
-
-// #if (ENABLE_LED_UI == true)
-    // //FEATURES_CODE |= 1
-    // featuresCode += 1;
-// #endif
-
-// #if (AUTO_TPL_CALC == true)
-    // //#FEATURES_CODE |= 2
-    // featuresCode += 2;
-// #endif
-
-// #if (APP_USE_TPL_PG == true)
-    // //#define FEATURES_CODE |= 4
-    // featuresCode += 4;
-// #endif
-
-// #if (CMD_STPGADDR == true)
-    // //#define FEATURES_CODE |= 8
-    // featuresCode += 8;
-// #endif
-
-// #if (TWO_STEP_INIT == true)
-    // //#define FEATURES_CODE |= 16
-    // featuresCode += 16;
-// #endif
-
-// #if (USE_WDT_RESET == true)
-    // //#define FEATURES_CODE |= 32
-    // featuresCode += 32;
-// #endif
-

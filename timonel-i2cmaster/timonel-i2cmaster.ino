@@ -802,14 +802,17 @@ void GetTimonelVersion(void) {
 			Serial.print(trampolineJump, HEX);
 		}
 		Serial.print(") ]");
-		if (ackRX[8] == 0) {
-			Serial.print(" [ Flash Memory Clear ]");
-			memoryLoaded = false;
-		}
-		else {
-			Serial.print(" [ Flash Memory Loaded ]");
-			memoryLoaded = true;
-		}
+		Serial.print(" [ Features Code: ");
+		Serial.print(ackRX[8]);
+		Serial.print(" ]");
+		//if (ackRX[8] == 0) {
+		//	Serial.print(" [ Flash Memory Clear ]");
+		//	memoryLoaded = false;
+		//}
+		//else {
+		//	Serial.print(" [ Flash Memory Loaded ]");
+		//	memoryLoaded = true;
+		//}
 		Serial.println("");
 	}
 	else {
