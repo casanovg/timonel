@@ -195,9 +195,9 @@ int main() {
                     }
 #endif /* APP_USE_TPL_PG */
 #endif /* AUTO_TPL_CALC */
-#if CMD_STPGADDR
+#if !(CMD_STPGADDR)
                     flashPageAddr += PAGE_SIZE;
-#endif /* CMD_STPGADDR */
+#endif /* !CMD_STPGADDR */
                     pageIX = 0;
                 }
             }
