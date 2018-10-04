@@ -146,9 +146,6 @@ int main() {
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
                 /*
-                    TODO: Implement AUTO_CALC_TPL (auto-calculate & flash trampoline), if it is not
-                          selected, the i2c master has to calculate the trampoline jump and pass it,
-                          maybe with GETTMNLV.
                     TODO: Implement a GETTMNLV reply code that indicates the commands available.
                 */
 #if APP_USE_TPL_PG
@@ -198,7 +195,9 @@ int main() {
                     }
 #endif /* APP_USE_TPL_PG */
 #endif /* AUTO_TPL_CALC */
+#if CMD_STPGADDR
                     flashPageAddr += PAGE_SIZE;
+#endif /* CMD_STPGADDR */
                     pageIX = 0;
                 }
             }
@@ -323,7 +322,7 @@ void RequestEvent(void) {
 #endif /* AUTO_TPL_CALC */
                 // Modify the reset vector to point to this bootloader
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (byte)((command[2]) + command[1]);   /* Reply checksum accumulator */
+                reply[1] += (byte)((command[2]) + command[1]);      /* Reply checksum accumulator */
                 pageIX += 2;
                 for (byte i = 3; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
