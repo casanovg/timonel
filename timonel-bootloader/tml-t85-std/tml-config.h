@@ -47,6 +47,8 @@
                                 /* an I2C master for starting. Otherwise, single-step init is enough   */
 
 #define USE_WDT_RESET   false   /* Use watchdog timer for resetting instead of a jump to TIMONEL_START */
+
+#define SET_PRESCALER   false   /* Force setting the CPU clock prescaler for 8 MHz                     */
                                 
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
@@ -139,7 +141,11 @@
 #else
     #define FT_BIT_6    0
 #endif
-#define FT_BIT_7    0
+#if (SET_PRESCALER == true)
+    #define FT_BIT_7    128
+#else
+    #define FT_BIT_7    0
+#endif
 #define TML_FEATURES (FT_BIT_7 + FT_BIT_6 + FT_BIT_5 + FT_BIT_4 + FT_BIT_3 + FT_BIT_2 + FT_BIT_1 + FT_BIT_0)
 
 #endif /* _TML_CONFIG_H_ */
