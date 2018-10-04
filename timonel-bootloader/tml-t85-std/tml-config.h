@@ -3,7 +3,7 @@
  *  Project: Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  .......................................................
- *  2018-09-16 gustavo.casanova@nicebots.com
+ *  2018-10-05 gustavo.casanova@nicebots.com
  */
 
 #ifndef _TML_CONFIG_H_
@@ -14,31 +14,40 @@
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
-/* ------------------------- */
-/* Timonel optional features */
-/* ------------------------- */
+/* -------------------------------------- */
+/* Timonel settings and optional features */
+/* -------------------------------------- */
+
+#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
+
 #define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
 
-#define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to show Timonel status */
-                                /* PLEASE DISABLE THIS FOR PRODUCTION!  */
+#define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
+                                /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
+                                /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
 
-#define AUTO_TPL_CALC   true    /* Automatic trampoline calculation & flash. If this is disabled, the */
-                                /* trampoline has to be calculated and written by the I2C master.     */
+#define AUTO_TPL_CALC   true    /* Automatic trampoline calculation & flash. If this is disabled,      */
+                                /* the trampoline has to be calculated and written by the I2C master.  */
+                                /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
                                 
-#define APP_USE_TPL_PG  false   /* Allow the application to also use the trampoline page: this is more */
-                                /* a safety measure since enabling this takes 2 extra memory pagas.    */
-                                /* In the end, disabling this allows 1 more application page.          */
+#define APP_USE_TPL_PG  false   /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
+                                /* is enabled. This is a safety measure since enabling this takes 2    */
+                                /* extra memory pages. In the end, disabling this allows 1 extra page. */
+                                /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
+                                /* duty to write the trampoline page is transferred to the I2C master. */
                                 
-#define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting */
-                                /* from page 0. This is OK for most applications.                 */
+#define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting      */
+                                /* from page 0, this is OK for most applications.                      */
+                                /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
-#define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from */
-                                /* an I2C master for starting. Otherwise, single-step init is enough  */
+#define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
+                                /* writing new data. Normally, it shouldn't be necessary to enable it. */
+                                
+#define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
+                                /* an I2C master for starting. Otherwise, single-step init is enough   */
 
 #define USE_WDT_RESET   false   /* Use watchdog timer for resetting instead of a jump to TIMONEL_START */
                                 
-#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
-
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
 /* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
@@ -62,9 +71,9 @@
                                 /* Also used as LED toggle delay before initialization.    */
 
 // Timonel ID characters
-#define ID_CHAR_1       78;     /* N */
-#define ID_CHAR_2       66;     /* B */
-#define ID_CHAR_3       84;     /* T */
+#define ID_CHAR_1       78      /* N */
+#define ID_CHAR_2       66      /* B */
+#define ID_CHAR_3       84      /* T */
 
 // I2C TX-RX commands data size
 #define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
@@ -73,9 +82,9 @@
 // Status byte
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
 #define ST_INIT_2       1       /* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
-#define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory */
+#define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory            */
 #define ST_EXIT_TML     3       /* Status Bit 5 (16) : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Status Bit 4 (8)  : Not used --- (RTR) Ready to Receive ? --- */
+#define ST_BIT_4        4       /* Status Bit 4 (8)  : Not used */
 #define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
 #define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
 #define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
@@ -115,17 +124,21 @@
 #else
     #define FT_BIT_3    0
 #endif
-#if (TWO_STEP_INIT == true)
+#if (FORCE_ERASE_PG == true)
     #define FT_BIT_4    16
 #else
     #define FT_BIT_4    0
 #endif
-#if (USE_WDT_RESET == true)
+#if (TWO_STEP_INIT == true)
     #define FT_BIT_5    32
 #else
     #define FT_BIT_5    0
 #endif
-#define FT_BIT_6    0
+#if (USE_WDT_RESET == true)
+    #define FT_BIT_6    64
+#else
+    #define FT_BIT_6    0
+#endif
 #define FT_BIT_7    0
 #define TML_FEATURES (FT_BIT_7 + FT_BIT_6 + FT_BIT_5 + FT_BIT_4 + FT_BIT_3 + FT_BIT_2 + FT_BIT_1 + FT_BIT_0)
 

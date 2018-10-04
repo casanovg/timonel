@@ -765,8 +765,8 @@ void GetTimonelVersion(void) {
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
-	blockRXSize = Wire.requestFrom(slaveAddress, (byte)9);
-	byte ackRX[9] = { 0 };   // Data received from slave
+	blockRXSize = Wire.requestFrom(slaveAddress, (byte)10);
+	byte ackRX[10] = { 0 };   // Data received from slave
 	for (int i = 0; i < blockRXSize; i++) {
 		ackRX[i] = Wire.read();
 	}
@@ -802,17 +802,20 @@ void GetTimonelVersion(void) {
 			Serial.print(trampolineJump, HEX);
 		}
 		Serial.print(") ]");
+
+		if (ackRX[8] == 0) {
+			Serial.print(" [ Flash Memory Clear ]");
+			memoryLoaded = false;
+		}
+		else {
+			Serial.print(" [ Flash Memory Loaded ]");
+			memoryLoaded = true;
+		}
+
 		Serial.print(" [ Features Code: ");
-		Serial.print(ackRX[8]);
+		Serial.print(ackRX[9]);
 		Serial.print(" ]");
-		//if (ackRX[8] == 0) {
-		//	Serial.print(" [ Flash Memory Clear ]");
-		//	memoryLoaded = false;
-		//}
-		//else {
-		//	Serial.print(" [ Flash Memory Loaded ]");
-		//	memoryLoaded = true;
-		//}
+
 		Serial.println("");
 	}
 	else {

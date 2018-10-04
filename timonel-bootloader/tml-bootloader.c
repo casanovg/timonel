@@ -85,8 +85,8 @@ int main() {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
-    CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler for 8 MHz */
-    CLKPR = (0x00);    
+    // CLKPR = (1 << CLKPCE);               /* Set the CPU prescaler for 8 MHz */
+    // CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
@@ -154,7 +154,9 @@ int main() {
 #if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
-                    //boot_page_erase(flashPageAddr);
+#if FORCE_ERASE_PG
+                    boot_page_erase(flashPageAddr);
+#endif /* FORCE_ERASE_PG */                    
                     boot_page_write(flashPageAddr);
 #if AUTO_TPL_CALC
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
@@ -239,9 +241,10 @@ void RequestEvent(void) {
         // * GETTMNLV Reply *
         // ******************
         case GETTMNLV: {
-            #define GETTMNLV_RPLYLN 9
-            //const __flash unsigned char * flashAddr;
-            //flashAddr = (void *)(TIMONEL_START - 1);
+            #define GETTMNLV_RPLYLN 10
+            //static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+            const __flash unsigned char * flashAddr;
+            flashAddr = (void *)(TIMONEL_START - 1); 
             byte reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             reply[1] = ID_CHAR_3;                                   /* T */            
@@ -249,16 +252,13 @@ void RequestEvent(void) {
             reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
             reply[4] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
             reply[5] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
-            //reply[6] = (*flashAddr & 0xFF);                       /* Trampoline second byte (MSB) */
-            //reply[7] = (*(--flashAddr) & 0xFF);                   /* Trampoline first byte (LSB) */
-            // for (uint16_t i = 0; i < 100; i++) {
-                // flashAddr = (void *)(i);
-                // reply[8] += (byte)~(*flashAddr);                 /* Check the first 100 bytes to determine if there is an app flashed */
-            // }
-            reply[6] = 0;
-            reply[7] = 0;
-            //reply[8] = 0;
-            reply[8] = TML_FEATURES;
+            reply[6] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
+            reply[7] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
+            for (uint16_t i = 0; i < 100; i++) {
+                flashAddr = (void *)(i);
+                reply[8] += (byte)~(*flashAddr);                    /* Check the first 100 bytes to determine if there is an app flashed */
+            }
+            reply[9] = TML_FEATURES;
 #if !(TWO_STEP_INIT)
             statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
 #endif /* !TWO_STEP_INIT */
