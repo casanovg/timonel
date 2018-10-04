@@ -20,11 +20,22 @@
 #include "nb-usitwisl-if.h"
 #include "nb-i2c-cmd.h"
 
-/* This bootloader ... */
-#define I2C_ADDR        0x15                /* Timonel I2C address: 0x15 = 21 */
-#define TIMONEL_VER_MJR 1                   /* Timonel version major number */
-#define TIMONEL_VER_MNR 0                   /* Timonel version major number */
+/* I2C Address 08 to 35: Timonel bootloader
+   I2C Address 36 to 64: Application firmware
+   Each I2C node must have a unique bootloader address that corresponds
+   to a defined application address, as shown in this table:
+          -----------------------------------------------------------------------------------
+   Boot: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
+   Appl: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
+          -----------------------------------------------------------------------------------
+*/
+#define I2C_ADDR        9                   /* Timonel I2C address: 09 (0x09) */
 
+/* This bootloader ... */
+#define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
+#define TIMONEL_VER_MNR 0                   /* Timonel version major number   */
+
+/* Configuration checks */
 #if (TIMONEL_START % PAGE_SIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
