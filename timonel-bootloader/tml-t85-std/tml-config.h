@@ -20,7 +20,7 @@
 #define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to show Timonel status */
                                 /* PLEASE DISABLE THIS FOR PRODUCTION!                           */
 
-#define AUTO_TPL_CALC   true    /* Trampoline auto-calculation & flash. If this is not set, the   */
+#define TPL_AUTO_CALC   true    /* Trampoline auto-calculation & flash. If this is not set, the   */
                                 /* trampoline has to be calculated and written by the I2C master. */
                                 
 #define APP_USE_TPL_PG  false   /* Allow the application to also use the trampoline page: this is more */
