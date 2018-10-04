@@ -54,10 +54,10 @@ byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from I2C master 
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
-#if TPL_AUTO_CALC
+#if AUTO_TPL_CALC
 byte appResetLSB = 0xFF;                    /* Application first byte  */
 byte appResetMSB = 0xFF;                    /* Application second byte*/
-#endif /* TPL_AUTO_CALC */
+#endif /* AUTO_TPL_CALC */
 
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
@@ -158,7 +158,7 @@ int main() {
 #endif /* ENABLE_LED_UI */
                     //boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
-#if TPL_AUTO_CALC
+#if AUTO_TPL_CALC
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -194,7 +194,7 @@ int main() {
                         }
                     }
 #endif /* APP_USE_TPL_PG */
-#endif /* TPL_AUTO_CALC */
+#endif /* AUTO_TPL_CALC */
 #if CMD_STPGADDR
                     flashPageAddr += PAGE_SIZE;
 #endif /* CMD_STPGADDR */
@@ -291,7 +291,7 @@ void RequestEvent(void) {
             statusRegister |= (1 << ST_DEL_FLASH);
             break;
         }
-#if (CMD_STPGADDR || !(TPL_AUTO_CALC))
+#if (CMD_STPGADDR || !(AUTO_TPL_CALC))
         // ******************
         // * STPGADDR Reply *
         // ******************
@@ -307,7 +307,7 @@ void RequestEvent(void) {
             }
             break;
         }
-#endif /* CMD_STPGADDR || !TPL_AUTO_CALC */
+#endif /* CMD_STPGADDR || !AUTO_TPL_CALC */
         // ******************
         // * WRITPAGE Reply *
         // ******************
@@ -316,10 +316,10 @@ void RequestEvent(void) {
             byte reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
-#if TPL_AUTO_CALC
+#if AUTO_TPL_CALC
                 appResetLSB = command[1];
                 appResetMSB = command[2];
-#endif /* TPL_AUTO_CALC */
+#endif /* AUTO_TPL_CALC */
                 // Modify the reset vector to point to this bootloader
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
                 reply[1] += (byte)((command[2]) + command[1]);      /* Reply checksum accumulator */
