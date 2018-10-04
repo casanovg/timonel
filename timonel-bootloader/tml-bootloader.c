@@ -54,13 +54,17 @@ byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from I2C master 
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
-byte appResetLSB = 0xFF;
-byte appResetMSB = 0xFF;
+#if AUTO_TPL_CALC
+byte appResetLSB = 0xFF;                    /* Application first byte  */
+byte appResetMSB = 0xFF;                    /* Application second byte*/
+#endif /* AUTO_TPL_CALC */
 
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+#if !(USE_WDT_RESET)
 // Restart this bootloader
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
+#endif /* !USE_WDT_RESET */
 
 // Prototypes
 void ReceiveEvent(byte commandBytes);
@@ -79,17 +83,16 @@ int main() {
     cli();                                  /* Disable Interrupts */
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
-#endif
+#endif /* ENABLE_LED_UI */
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler for 8 MHz */
     CLKPR = (0x00);    
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
     Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
-    statusRegister = (1 << ST_APP_READY);   /* In principle, assume that there is a valid app in memory */
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
-    word dlyCounter = TOGGLETIME;
+    word dlyCounter = CYCLESTOWAIT;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -98,7 +101,7 @@ int main() {
     */
     for (;;) {
         if (dlyCounter-- <= 0) {
-            dlyCounter = TOGGLETIME;
+            dlyCounter = CYCLESTOWAIT;
             // Initialization check
             if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
             ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
@@ -106,8 +109,8 @@ int main() {
                 // = Run this until is initialized by master =
                 // ===========================================
 #if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at TOGGLETIME intervals */
-#endif
+                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
                 if (exitDly-- == 0) {
                     RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
@@ -116,14 +119,9 @@ int main() {
                 // =======================================
                 // = Exit bootloader and run application =
                 // =======================================
-                if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
-                ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) {
+                if ((statusRegister & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
-                }
-                if ((statusRegister & ((1 << ST_EXIT_TML) + (1 << ST_APP_READY))) == \
-                (1 << ST_EXIT_TML)) {               
-                    statusRegister |= (1 << ST_DEL_FLASH);  /* Set Erase flash */
                 }
                 // ========================================
                 // = Delete application from flash memory =
@@ -131,16 +129,18 @@ int main() {
                 if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
-#endif                  
+#endif /* ENABLE_LED_UI */
                     word pageAddress = TIMONEL_START;       /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    //asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
-                    RestartTimonel();                   /* Exit to the application, in this case restarts the bootloader */
-                    //wdt_enable(WDTO_15MS);                /* RESETTING ... WARNING!!! */
-                    //for (;;) {};
+#if !(USE_WDT_RESET)
+                    RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
+#else
+                    wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
+                    for (;;) {};
+#endif /* !USE_WDT_RESET */                    
                 }
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
@@ -151,16 +151,17 @@ int main() {
                           maybe with GETTMNLV.
                     TODO: Implement a GETTMNLV reply code that indicates the commands available.
                 */
-#if APP_USE_TPL_PG                
+#if APP_USE_TPL_PG
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
-#endif
-#if ENABLE_LED_UI                   
+#endif /* APP_USE_TPL_PG */
+#if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
-#endif
+#endif /* ENABLE_LED_UI */
                     //boot_page_erase(flashPageAddr);
                     boot_page_write(flashPageAddr);
+#if AUTO_TPL_CALC
                     word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -169,7 +170,7 @@ int main() {
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
-#if APP_USE_TPL_PG                    
+#if APP_USE_TPL_PG
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
                         // - Read the previous page to the bootloader start.
                         // - Write it to the temporary buffer.
@@ -195,7 +196,8 @@ int main() {
                             statusRegister |= (1 << ST_DEL_FLASH);
                         }
                     }
-#endif                    
+#endif /* APP_USE_TPL_PG */
+#endif /* AUTO_TPL_CALC */
                     flashPageAddr += PAGE_SIZE;
                     pageIX = 0;
                 }
@@ -258,16 +260,17 @@ void RequestEvent(void) {
             // }
             reply[6] = 0;
             reply[7] = 0;
-            reply[8] = 0;
+            reply[7] = 0;
+            //reply[8] = featuresCode;
 #if !(TWO_STEP_INIT)
             statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
-#endif
+#endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
             statusRegister |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
-#endif
+#endif /* TWO_STEP_INIT */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
-#endif 
+#endif /* ENABLE_LED_UI */
             for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -289,7 +292,7 @@ void RequestEvent(void) {
             statusRegister |= (1 << ST_DEL_FLASH);
             break;
         }
-#if CMD_STPGADDR        
+#if (CMD_STPGADDR || !(AUTO_TPL_CALC))
         // ******************
         // * STPGADDR Reply *
         // ******************
@@ -305,39 +308,41 @@ void RequestEvent(void) {
             }
             break;
         }
-#endif      
+#endif /* CMD_STPGADDR || !AUTO_TPL_CALC */
         // ******************
         // * WRITPAGE Reply *
         // ******************
         case WRITPAGE: {
             #define WRITPAGE_RPLYLN 2
-            uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
+            byte reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
+#if AUTO_TPL_CALC
                 appResetLSB = command[1];
                 appResetMSB = command[2];
+#endif /* AUTO_TPL_CALC */
+                // Modify the reset vector to point to this bootloader
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
+                reply[1] += (byte)((command[2]) + command[1]);   /* Reply checksum accumulator */
                 pageIX += 2;
-                for (uint8_t i = 3; i < (RXDATASIZE + 1); i += 2) {
+                for (byte i = 3; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }                
             }
             else {
-                for (uint8_t i = 1; i < (RXDATASIZE + 1); i += 2) {
+                for (byte i = 1; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }
             }
             if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                //statusRegister &= ~(1 << ST_APP_READY);           /* Payload received with errors, don't run it !!! */
                 statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
                 reply[1] = 0;
             }
-            for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
+            for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
@@ -351,7 +356,7 @@ void RequestEvent(void) {
             UsiTwiTransmitByte(opCodeAck);
             break;
         }
-#endif
+#endif /* TWO_STEP_INIT */
         default: {
             UsiTwiTransmitByte(UNKNOWNC);
             break;

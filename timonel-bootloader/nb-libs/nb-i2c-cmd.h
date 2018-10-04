@@ -9,6 +9,9 @@
 
 // https://drive.google.com/open?id=1GdgMnsvW42g25_R4oTaebXnzAQPVpvGj
 
+#ifndef _NB_I2C_CMD_H_
+#define _NB_I2C_CMD_H_
+
 // Hardware Commands
 #define STDPB1_1		0xE9				/* Command to Set ATtiny85 PB1 = 1 */
 #define AKDPB1_1		0x16				/* Acknowledge PB1 = 1 Command */
@@ -52,3 +55,5 @@
 #define ACKWTPAG		0x58				/* Acknowledge Write AVR 8-bit Page Buffer Command */
 #define EXITTMNL		0xA8				/* Command to Exit Timonel (run application) 	*/
 #define ACKEXITT		0x57				/* Acknowledge Exit Timonel Command */
+
+#endif /* _NB_I2C_CMD_H_ */
