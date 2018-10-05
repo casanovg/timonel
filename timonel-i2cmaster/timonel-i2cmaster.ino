@@ -72,7 +72,7 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v0.9)");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.0)");
 	Serial.println("============================================================");
 	TwoStepInit(0);
 	Serial.println("");
@@ -683,15 +683,15 @@ int WritePageBuff(uint8_t dataArray[]) {
 		}
 	}
 	else {
-		Serial.print("[Timonel] - Error parsing ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" command! <<< ");
-		Serial.println(ackRX[0]);
-		Serial.println("");
-		if (commErrors++ > 0) {					/* Opcode error detected ... */
-			Serial.println("\n\r[Timonel] - WritePageBuff Opcode Reply Errors, Aborting ...");
-			exit(commErrors);
-		}
+	Serial.print("[Timonel] - Error parsing ");
+	Serial.print(cmdTX[0]);
+	Serial.print(" command! <<< ");
+	Serial.println(ackRX[0]);
+	Serial.println("");
+	if (commErrors++ > 0) {					/* Opcode error detected ... */
+		Serial.println("\n\r[Timonel] - WritePageBuff Opcode Reply Errors, Aborting ...");
+		exit(commErrors);
+	}
 	}
 	return(commErrors);
 }
@@ -753,7 +753,7 @@ void TwoStepInit(word time) {
 void GetTimonelVersion(void) {
 	byte cmdTX[1] = { GETTMNLV };
 	byte txSize = sizeof(cmdTX);
-	Serial.print("\n[Timonel] Get Timonel Version >>> ");
+	Serial.print("\nGet Timonel Version >>> ");
 	Serial.print(cmdTX[0]);
 	Serial.println("(GETTMNLV)");
 	// Transmit command
@@ -771,45 +771,62 @@ void GetTimonelVersion(void) {
 		ackRX[i] = Wire.read();
 	}
 	if (ackRX[0] == ACKTMNLV) {
-		//timonelStart = (ackRX[6] << 8) + ackRX[7];
-		timonelStart = (ackRX[4] << 8) + ackRX[5];
-		word trampolineJump = (~(((ackRX[6] << 8) | ackRX[7]) & 0xFFF));
+		timonelStart = (ackRX[5] << 8) + ackRX[6];
+		word trampolineJump = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
 		trampolineJump = ((((timonelStart >> 1) - ++trampolineJump) & 0xFFF) << 1);
-		Serial.print("[Timonel] - Command ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" parsed OK <<< ");
-		Serial.println(ackRX[0]);
-		Serial.print("[ ");
-		Serial.print((char)ackRX[1]);
-		//Serial.print((char)ackRX[2]);
-		//Serial.print((char)ackRX[3]);
-		Serial.print(" ] Version: ");
-		//Serial.print(ackRX[4]);
+		//Serial.print("[Timonel] - Command ");
+		//Serial.print(cmdTX[0]);
+		//Serial.print(" parsed OK <<< ");
+		//Serial.println(ackRX[0]);
+		Serial.println(" ____________________________________");
+		Serial.println("| ");
+		if (ackRX[1] == 84) {
+			Serial.print("| Timonel Bootloader v");
+		}
 		Serial.print(ackRX[2]);
 		Serial.print(".");
-		//Serial.print(ackRX[5]);
 		Serial.print(ackRX[3]);
-		Serial.print(" [ Base address: 0x");
+		switch (ackRX[2]) {
+			case 0: {
+				Serial.println(" Pre-release ");
+				break;
+			}
+			case 1: {
+				Serial.println(" \"Sandra\" ");
+				break;
+			}
+			default: {
+				Serial.println(" Unknown ");
+				break;
+			}
+		}
+		Serial.println("| ================================");
+		Serial.print("| Bootloader address: 0x");
 		Serial.print(timonelStart, HEX);
-		Serial.print(" ] [ App Jump: ");
+		Serial.println(" ");
+		Serial.print("|  Application start: ");
+		Serial.print(ackRX[8], HEX);
 		Serial.print(ackRX[7], HEX);
-		Serial.print(ackRX[6], HEX);
-		if ((ackRX[7] == 0xFF) && (ackRX[6] == 0xFF)) {
+		if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
 			Serial.print(" (Not Set");
 		}
 		else {
 			Serial.print(" (0x");
 			Serial.print(trampolineJump, HEX);
 		}
-		Serial.print(") ]");
-		if (ackRX[8] == 0) {
-			Serial.print(" [ Flash Memory Clear ]");
-			memoryLoaded = false;
-		}
-		else {
-			Serial.print(" [ Flash Memory Loaded ]");
-			memoryLoaded = true;
-		}
+		Serial.println(") ");
+		//if (ackRX[9] == 0) {
+		//	Serial.println("|       Flash Memory: ** Clear **");
+		//	memoryLoaded = false;
+		//}
+		//else {
+		//	Serial.println("|       Flash Memory: >> Loaded <<");
+		//	memoryLoaded = true;
+		//}
+		Serial.print("|      Features Code: ");
+		Serial.print(ackRX[4]);
+		Serial.println(" ");
+		Serial.println(" ____________________________________");
 		Serial.println("");
 	}
 	else {
