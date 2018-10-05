@@ -801,12 +801,6 @@ void GetTimonelVersion(void) {
 			}
 		}
 		Serial.println("| ================================");
-		//Serial.print("[ ");
-		//Serial.print((char)ackRX[1]);
-		//Serial.print(" ] Version: ");
-		//Serial.print(ackRX[2]);
-		//Serial.print(".");
-		//Serial.print(ackRX[3]);
 		Serial.print("| Bootloader address: 0x");
 		Serial.print(timonelStart, HEX);
 		Serial.println(" ");
@@ -821,7 +815,7 @@ void GetTimonelVersion(void) {
 			Serial.print(trampolineJump, HEX);
 		}
 		Serial.println(") ");
-		//if (ackRX[8] == 0) {
+		//if (ackRX[9] == 0) {
 		//	Serial.println("|       Flash Memory: ** Clear **");
 		//	memoryLoaded = false;
 		//}
