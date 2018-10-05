@@ -24,7 +24,7 @@
 
 /*
    ====== The configuration of the next optional features can be checked
-   ====== from the I2C master by using the GETTMNLV command.
+   ====== from the I2C master by using the GETTMNLV command ...
 */
 
 #define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
@@ -50,7 +50,8 @@
 
 #define USE_WDT_RESET   true    /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 
-#define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
+#define CHECK_EMPTY_FL  false   /* GETTMNLV will read the first 100 flash memory positions to check if */
+                                /* there is an application (or some other data) loaded.                */
 
 #define CMD_MEM_DUMP    false   /* TO IMPLEMENT IN NEXT VERSIONS: this option will enable a command to */
                                 /* dump all the flash memory contents, except the bootloader section.  */
@@ -60,11 +61,10 @@
    ====== shown in the GETTMNLV command.
 */
 
+#define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
+
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
-
-#define CHECK_EMPTY_FL  false   /* Check the first 100 bytes of flash memory to determine if there is  */
-                                /* an applications (or some other data) loaded.                        */
                                 
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
@@ -152,7 +152,7 @@
 #else
     #define FT_BIT_5    0
 #endif
-#if (SET_PRESCALER == true)
+#if (CHECK_EMPTY_FL == true)
     #define FT_BIT_6    64
 #else
     #define FT_BIT_6    0

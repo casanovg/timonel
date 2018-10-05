@@ -43,6 +43,10 @@
 #if (PAGE_SIZE > 64)
     #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
+
+#if (!(AUTO_TPL_CALC) && !(CMD_STPGADDR))
+    #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
+#endif
                                 
 #ifndef F_CPU
     #define F_CPU 8000000UL                 /* Default CPU speed */
@@ -187,8 +191,7 @@ int main() {
                     }
 #if APP_USE_TPL_PG
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
-                        // - Read the previous page to the bootloader start.
-                        // - Write it to the temporary buffer.
+                        // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
                         for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
@@ -277,9 +280,9 @@ void RequestEvent(void) {
             reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
             reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
 #if CHECK_EMPTY_FL
-            for (uint16_t i = 0; i < 100; i++) {
-                flashAddr = (void *)(i);
-                reply[9] += (byte)~(*flashAddr);                 /* Check the first 100 bytes to check if there is an app flashed */
+            for (word mPos = 0; mPos < 100; mPos++) {               /* Check the first 100 memory positions to determine if  */
+                flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
+                reply[9] += (byte)~(*flashAddr);                    
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
