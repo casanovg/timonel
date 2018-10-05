@@ -22,6 +22,11 @@
 
 #define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
 
+/*
+   ====== The configuration of the next optional features can be checked
+   ====== from the I2C master by using the GETTMNLV command.
+*/
+
 #define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
                                 /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
@@ -40,15 +45,23 @@
                                 /* from page 0, this is OK for most applications.                      */
                                 /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
-#define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
-                                /* writing new data. Normally, it shouldn't be necessary to enable it. */
-                                
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
                                 /* an I2C master for starting. Otherwise, single-step init is enough   */
 
 #define USE_WDT_RESET   true    /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 
 #define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
+
+#define CMD_MEM_DUMP    false   /* TO IMPLEMENT IN NEXT VERSIONS: this option will enable a command to */
+                                /* dump all the flash memory contents, except the bootloader section.  */
+                                   
+/*
+   ====== End of feature settings
+   ====== shown in the GETTMNLV command.
+*/
+
+#define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
+                                /* writing new data. Normally, it shouldn't be necessary to enable it. */
 
 #define CHECK_EMPTY_FL  false   /* Check the first 100 bytes of flash memory to determine if there is  */
                                 /* an applications (or some other data) loaded.                        */
@@ -129,22 +142,22 @@
 #else
     #define FT_BIT_3    0
 #endif
-#if (FORCE_ERASE_PG == true)
+#if (TWO_STEP_INIT == true)
     #define FT_BIT_4    16
 #else
     #define FT_BIT_4    0
 #endif
-#if (TWO_STEP_INIT == true)
+#if (USE_WDT_RESET == true)
     #define FT_BIT_5    32
 #else
     #define FT_BIT_5    0
 #endif
-#if (USE_WDT_RESET == true)
+#if (SET_PRESCALER == true)
     #define FT_BIT_6    64
 #else
     #define FT_BIT_6    0
 #endif
-#if (SET_PRESCALER == true)
+#if (CMD_MEM_DUMP == true)
     #define FT_BIT_7    128
 #else
     #define FT_BIT_7    0
