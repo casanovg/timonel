@@ -46,9 +46,12 @@
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
                                 /* an I2C master for starting. Otherwise, single-step init is enough   */
 
-#define USE_WDT_RESET   false   /* Use watchdog timer for resetting instead of a jump to TIMONEL_START */
+#define USE_WDT_RESET   true    /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 
-#define SET_PRESCALER   false   /* Force setting the CPU clock prescaler for 8 MHz                     */
+#define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
+
+#define CHECK_EMPTY_FL  false   /* Check the first 100 bytes of flash memory to determine if there is  */
+                                /* an applications (or some other data) loaded.                        */
                                 
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */

@@ -117,8 +117,13 @@ int main() {
         if (dlyCounter-- <= 0) {
             dlyCounter = CYCLESTOWAIT;
             // Initialization check
+#if !(TWO_STEP_INIT)
+            if ((statusRegister & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+#endif /* !TWO_STEP_INIT */
+#if TWO_STEP_INIT
             if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
             ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
+#endif /* TWO_STEP_INIT */
                 // ===========================================
                 // = Run this until is initialized by master =
                 // ===========================================
@@ -254,8 +259,11 @@ void RequestEvent(void) {
         // * GETTMNLV Reply *
         // ******************
         case GETTMNLV: {
+#if CHECK_EMPTY_FL
             #define GETTMNLV_RPLYLN 10
-            //static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+#else
+            #define GETTMNLV_RPLYLN 9
+#endif /* CHECK_EMPTY_FL */
             const __flash unsigned char * flashAddr;
             flashAddr = (void *)(TIMONEL_START - 1); 
             byte reply[GETTMNLV_RPLYLN] = { 0 };
@@ -263,17 +271,20 @@ void RequestEvent(void) {
             reply[1] = ID_CHAR_3;                                   /* T */            
             reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
             reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
-            reply[4] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
-            reply[5] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
-            reply[6] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
-            reply[7] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
+            reply[4] = TML_FEATURES;                                /* Optional features */
+            reply[5] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
+            reply[6] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
+            reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
+            reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
+#if CHECK_EMPTY_FL
             for (uint16_t i = 0; i < 100; i++) {
                 flashAddr = (void *)(i);
-                reply[8] += (byte)~(*flashAddr);                    /* Check the first 100 bytes to determine if there is an app flashed */
+                reply[9] += (byte)~(*flashAddr);                 /* Check the first 100 bytes to check if there is an app flashed */
             }
-            reply[9] = TML_FEATURES;
+#endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
-            statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
+            //statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
+            statusRegister |= (1 << (ST_INIT_1));                   /* Single-step init */
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
             statusRegister |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
