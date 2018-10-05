@@ -29,7 +29,11 @@ Usage:
 Version History:
 ----------------
 v0.4 - 2018-08-10: Non-functional.
+
 v0.7 - 2018-09-07: Non-functional.
+
 v0.8 - 2018-09-16: First functional pre-release.
+
 v0.9 - 2018-09-29: Functional pre-release (Temporary page buffer and other minor issues solved).
+
 v1.0 - 2018-10-05: Functional Release (Optional features implemented).
