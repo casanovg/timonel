@@ -61,7 +61,7 @@
    ====== shown in the GETTMNLV command.
 */
 
-#define SET_PRESCALER   true    /* Force the CPU prescaler division factor = 1.                         */
+#define SET_PRESCALER   true    /* Force the CPU prescaler division factor = 1.                        */
 
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
