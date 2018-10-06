@@ -21,7 +21,7 @@ MCU = attiny85
 TIMONEL_START = 1B00
 
 FUSEOPT = -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
-FUSEOPT_DISABLERESET = -U lfuse:w:0xe1:m -U efuse:w:0xfe:m -U hfuse:w:0x5d:m
+FUSEOPT_DISABLERESET = -U lfuse:w:0xe1:m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
 
 #---------------------------------------------------------------------
 # ATtiny85

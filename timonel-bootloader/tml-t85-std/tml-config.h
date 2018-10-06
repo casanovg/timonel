@@ -61,7 +61,7 @@
    ====== shown in the GETTMNLV command.
 */
 
-#define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
+#define SET_PRESCALER   false   /* Force setting the CPU clock prescaler for 8 MHz .                   */
 
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
