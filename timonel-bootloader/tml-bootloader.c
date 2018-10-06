@@ -101,7 +101,7 @@ int main() {
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 #if SET_PRESCALER
-    CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler for 8 MHz */
+    CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
