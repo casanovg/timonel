@@ -18,10 +18,10 @@ That's why I started writing this one.
 
 Usage:
 ------
-* Install "timonel-I2Cmaster" in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
 * Install "timonel-bootloader" on the Tiny85 (bare chips or Digisparks).
-* Connect both chips by I2C.
 * Compile your program and convert the generated .hex into an array of bytes to be included in "timonel-I2Cmaster". (e.g. const uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array.
+* Install "timonel-I2Cmaster" in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
+* Connect both chips by I2C.
 * Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
 * Run the commands shown on screen (more details on the steps necessary for erasing and flashing new firmware will be published later).
 * It is also possible to update the bootloader itself thanks to the micronucleus' upgrade program.
