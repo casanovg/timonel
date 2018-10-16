@@ -23,7 +23,7 @@ Usage:
 * Install "timonel-I2Cmaster" containing the generated payload in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
 * Connect both chips by I2C.
 * Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
-* Run the commands shown on screen (more details on the steps necessary for erasing and flashing new firmware will be published later).
+* Run the commands shown on screen for erasing and flashing new firmware on the Tiny85 (more details on the steps necessary will be published later).
 * It is also possible to update the bootloader itself thanks to the micronucleus' upgrade program.
 
 Version History:
