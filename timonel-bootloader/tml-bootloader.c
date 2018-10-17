@@ -372,23 +372,56 @@ void RequestEvent(void) {
             break;
         }
         
-#if CMD_MEM_DUMP
+#if CMD_READFLASH
         // ******************
-        // * STPGADDR Reply *
+        // * READFLSH Reply *
         // ******************
-        case STPGADDR: {
-            #define STPGADDR_RPLYLN 2
+        case READFLSH: {
+			// command[0] : OpCode
+			// command[1] : Flash Position MSB
+            // command[2] : Flash Position LSB
+			// command[3] : Requested Bytes
+            // command[4] : Checksum
             byte reply[STPGADDR_RPLYLN] = { 0 };
             flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-            flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
+
             reply[0] = opCodeAck;
-            reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
-            for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
+            reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
+            for (byte i = 0; i < READFLSH_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
+            
+		// case READPAGE: {
+			// // command[0] : OpCode
+			// // command[1] : Start Position
+			// // command[2] : Requested Bytes
+			// uint8_t ix = command[1];			/* Second byte received determines start of reply data */
+			// const uint8_t ackLng = (command[2] + 2);	/* Third byte received determines the size of reply data */
+			// uint8_t reply[ackLng];
+			// reply[ackLng - 1] = 0;				/* Checksum initialization */
+			// reply[0] = opCodeAck;
+			// if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= MAXBUFFERTXLN * 2)) {
+				// uint8_t j = 1;
+				// reply[ackLng - 1] = 0;
+				// for (uint8_t i = 1; i < command[2] + 1; i++) {
+					// reply[j] = pageBuffer[ix + i - 2];	/* Data bytes in reply */
+					// reply[ackLng - 1] += reply[j];		/* Checksum accumulator to be sent in the last byte of the reply */
+					// j++;
+				// }
+				// //reply[ackLng - 1] = CalculateCRC(reply, ackLng - 1);	/* Prepare CRC for Reply */
+				// for (uint8_t i = 0; i < ackLng; i++) {
+					// UsiTwiTransmitByte(reply[i]);
+				// }
+			// }
+			// else {
+				// UsiTwiTransmitByte(UNKNOWNC);		/* Incorrect operand value received */
+			// }
+			// break;
+		// }            
+            
         }
-#endif /* CMD_MEM_DUMP */
+#endif /* CMD_READFLASH */
         
 #if TWO_STEP_INIT
         // ******************
