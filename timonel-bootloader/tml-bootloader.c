@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.0 "Sandra" / 2018-10-05
+ *  Version: 1.1 "Sandra" / 2018-10-17
  *  gustavo.casanova@nicebots.com
  */
 
@@ -29,11 +29,11 @@
    Appl: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
           -----------------------------------------------------------------------------------
 */
-#define I2C_ADDR        9                   /* Timonel I2C address: 09 (0x09) */
+#define I2C_ADDR        8                   /* Timonel I2C address: 08 (0x08) */
 
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
-#define TIMONEL_VER_MNR 0                   /* Timonel version major number   */
+#define TIMONEL_VER_MNR 1                   /* Timonel version major number   */
 
 /* Configuration checks */
 #if (TIMONEL_START % PAGE_SIZE != 0)
@@ -371,6 +371,25 @@ void RequestEvent(void) {
             }
             break;
         }
+        
+#if CMD_MEM_DUMP
+        // ******************
+        // * STPGADDR Reply *
+        // ******************
+        case STPGADDR: {
+            #define STPGADDR_RPLYLN 2
+            byte reply[STPGADDR_RPLYLN] = { 0 };
+            flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
+            flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
+            reply[0] = opCodeAck;
+            reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
+            for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
+                UsiTwiTransmitByte(reply[i]);
+            }
+            break;
+        }
+#endif /* CMD_MEM_DUMP */
+        
 #if TWO_STEP_INIT
         // ******************
         // * INITTINY Reply *

@@ -53,8 +53,8 @@
 #define CHECK_EMPTY_FL  false   /* GETTMNLV will read the first 100 flash memory positions to check if */
                                 /* there is an application (or some other data) loaded.                */
 
-#define CMD_MEM_DUMP    false   /* TO IMPLEMENT IN NEXT VERSIONS: this option will enable a command to */
-                                /* dump all the flash memory contents, except the bootloader section.  */
+#define CMD_MEM_DUMP    true   /* TO IMPLEMENT IN NEXT VERSIONS: this option will enable a command to */
+                                /* dump flash memory contents.                                         */
                                    
 /*
    ====== End of feature settings
