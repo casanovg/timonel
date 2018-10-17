@@ -5,8 +5,13 @@
 // *  ..................................................  *
 // *  Author: Gustavo Casanova                            *
 // *  ..................................................  *
+<<<<<<< HEAD
 // *  Firmware Version: 1.0 | MCU: ESP8266                *
 // *  2018-10-05 gustavo.casanova@nicebots.com            *
+=======
+// *  Firmware Version: 1.1 | MCU: ESP8266                *
+// *  2018-10-13 gustavo.casanova@nicebots.com            *
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 // ********************************************************
 //
 // Run this master program on a NodeMCU, ESP-01 or ESP-12 Module
@@ -72,7 +77,7 @@ void setup() {
 	InitTiny();
 
 	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.0)");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1)");
 	Serial.println("============================================================");
 	TwoStepInit(0);
 	Serial.println("");
