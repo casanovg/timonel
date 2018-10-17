@@ -329,9 +329,12 @@ runtime.ide.version=10805
 target_package=esp8266
 target_platform=esp8266
 <<<<<<< HEAD
+<<<<<<< HEAD
 runtime.hardware.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266
 originalid=generic
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 runtime.hardware.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266
 originalid=nodemcuv2
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
@@ -416,6 +419,7 @@ tools.mkspiffs.cmd=mkspiffs.exe
 tools.mkspiffs.cmd.windows=mkspiffs.exe
 tools.mkspiffs.path={runtime.tools.mkspiffs.path}
 <<<<<<< HEAD
+<<<<<<< HEAD
 vm.platform.root.path=c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\ktpce3c3.a4z\Micro Platforms\arduino16x
 runtime.tools.esptool.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\tools\esptool\0.4.13
 runtime.tools.esptool-0.4.13.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\tools\esptool\0.4.13
@@ -437,6 +441,8 @@ runtime.vm.boardinfo.name=esp8266_generic
 runtime.vm.boardinfo.desc=Generic ESP8266 Module
 runtime.vm.boardinfo.src_location=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vm.platform.root.path=c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\pq0yofgn.yje\Micro Platforms\arduino16x
 runtime.tools.esptool.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\tools\esptool\0.4.13
 runtime.tools.esptool-0.4.13.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\tools\esptool\0.4.13
@@ -457,6 +463,9 @@ runtime.vm.boardinfo.id=esp8266_nodemcuv2
 runtime.vm.boardinfo.name=esp8266_nodemcuv2
 runtime.vm.boardinfo.desc=NodeMCU 1.0 (ESP-12E Module)
 runtime.vm.boardinfo.src_location=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 ide.hint=Use installed IDE. Provides built-in hardware, reference/help and libraries.
 ide.location.key=Arduino16x
@@ -538,12 +547,15 @@ upload.resetmethod=ck
 builder.noino=false
 build.architecture=1.20.0-26-gb404fb9-2
 <<<<<<< HEAD
+<<<<<<< HEAD
 vmresolved.compiler.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\bin\
 vmresolved.tools.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2
 build.variant.vmresolved.name=generic
 build.variant.vmresolved.full_path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic
 vm.runtime.compiler.cached_cores_path=C:\Users\casanovg\AppData\Local\Temp\VMBCore\arduino16x
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vmresolved.compiler.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\bin\
 vmresolved.tools.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2
 build.variant.vmresolved.name=nodemcu
@@ -554,6 +566,9 @@ sketch_path=C:\Users\gcasanova.HTARGENTINA\source\Repos\timonel\timonel-i2cmaste
 ProjectDir=C:\Users\gcasanova.HTARGENTINA\source\Repos\timonel\timonel-i2cmaster\
 build.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release
 vm.runtime.compiler.cached_cores_path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBCore\arduino16x
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vm.runtime.compiler.showwarnings=false
 vm.runtime.compiler.showwarnings_core=false
@@ -565,6 +580,7 @@ vm.runtime.build.final_output_path=C:\Users\gcasanova.HTARGENTINA\source\repos\t
 compiler.always_include_sketchfolder=true
 vm.runtime.compiler.auto_discover_includes=true
 <<<<<<< HEAD
+<<<<<<< HEAD
 serial.port.file=COM14
 serial.port=COM14
 serial.port.num=14
@@ -575,6 +591,8 @@ extra.time.zone=10800
 serial.port.caption=COM14 - USB Serial Port
 serial.Caption=USB Serial Port (COM14)
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 serial.port.file=COM6
 serial.port=COM6
 serial.port.num=6
@@ -584,6 +602,9 @@ extra.time.dst=-10800
 extra.time.zone=10800
 serial.port.caption=COM6   - USB Serial Port
 serial.Caption=USB Serial Port (COM6)
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 serial.ClassGuid={4d36e978-e325-11ce-bfc1-08002be10318}
 serial.ConfigManagerErrorCode=0
@@ -594,7 +615,11 @@ serial.DeviceID=FTDIBUS\VID_0403+PID_6001+A5XK3RJTA\0000
 serial.HardwareID.value0=FTDIBUS\COMPORT&VID_0403&PID_6001
 serial.Manufacturer=FTDI
 <<<<<<< HEAD
+<<<<<<< HEAD
 serial.Name=USB Serial Port (COM14)
+=======
+serial.Name=USB Serial Port (COM6)
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 =======
 serial.Name=USB Serial Port (COM6)
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
@@ -605,7 +630,11 @@ serial.Service=FTSER2K
 serial.Status=OK
 serial.SystemCreationClassName=Win32_ComputerSystem
 <<<<<<< HEAD
+<<<<<<< HEAD
 serial.SystemName=CABALLITO-1
+=======
+serial.SystemName=WKS-13-NBK
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 =======
 serial.SystemName=WKS-13-NBK
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
@@ -616,11 +645,14 @@ serial.vid_pid=0x0403_0x6001
 serial.iserial=0000
 serial.port.iserial=0000
 <<<<<<< HEAD
+<<<<<<< HEAD
 build.project_name=timonel-i2cmaster.ino
 build.project_path=C:\Users\casanovg\source\Repos\timonel\timonel-i2cmaster
 sketch_path=C:\Users\casanovg\source\Repos\timonel\timonel-i2cmaster
 ProjectDir=C:\Users\casanovg\source\Repos\timonel\timonel-i2cmaster\
 build.path=C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 =======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vm.runtime.compile.skip_library_file_if_exists_in_project=false
@@ -629,7 +661,11 @@ build.vm.build.vmdebug=0
 build.vm.build.isgdb=0
 build.vm.build.optimised=1
 <<<<<<< HEAD
+<<<<<<< HEAD
 vm.last.buildpath=C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release
+=======
+vm.last.buildpath=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 =======
 vm.last.buildpath=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
@@ -667,6 +703,7 @@ vm.last.preproc.file.3.linestart=1174
 vm.last.preproc.file.3.lineend=2336
 vm.last.preproc.file.3.prefix_lines=0
 <<<<<<< HEAD
+<<<<<<< HEAD
 vm.sketch_source_path=C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release
 vm.build_use_temp=1
 runtime.vm.ide.platforms.path=c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\ktpce3c3.a4z\Micro Platforms
@@ -674,12 +711,17 @@ build.variant.path=C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\ha
 archive_file=core.a
 archive_file_path=C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\core.a
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vm.sketch_source_path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release
 vm.build_use_temp=1
 runtime.vm.ide.platforms.path=c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\pq0yofgn.yje\Micro Platforms
 build.variant.path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu
 archive_file=core.a
 archive_file_path=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\core.a
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 tools.ctags.path={runtime.tools.ctags.path}
 tools.ctags.cmd.path={path}/ctags
@@ -687,6 +729,7 @@ tools.ctags.pattern="{cmd.path}" -u --language-force=c++ -f - --c++-kinds=svpf -
 tools.avrdude.path={runtime.tools.avrdude.path}
 preproc.macros.flags=-w -x c++ -E -CC
 recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpreprocessor.flags} {compiler.cpp.flags} {preproc.macros.flags} -DF_CPU={build.f_cpu} {build.lwip_flags} {build.debug_port} {build.debug_level} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} -DARDUINO_BOARD="{build.board}" {build.led} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{preprocessed_file_path}"
+<<<<<<< HEAD
 <<<<<<< HEAD
 vm_all_includes= -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\ktpce3c3.a4z\Micro Platforms\default\debuggers"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries"  -I"C:\Users\casanovg\Google Drive\Arduino Sketchbook\libraries" 
 vm_all_and_proj_includes= -I"C:\Users\casanovg\source\Repos\timonel\timonel-i2cmaster"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\ktpce3c3.a4z\Micro Platforms\default\debuggers"  -I"C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries"  -I"C:\Users\casanovg\Google Drive\Arduino Sketchbook\libraries" 
@@ -700,6 +743,8 @@ source_file=C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8
 build.path_core_cached_root=C:\Users\casanovg\AppData\Local\Temp\VMBCore\arduino16x\ff9f9a88d72d42c95cd345943729d11c
 object_files= "C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\timonel-i2cmaster.cpp.o"  "C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\Wire\Wire.cpp.o" 
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 vm_all_includes= -I"C:\Users\gcasanova.HTARGENTINA\source\Repos\timonel\timonel-i2cmaster"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"C:\Users\gcasanova.HTARGENTINA\Documents\Arduino\libraries"  -I"c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\pq0yofgn.yje\Micro Platforms\default\debuggers"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries" 
 vm_all_and_proj_includes= -I"C:\Users\gcasanova.HTARGENTINA\source\Repos\timonel\timonel-i2cmaster"  -I"C:\Users\gcasanova.HTARGENTINA\source\Repos\timonel\timonel-i2cmaster"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"C:\Users\gcasanova.HTARGENTINA\Documents\Arduino\libraries"  -I"c:\program files (x86)\microsoft visual studio\2017\community\common7\ide\extensions\pq0yofgn.yje\Micro Platforms\default\debuggers"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries" 
 vm_core_includes= -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266"  -I"C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu" 
@@ -711,4 +756,7 @@ object_file=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i
 source_file=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\timonel-i2cmaster.cpp
 build.path_core_cached_root=C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBCore\arduino16x\4936df83822903a433e228db4df7fe5c
 object_files= "C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\timonel-i2cmaster.cpp.o"  "C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\Wire\Wire.cpp.o" 
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1

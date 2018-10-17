@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\timonel-i2cmaster.cpp.o: \
  C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\timonel-i2cmaster.cpp \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266/arduino.h \
@@ -65,6 +66,8 @@ C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\
  C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\nb-i2c-crc.h \
  C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\Payloads/payload.h
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\timonel-i2cmaster.cpp.o: \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\timonel-i2cmaster.cpp \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266/arduino.h \
@@ -130,4 +133,7 @@ C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\nb-i2c-cmd.h \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\nb-i2c-crc.h \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\Payloads/payload.h
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1

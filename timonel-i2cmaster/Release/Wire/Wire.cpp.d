@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\Wire\Wire.cpp.o: \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.cpp \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1/tools/sdk/libc/xtensa-lx106-elf/include/stdlib.h \
@@ -62,6 +63,8 @@ C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic/common.h \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.h
 =======
+=======
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
 C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\Wire\Wire.cpp.o: \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.cpp \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1/tools/sdk/libc/xtensa-lx106-elf/include/stdlib.h \
@@ -124,4 +127,7 @@ C:\Users\gcasanova.HTARGENTINA\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu/pins_arduino.h \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu/../generic/common.h \
  C:\Users\gcasanova.HTARGENTINA\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.h
+<<<<<<< HEAD
+>>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
+=======
 >>>>>>> 00bfa0a7b9a5fdd25e884ead2f12b78643b494e1
