@@ -1,4 +1,4 @@
-C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\Release\Wire\Wire.cpp.o: \
+C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_nodemcuv2\Release\Wire\Wire.cpp.o: \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.cpp \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1/tools/sdk/libc/xtensa-lx106-elf/include/stdlib.h \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1/tools/sdk/libc/xtensa-lx106-elf/include/machine/ieeefp.h \
@@ -57,6 +57,6 @@ C:\Users\casanovg\AppData\Local\Temp\VMBuilds\timonel-i2cmaster\esp8266_generic\
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266/Stream.h \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266/md5.h \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\cores\esp8266/debug.h \
- C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic/pins_arduino.h \
- C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\generic/common.h \
+ C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu/pins_arduino.h \
+ C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\variants\nodemcu/../generic/common.h \
  C:\Users\casanovg\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.4.1\libraries\Wire\Wire.h

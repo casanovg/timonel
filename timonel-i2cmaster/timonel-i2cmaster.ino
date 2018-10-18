@@ -255,6 +255,16 @@ void loop() {
 			}
 			break;
 		}
+		// ********************************
+		// * Timonel ::: READFLSH Command *
+		// ********************************
+		case 'm': case 'M': {
+			byte dataSize = 0;	// 10-bit buffer data size requested to ATtiny85
+			byte dataIX = 0;	// Requested 10-bit buffer data start position
+			DumpFlashMem(FLASHPGSIZE, 4, 8);
+			newByte = false;
+			break;
+		}
 		// ******************
 		// * ? Help Command *
 		// ******************
@@ -619,6 +629,87 @@ void DumpPageBuff(byte bufferSize, byte dataSize, byte valuesPerLine) {
 		delay(500);
 	}
 }
+
+// Function DumpFlashMem
+void DumpFlashMem(byte bufferSize, byte dataSize, byte valuesPerLine) {
+	byte cmdTX[3] = { READPAGE, 0, 0 };
+	byte txSize = 3;
+	uint8_t checksumErr = 0;
+	int v = 1;
+	cmdTX[2] = dataSize;
+	byte transmitData[1] = { 0 };
+	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory Page Buffer ...");
+	Serial.println("");
+	for (uint8_t k = 1; k < bufferSize + 1; k += dataSize) {
+		//byte dataSize = 0;	// Requested T85 buffer data size
+		//byte dataIX = 0;		// Requested T85 buffer data start position
+		cmdTX[1] = k;
+		for (int i = 0; i < txSize; i++) {
+			transmitData[i] = cmdTX[i];
+			Wire.beginTransmission(slaveAddress);
+			Wire.write(transmitData[i]);
+			Wire.endTransmission();
+		}
+		// Receive acknowledgement
+		blockRXSize = Wire.requestFrom(slaveAddress, (byte)(dataSize + 2));
+		byte ackRX[dataSize + 2];   // Data received from slave
+		for (int i = 0; i < blockRXSize; i++) {
+			ackRX[i] = Wire.read();
+		}
+		if (ackRX[0] == ACKRDPAG) {
+			//Serial.print("ESP8266 - Command ");
+			//Serial.print(cmdTX[0]);
+			//Serial.print(" parsed OK <<< ");
+			//Serial.println(ackRX[0]);
+			uint8_t checksum = 0;
+			for (uint8_t i = 1; i < (dataSize + 1); i++) {
+				if (ackRX[i] < 16) {
+					Serial.print("0x0");
+				}
+				else {
+					Serial.print("0x");
+				}
+				Serial.print(ackRX[i], HEX);			/* Byte values */
+				//checksum += (ackRX[i]);
+				if (v == valuesPerLine) {
+					Serial.println("");
+					v = 0;
+				}
+				else {
+					Serial.print(" ");
+				}
+				v++;
+				//Serial.println(" |");
+				checksum += (uint8_t)ackRX[i];
+			}
+			//if (checksum + 1 == ackRX[dataSize + 1]) {
+			if (checksum == ackRX[dataSize + 1]) {
+				//Serial.print("   >>> Checksum OK! <<<   ");
+				//Serial.println(checksum);
+			}
+			else {
+				Serial.print("\n\r   ### Checksum ERROR! ###   ");
+				Serial.println(checksum);
+				//Serial.print(checksum + 1);
+				//Serial.print(" <-- calculated, received --> ");
+				//Serial.println(ackRX[dataSize + 1]);
+				if (checksumErr++ == MAXCKSUMERRORS) {
+					Serial.println("[Timonel] - Too many Checksum ERRORS, aborting! ");
+					delay(1000);
+					exit(1);
+				}
+			}
+		}
+		else {
+			Serial.print("[Timonel] - DumpPageBuff Error parsing ");
+			Serial.print(cmdTX[0]);
+			Serial.print(" command! <<< ");
+			Serial.println(ackRX[0]);
+		}
+		delay(500);
+	}
+}
+
 
 // Function WritePageBuff
 int WritePageBuff(uint8_t dataArray[]) {
@@ -1058,7 +1149,7 @@ void ShowMenu(void) {
 		Serial.print("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
 	}
 	else {
-		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash): ");
+		Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash, 'm' mem dump): ");
 	}
 }
 

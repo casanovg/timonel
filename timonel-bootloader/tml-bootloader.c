@@ -382,16 +382,28 @@ void RequestEvent(void) {
             // command[2] : Flash Position LSB
 			// command[3] : Requested Bytes
             // command[4] : Checksum
-            byte reply[STPGADDR_RPLYLN] = { 0 };
-            flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-
-            reply[0] = opCodeAck;
-            reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
-            for (byte i = 0; i < READFLSH_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
+            const byte ackLng = (command[3] + 2);	/* Fourth byte received determines the size of reply data */
+            byte reply[ackLng];
+            if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2)) {
+                reply[0] = opCodeAck;
+                flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
+                reply[ackLng - 1] = 0;				                    /* Checksum initialization */
+                
+				for (byte i = 1; i < command[3] + 1; i++) {
+                    reply[i] = i;	/* Data bytes in reply */
+					reply[ackLng - 1] += reply[i];		/* Checksum accumulator to be sent in the last byte of the reply */
+				}                
+                
+                //reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
+                for (byte i = 0; i < ackLng; i++) {
+                    UsiTwiTransmitByte(reply[i]);
+                }
+            }
+            else {
+                UsiTwiTransmitByte(UNKNOWNC);		/* Incorrect operand value received */
             }
             break;
-            
+        }
 		// case READPAGE: {
 			// // command[0] : OpCode
 			// // command[1] : Start Position
@@ -420,7 +432,6 @@ void RequestEvent(void) {
 			// break;
 		// }            
             
-        }
 #endif /* CMD_READFLASH */
         
 #if TWO_STEP_INIT
