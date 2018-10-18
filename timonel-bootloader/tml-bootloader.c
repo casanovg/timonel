@@ -382,7 +382,7 @@ void RequestEvent(void) {
             // command[2] : Flash Position LSB
 			// command[3] : Requested Bytes
             // command[4] : Checksum
-            const byte ackLng = (command[3] + 2);	/* Fourth byte received determines the size of reply data */
+            const byte ackLng = (command[3] + 2);   /* Fourth byte received determines the size of reply data */
             byte reply[ackLng];
             if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2)) {
                 reply[0] = opCodeAck;
@@ -390,8 +390,8 @@ void RequestEvent(void) {
                 reply[ackLng - 1] = 0;				                    /* Checksum initialization */
                 
 				for (byte i = 1; i < command[3] + 1; i++) {
-                    reply[i] = i;	/* Data bytes in reply */
-					reply[ackLng - 1] += reply[i];		/* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[i] = i;	                                    /* Data bytes in reply */
+					reply[ackLng - 1] += reply[i];  /* Checksum accumulator to be sent in the last byte of the reply */
 				}                
                 
                 //reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
