@@ -101,8 +101,8 @@
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
 #define ST_INIT_2       1       /* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
 #define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory            */
-#define ST_EXIT_TML     3       /* Status Bit 5 (8)  : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Status Bit 4 (16) : Not used */
+#define ST_EXIT_TML     3       /* Status Bit 4 (8)  : Exit Timonel & Run Application */
+#define ST_BIT_4        4       /* Status Bit 5 (16) : Not used */
 #define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
 #define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
 #define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
