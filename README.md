@@ -40,4 +40,4 @@ v0.4 - 2018-08-10: Non-functional.
 
 Credits:
 --------
-I would like to thank the guys @ AVRFreaks.net, specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 booloaders.
+I would like to thank the guys @ [AVRFreaks.net](http://www.avrfreaks.net), specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 booloaders.
