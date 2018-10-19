@@ -37,3 +37,7 @@ v0.8 - 2018-09-16: First functional pre-release.
 v0.7 - 2018-09-07: Non-functional.
 
 v0.4 - 2018-08-10: Non-functional.
+
+Credits:
+--------
+I would like to thank the guys @ AVRFreaks.net, specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 booloaders.
