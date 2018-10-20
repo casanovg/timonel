@@ -10,7 +10,7 @@ Some possible cases:
 * etc ...
 
 In these examples, it's handy to have the chance of updating the AVRs firmware straight from the I2C master. But, so far, I haven't found an I2C bootloader that fits directly the Tiny85, addressing its limitations:
-* It doesn't have a specific peripheral for I2C, only the USI.
+* It doesn't have a specific hardware for I2C, only the USI.
 * It lacks a protected memory area for the bootloader.
 * It is not possible to redirect the interruption vectors to the bootloader.
 
@@ -37,3 +37,7 @@ v0.8 - 2018-09-16: First functional pre-release.
 v0.7 - 2018-09-07: Non-functional.
 
 v0.4 - 2018-08-10: Non-functional.
+
+Credits:
+--------
+I would like to thank the guys @ [AVRFreaks.net](http://www.avrfreaks.net), specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 bootloaders.
