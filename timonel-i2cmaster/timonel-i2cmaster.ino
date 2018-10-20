@@ -259,9 +259,9 @@ void loop() {
 		// * Timonel ::: READFLSH Command *
 		// ********************************
 		case 'm': case 'M': {
-			byte dataSize = 0;	// 10-bit buffer data size requested to ATtiny85
-			byte dataIX = 0;	// Requested 10-bit buffer data start position
-			DumpFlashMem(FLASHPGSIZE, 4, 8);
+			byte dataSize = 0;	// flash data size requested to ATtiny85
+			byte dataIX = 0;	// Requested flash data start position
+			DumpFlashMem(8192, 8, 32);
 			newByte = false;
 			break;
 		}
@@ -631,19 +631,25 @@ void DumpPageBuff(byte bufferSize, byte dataSize, byte valuesPerLine) {
 }
 
 // Function DumpFlashMem
-void DumpFlashMem(byte bufferSize, byte dataSize, byte valuesPerLine) {
-	byte cmdTX[3] = { READPAGE, 0, 0 };
-	byte txSize = 3;
+void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
+	byte cmdTX[5] = { READFLSH, 0, 0, 0, 0 };
+	byte txSize = 5;
 	uint8_t checksumErr = 0;
 	int v = 1;
-	cmdTX[2] = dataSize;
+	cmdTX[3] = dataSize;
 	byte transmitData[1] = { 0 };
-	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory Page Buffer ...");
+	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory ...");
 	Serial.println("");
-	for (uint8_t k = 1; k < bufferSize + 1; k += dataSize) {
+
+	Serial.print("Addr ");
+	Serial.print(0, HEX);
+	Serial.print(":    ");
+
+	for (word addr = 0; addr < flashSize; addr += dataSize) {
 		//byte dataSize = 0;	// Requested T85 buffer data size
 		//byte dataIX = 0;		// Requested T85 buffer data start position
-		cmdTX[1] = k;
+		cmdTX[1] = ((addr & 0xFF00) >> 8);		/* Flash page address high byte */
+		cmdTX[2] = (addr & 0xFF);				/* Flash page address low byte */
 		for (int i = 0; i < txSize; i++) {
 			transmitData[i] = cmdTX[i];
 			Wire.beginTransmission(slaveAddress);
@@ -656,23 +662,40 @@ void DumpFlashMem(byte bufferSize, byte dataSize, byte valuesPerLine) {
 		for (int i = 0; i < blockRXSize; i++) {
 			ackRX[i] = Wire.read();
 		}
-		if (ackRX[0] == ACKRDPAG) {
+		if (ackRX[0] == ACKRDFSH) {
 			//Serial.print("ESP8266 - Command ");
 			//Serial.print(cmdTX[0]);
 			//Serial.print(" parsed OK <<< ");
 			//Serial.println(ackRX[0]);
 			uint8_t checksum = 0;
+
 			for (uint8_t i = 1; i < (dataSize + 1); i++) {
 				if (ackRX[i] < 16) {
-					Serial.print("0x0");
+					//Serial.print("0x0");
+					Serial.print("0");
 				}
-				else {
-					Serial.print("0x");
-				}
+				//else {
+				//	Serial.print("0x");
+				//}
 				Serial.print(ackRX[i], HEX);			/* Byte values */
 				//checksum += (ackRX[i]);
 				if (v == valuesPerLine) {
 					Serial.println("");
+					if ((addr + dataSize) < flashSize) {
+						Serial.print("Addr ");
+						Serial.print(addr + dataSize, HEX);
+						if ((addr + dataSize) < 0x1000) {
+							if ((addr + dataSize) < 0x100) {
+								Serial.print(":   ");
+							}
+							else {
+								Serial.print(":  ");
+							}
+						}
+						else {
+							Serial.print(": ");
+						}
+					}
 					v = 0;
 				}
 				else {

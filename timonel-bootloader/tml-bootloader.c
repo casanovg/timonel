@@ -388,9 +388,11 @@ void RequestEvent(void) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;				                    /* Checksum initialization */
-                
+                const __flash unsigned char * flashAddr;
+                flashAddr = (void *)flashPageAddr; 
 				for (byte i = 1; i < command[3] + 1; i++) {
-                    reply[i] = i;	                                    /* Data bytes in reply */
+                    //reply[i] = i;	                                    /* Data bytes in reply */
+                    reply[i] = (*(flashAddr++) & 0xFF);
 					reply[ackLng - 1] += reply[i];  /* Checksum accumulator to be sent in the last byte of the reply */
 				}                
                 
