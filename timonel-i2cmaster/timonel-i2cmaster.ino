@@ -729,10 +729,9 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 			Serial.print(" command! <<< ");
 			Serial.println(ackRX[0]);
 		}
-		delay(500);
+		delay(100);
 	}
 }
-
 
 // Function WritePageBuff
 int WritePageBuff(uint8_t dataArray[]) {
