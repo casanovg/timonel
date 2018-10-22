@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.1 "Sandra" / 2018-10-17
+ *  Version: 1.1 "Sandra" / 2018-10-22
  *  gustavo.casanova@nicebots.com
  */
 
@@ -371,43 +371,33 @@ void RequestEvent(void) {
             }
             break;
         }
-        
 #if CMD_READFLASH
         // ******************
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-			// command[0] : OpCode
-			// command[1] : Flash Position MSB
-            // command[2] : Flash Position LSB
-			// command[3] : Requested Bytes
-            // command[4] : Checksum
-            const byte ackLng = (command[3] + 2);   /* Fourth byte received determines the size of reply data */
+            const byte ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
             byte reply[ackLng];
             if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
-                flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-                reply[ackLng - 1] = 0;				                    /* Checksum initialization */
+                flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
+                reply[ackLng - 1] = 0;				                /* Checksum initialization */
                 const __flash unsigned char * flashAddr;
                 flashAddr = (void *)flashPageAddr; 
 				for (byte i = 1; i < command[3] + 1; i++) {
-                    //reply[i] = i;	                                    /* Data bytes in reply */
-                    reply[i] = (*(flashAddr++) & 0xFF);
-					reply[ackLng - 1] += (byte)(reply[i]);              /* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[i] = (*(flashAddr++) & 0xFF);             /* Actual flash data */
+					reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
 				}                
-                
-                //reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
                 for (byte i = 0; i < ackLng; i++) {
                     UsiTwiTransmitByte(reply[i]);
                 }
             }
             else {
-                UsiTwiTransmitByte(UNKNOWNC);		/* Incorrect operand value received */
+                UsiTwiTransmitByte(UNKNOWNC);		                /* Incorrect operand value received */
             }
             break;
         }   
 #endif /* CMD_READFLASH */
-        
 #if TWO_STEP_INIT
         // ******************
         // * INITTINY Reply *
