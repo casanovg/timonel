@@ -1,5 +1,5 @@
 /*
- *  Timonel USI TWI Driver (Interrupt-Free)  
+ *  Timonel USI TWI Driver (Interrupt-Free)
  *  ..................................................
  *  Based on USITWISlave by Donald R. Blake
  *  donblake at worldnet.att.net
