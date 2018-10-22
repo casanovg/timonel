@@ -33,7 +33,7 @@
 
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
-#define TIMONEL_VER_MNR 53                   /* Timonel version major number   */
+#define TIMONEL_VER_MNR 1                   /* Timonel version major number   */
 
 /* Configuration checks */
 #if (TIMONEL_START % PAGE_SIZE != 0)
