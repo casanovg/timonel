@@ -33,7 +33,7 @@
 
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
-#define TIMONEL_VER_MNR 1                   /* Timonel version major number   */
+#define TIMONEL_VER_MNR 53                   /* Timonel version major number   */
 
 /* Configuration checks */
 #if (TIMONEL_START % PAGE_SIZE != 0)
@@ -384,7 +384,7 @@ void RequestEvent(void) {
             // command[4] : Checksum
             const byte ackLng = (command[3] + 2);   /* Fourth byte received determines the size of reply data */
             byte reply[ackLng];
-            if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2)) {
+            if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;				                    /* Checksum initialization */
@@ -393,7 +393,7 @@ void RequestEvent(void) {
 				for (byte i = 1; i < command[3] + 1; i++) {
                     //reply[i] = i;	                                    /* Data bytes in reply */
                     reply[i] = (*(flashAddr++) & 0xFF);
-					reply[ackLng - 1] += reply[i];  /* Checksum accumulator to be sent in the last byte of the reply */
+					reply[ackLng - 1] += (byte)(reply[i]);              /* Checksum accumulator to be sent in the last byte of the reply */
 				}                
                 
                 //reply[1] = (byte)(command[1] + command[2]) + command[3]; /* Returns the sum of MSB, LSB and requested bytes */
@@ -405,35 +405,7 @@ void RequestEvent(void) {
                 UsiTwiTransmitByte(UNKNOWNC);		/* Incorrect operand value received */
             }
             break;
-        }
-		// case READPAGE: {
-			// // command[0] : OpCode
-			// // command[1] : Start Position
-			// // command[2] : Requested Bytes
-			// uint8_t ix = command[1];			/* Second byte received determines start of reply data */
-			// const uint8_t ackLng = (command[2] + 2);	/* Third byte received determines the size of reply data */
-			// uint8_t reply[ackLng];
-			// reply[ackLng - 1] = 0;				/* Checksum initialization */
-			// reply[0] = opCodeAck;
-			// if ((ix > 0) & (ix <= PAGE_SIZE) & (command[2] >= 1) & (command[2] <= MAXBUFFERTXLN * 2)) {
-				// uint8_t j = 1;
-				// reply[ackLng - 1] = 0;
-				// for (uint8_t i = 1; i < command[2] + 1; i++) {
-					// reply[j] = pageBuffer[ix + i - 2];	/* Data bytes in reply */
-					// reply[ackLng - 1] += reply[j];		/* Checksum accumulator to be sent in the last byte of the reply */
-					// j++;
-				// }
-				// //reply[ackLng - 1] = CalculateCRC(reply, ackLng - 1);	/* Prepare CRC for Reply */
-				// for (uint8_t i = 0; i < ackLng; i++) {
-					// UsiTwiTransmitByte(reply[i]);
-				// }
-			// }
-			// else {
-				// UsiTwiTransmitByte(UNKNOWNC);		/* Incorrect operand value received */
-			// }
-			// break;
-		// }            
-            
+        }   
 #endif /* CMD_READFLASH */
         
 #if TWO_STEP_INIT

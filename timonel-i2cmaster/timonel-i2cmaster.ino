@@ -650,6 +650,7 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 		//byte dataIX = 0;		// Requested T85 buffer data start position
 		cmdTX[1] = ((addr & 0xFF00) >> 8);		/* Flash page address high byte */
 		cmdTX[2] = (addr & 0xFF);				/* Flash page address low byte */
+		cmdTX[4] = (byte)(cmdTX[0] + cmdTX[1] + cmdTX[2] + cmdTX[3]); /* READFLSH Checksum */
 		for (int i = 0; i < txSize; i++) {
 			transmitData[i] = cmdTX[i];
 			Wire.beginTransmission(slaveAddress);
