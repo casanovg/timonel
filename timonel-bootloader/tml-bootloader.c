@@ -136,6 +136,7 @@ int main() {
 #endif /* ENABLE_LED_UI */
                 if (exitDly-- == 0) {
                     RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                    for (;;){};
                 }
             }
             else {
@@ -145,6 +146,7 @@ int main() {
                 if ((statusRegister & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
+                    for (;;){};
                 }
                 // ========================================
                 // = Delete application from flash memory =
