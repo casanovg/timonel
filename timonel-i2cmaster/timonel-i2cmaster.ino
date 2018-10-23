@@ -56,16 +56,16 @@ word timonelStart = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set'. U
 // *****************************
 //
 void setup() {
-	Serial.begin(9600); // Init the serial port
-						// Init the Wire object for I2C
-	Wire.begin(0, 2);   // GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
-						//Wire.begin(); // Standard pins SDA on D2 and SCL on D1 (NodeMCU)
-						//Wire.begin(D3, D4); // Set SDA on D3 and SCL on D4 (NodeMCU)
-	delay(100);         // Wait 100 ms for slave init sequence
-						// Search continuouly for slave addresses
+	Serial.begin(9600);		// Init the serial port
+							// Init the Wire object for I2C
+	Wire.begin(0, 2);		// GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
+	//Wire.begin();			// Standard pins SDA on D2 and SCL on D1 (NodeMCU)
+	//Wire.begin(D3, D4);	// Set SDA on D3 and SCL on D4 (NodeMCU)
+	delay(100);				// Wait 100 ms for slave init sequence
+							// Search continuouly for slave addresses
 	while (slaveAddress == 0) {
 		slaveAddress = ScanI2C();
-		delay(250);		// Delay 1/4 second before sending I2C commands
+		delay(250);			// Delay 1/4 second before sending I2C commands
 	}
 
 	// Run ATtiny85 initialization command
@@ -201,7 +201,7 @@ void loop() {
 		case 'm': case 'M': {
 			byte dataSize = 0;	// flash data size requested to ATtiny85
 			byte dataIX = 0;	// Requested flash data start position
-			DumpFlashMem(8192, 8, 32);
+			DumpFlashMem(MCUTOTALMEM, 8, 32);
 			newByte = false;
 			break;
 		}
