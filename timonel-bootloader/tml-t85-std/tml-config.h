@@ -157,7 +157,7 @@
 #else
     #define FT_BIT_6    0
 #endif
-#if (CMD_MEM_DUMP == true)
+#if (CMD_READFLASH == true)
     #define FT_BIT_7    128
 #else
     #define FT_BIT_7    0
