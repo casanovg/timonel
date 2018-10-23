@@ -3,11 +3,11 @@
  *	................................
  *	Author: Gustavo Casanova
  *	................................
- *	Version: 0.3 / 2018-08-18
+ *	Version: 0.4 / 2018-10-17
  *	gustavo.casanova@nicebots.com
  */
 
-// https://drive.google.com/open?id=1GdgMnsvW42g25_R4oTaebXnzAQPVpvGj
+// https://drive.google.com/open?id=1n_uIBW8hUX71mKudwf0kw07vjplpwsV9
 
 #ifndef _NB_I2C_CMD_H_
 #define _NB_I2C_CMD_H_
@@ -55,5 +55,7 @@
 #define ACKWTPAG		0x58				/* Acknowledge Write AVR 8-bit Page Buffer Command */
 #define EXITTMNL		0xA8				/* Command to Exit Timonel (run application) 	*/
 #define ACKEXITT		0x57				/* Acknowledge Exit Timonel Command */
+#define READFLSH		0x56				/* Command to Read Data from AVR Flash Memory */
+#define ACKRDFSH		0xA9				/* Acknowledge Read from AVR Flash Memory Command */
 
 #endif /* _NB_I2C_CMD_H_ */
