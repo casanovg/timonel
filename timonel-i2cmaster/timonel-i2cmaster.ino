@@ -128,9 +128,9 @@ void loop() {
 #endif /* ESP8266 */
 			break;
 		}
-		// *******************
-		// * Restart ESP8266 *
-		// *******************
+		// ******************
+		// * Restart Master *
+		// ******************
 		case 'z': case 'Z': {
 			Serial.println("\nResetting ESP8266 ...");
 			Serial.println("\n.\n.\n.\n");
