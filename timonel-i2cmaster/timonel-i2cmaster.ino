@@ -24,10 +24,14 @@
 // x - (RESETINY) Reset ATtiny85
 // ? - (HELP) Command help
 
+#define ESP8266			true	/* True = ESP8266, False = Arduino */
+
 #include <Wire.h>
 #include "nb-i2c-cmd.h"
 #include "nb-i2c-crc.h"
+#if ESP8266
 #include <pgmspace.h>
+#endif /* ESP8266 */
 #include "Payloads/payload.h"
 
 // Timonel bootloader
@@ -58,9 +62,12 @@ word timonelStart = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set'. U
 void setup() {
 	Serial.begin(9600);		// Init the serial port
 							// Init the Wire object for I2C
+#if ESP8266
 	Wire.begin(0, 2);		// GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
-	//Wire.begin();			// Standard pins SDA on D2 and SCL on D1 (NodeMCU)
-	//Wire.begin(D3, D4);	// Set SDA on D3 and SCL on D4 (NodeMCU)
+#else
+	Wire.begin();			// Standard pins SDA on D2 and SCL on D1 (NodeMCU)
+#endif /* ESP8266 */
+							//Wire.begin(D3, D4);	// Set SDA on D3 and SCL on D4 (NodeMCU)
 	delay(100);				// Wait 100 ms for slave init sequence
 							// Search continuouly for slave addresses
 	while (slaveAddress == 0) {
@@ -78,6 +85,9 @@ void setup() {
 	Serial.println("");
 	ShowMenu();
 }
+#if !(ESP8266)
+void(*resetFunc) (void) = 0;//declare reset function at address 0
+#endif /* ESP8266 */
 
 //
 // ***************************
@@ -111,7 +121,11 @@ void loop() {
 			ResetTiny();
 			Serial.println("\n  .\n\r . .\n\r. . .\n");
 			delay(2000);
+#if ESP8266
 			ESP.restart();
+#else
+			resetFunc();
+#endif /* ESP8266 */
 			break;
 		}
 		// *******************
@@ -120,7 +134,11 @@ void loop() {
 		case 'z': case 'Z': {
 			Serial.println("\nResetting ESP8266 ...");
 			Serial.println("\n.\n.\n.\n");
+#if ESP8266
 			ESP.restart();
+#else
+			resetFunc();
+#endif /* ESP8266 */
 			break;
 		}
 		// ********************************
@@ -139,7 +157,11 @@ void loop() {
 			RunApplication();
 			Serial.println("\n. . .\n\r . .\n\r  .\n");
 			delay(2000);
+#if ESP8266
 			ESP.restart();
+#else
+			resetFunc();
+#endif /* ESP8266 */
 			break;
 		}
 		// ********************************
@@ -894,7 +916,7 @@ int WriteFlash(void) {
 	uint8_t dataPacket[TXDATASIZE] = { 0xFF };
 	int payloadSize = sizeof(payload);
 	if ((payloadSize % FLASHPGSIZE) != 0) {		/* If the payload to be sent is smaller than flash page size, resize it to match */
-		padding = ((((uint)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
+		padding = ((((int)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
 		payloadSize += padding;
 	}
 	Serial.println("\nWriting payload to flash ...\n\r");
@@ -931,7 +953,11 @@ int WriteFlash(void) {
 			//Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
 			//DeleteFlash();
 			TwoStepInit(2000);
+#if ESP8266
 			ESP.restart();
+#else
+			resetFunc();
+#endif /* ESP8266 */
 			return(wrtErrors);
 		}
 		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
@@ -958,7 +984,11 @@ int WriteFlash(void) {
 		Serial.println(" ===");
 		//DeleteFlash();
 		TwoStepInit(2000);
+#if ESP8266
 		ESP.restart();
+#else
+		resetFunc();
+#endif /* ESP8266 */
 	}
 	return(wrtErrors);
 }
