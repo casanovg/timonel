@@ -181,8 +181,8 @@ int main() {
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(flashPageAddr);
 #if AUTO_TPL_CALC
-                    word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
                         }
@@ -191,6 +191,7 @@ int main() {
                     }
 #if APP_USE_TPL_PG
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
                         for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -223,16 +224,6 @@ int main() {
                 }
             }
         }
-        /* ..................................................
-           . I2C Interrupt Emulation ...................... .
-           . Check the USI Status Register to verify        .
-           . whether a USI start handler should be launched .
-           ..................................................
-        */
-        if (USISR & (1 << USISIF)) {
-            UsiStartHandler();      /* If so, run the USI start handler ... */
-            USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
-        }
         /* .....................................................
            . I2C Interrupt Emulation ......................... .
            . Check the USI Status Register to verify           .
@@ -242,7 +233,17 @@ int main() {
         if (USISR & (1 << USIOIF)) {
             UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
             USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
-        }
+        }         
+        /* ..................................................
+           . I2C Interrupt Emulation ...................... .
+           . Check the USI Status Register to verify        .
+           . whether a USI start handler should be launched .
+           ..................................................
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+            USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
+        }        
     }
     return 0;
 }

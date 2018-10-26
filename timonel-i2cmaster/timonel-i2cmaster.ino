@@ -37,7 +37,7 @@
 // Timonel bootloader
 #define MCUTOTALMEM		8192	/* Slave MCU total flash memory*/
 #define MAXCKSUMERRORS	100		/* Max number of checksum errors allowed in bootloader comms */
-#define TXDATASIZE		8		/* TX data size for WRITBUFF command */
+#define TXDATASIZE		4		/* TX data size for WRITBUFF command */
 #define FLASHPGSIZE		64		/* Tiny85 flash page buffer size */
 #define DATATYPEBYTE	1		/* Buffer data type "Byte" */
 

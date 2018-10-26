@@ -61,7 +61,7 @@
    ====== shown in the GETTMNLV command.
 */
 
-#define SET_PRESCALER   true    /* Force the CPU prescaler division factor = 1.                        */
+#define SET_PRESCALER   false    /* Force the CPU prescaler division factor = 1.                        */
 
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
@@ -85,8 +85,8 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define CYCLESTOWAIT    0xFFFF  /* Main loop counter to allow the I2C replies to complete. */
-                                /* Also used as LED toggle delay before initialization.    */
+#define CYCLESTOWAIT    0x8500  /* Main loop counter to allow the I2C replies to complete. 9F00 */
+                                /* Also used as LED toggle delay before initialization.  12.37 / 6  */
 
 // Timonel ID characters
 #define ID_CHAR_1       78      /* N */
@@ -94,8 +94,8 @@
 #define ID_CHAR_3       84      /* T */
 
 // I2C TX-RX commands data size
-#define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
-#define RXDATASIZE      8       /* RX data size: always even values, min = 2, max = 8 */
+#define TXDATASIZE      4      /* TX data size: always even values, min = 2, max = 10 */
+#define RXDATASIZE      4       /* RX data size: always even values, min = 2, max = 8 */
 
 // Status byte
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
