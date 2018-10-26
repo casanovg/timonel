@@ -26,6 +26,10 @@ Usage:
 * Run the commands shown on screen for erasing and flashing new firmware on the Tiny85 (more details on the steps necessary will be published later).
 * It is also possible to update the bootloader itself thanks to the micronucleus' upgrade program.
 
+Contributing:
+-------------
+Contributions are welcome! If you want to add a new feature please, feel free to create a pull request or open an issue ...
+
 Version History:
 ----------------
 v1.0 - 2018-10-05: Functional Release (Optional features implemented. See it [working](https://youtu.be/-7GOMToGvzI)).
