@@ -28,7 +28,7 @@ Usage:
 
 Contributing:
 -------------
-Contributions are welcome! If you want to add a new feature please, feel free to create a pull request or open an issue ...
+Contributions are welcome! If you want to add a new feature, please feel free to create a pull request or open an issue ...
 
 Version History:
 ----------------
