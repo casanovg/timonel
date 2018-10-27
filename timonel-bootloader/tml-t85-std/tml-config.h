@@ -61,7 +61,8 @@
    ====== shown in the GETTMNLV command.
 */
 
-#define SET_PRESCALER   false    /* Force the CPU prescaler division factor = 1.                        */
+#define SET_PRESCALER   true    /* If this is enabled, it forces the CPU prescaler division to 1, so   */
+                                /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
 
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
@@ -70,11 +71,6 @@
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
 /* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
 /* ---------------------------------------------------------------------------------- */
-
-// CPU speed
-#ifndef F_CPU
-#define F_CPU 8000000UL         /* Default CPU speed for delay.h */
-#endif
 
 // flash memory definitions
 #define PAGE_SIZE       64      /* SPM Flash memory page size */
@@ -85,8 +81,9 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define CYCLESTOWAIT    0x8500  /* Main loop counter to allow the I2C replies to complete. 9F00 */
-                                /* Also used as LED toggle delay before initialization.  12.37 / 6  */
+#define CYCLESTOWAIT    0xFFFF  /* Main loop counter to allow the I2C replies to complete before  */
+                                /* performing the selected actions. Also used as LED toggle delay */
+                                /* before the I2C master initializes the bootloader.              */
 
 // Timonel ID characters
 #define ID_CHAR_1       78      /* N */
@@ -94,8 +91,8 @@
 #define ID_CHAR_3       84      /* T */
 
 // I2C TX-RX commands data size
-#define TXDATASIZE      4      /* TX data size: always even values, min = 2, max = 10 */
-#define RXDATASIZE      4       /* RX data size: always even values, min = 2, max = 8 */
+#define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
+#define RXDATASIZE      8       /* RX data size: always even values, min = 2, max = 8 */
 
 // Status byte
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */

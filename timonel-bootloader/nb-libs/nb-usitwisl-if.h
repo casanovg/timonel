@@ -19,13 +19,12 @@
 void UsiTwiSlaveInit(uint8_t);
 void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
-void (*_onTwiDataRequest)(void);
 bool UsiTwiDataInTransmitBuffer(void);
 uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
-void (*Usi_onReceiverPtr)(uint8_t);
+void (*Usi_onReceivePtr)(uint8_t);
 
-// I2C handlers prototypes (interrupts replacements)
+// I2C handlers prototypes (GC: interrupts replacements)
 void UsiStartHandler(void);
 void UsiOverflowHandler(void);
 
