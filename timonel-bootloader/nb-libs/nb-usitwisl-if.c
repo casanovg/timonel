@@ -416,7 +416,7 @@ void UsiStartHandler(void) {
         // set USI to sample 8 bits (count 16 external SCL pin toggles)
         ( 0x0 << USICNT0);
             
-    USISR |= (1 << USISIF);             /* Reset the USI start flag in USISR register to prepare for new ints */
+    USISR |= (1 << USISIF);     /* Reset the USI start flag in USISR register to prepare for new ints */
 }
 
 // Function UsiOverflowHandler - Interrupt-like GC

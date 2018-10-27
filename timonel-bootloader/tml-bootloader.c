@@ -122,17 +122,15 @@ int main() {
         */
         if (USISR & (1 << USIOIF)) {
             UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
-            //USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
         }         
-        /* ..................................................
-           . I2C Interrupt Emulation ...................... .
-           . Check the USI Status Register to verify        .
-           . whether a USI start handler should be launched .
-           ..................................................
+        /* .....................................................
+           . I2C Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI start handler should be launched    .
+           .....................................................
         */
         if (USISR & (1 << USISIF)) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
-            //USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
         }         
         if (dlyCounter-- <= 0) {
             dlyCounter = CYCLESTOWAIT;
