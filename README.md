@@ -32,6 +32,8 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 Version History:
 ----------------
+v1.1 - 2018-10-29: Functional Release (Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz).
+
 v1.0 - 2018-10-05: Functional Release (Optional features implemented. See it [working](https://youtu.be/-7GOMToGvzI)).
 
 v0.9 - 2018-09-29: Functional pre-release (Temporary page buffer and other minor issues solved).
