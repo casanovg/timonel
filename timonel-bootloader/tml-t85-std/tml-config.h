@@ -3,7 +3,7 @@
  *  Project: Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  .......................................................
- *  2018-10-05 gustavo.casanova@nicebots.com
+ *  2018-10-29 gustavo.casanova@nicebots.com
  */
 
 #ifndef _TML_CONFIG_H_
