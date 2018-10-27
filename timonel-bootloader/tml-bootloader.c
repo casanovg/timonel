@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.1 "Sandra" / 2018-10-22
+ *  Version: 1.1 "Sandra" / 2018-10-29
  *  gustavo.casanova@nicebots.com
  */
 
