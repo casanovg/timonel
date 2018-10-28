@@ -106,7 +106,7 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
-    byte dlyCounter = CYCLESTOWAIT;
+    word dlyCounter = CYCLESTOWAIT;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
