@@ -21,7 +21,7 @@ MCU = attiny85
 
 TIMONEL_START = 1B00
 
-# Fuses set for running at 8 Mhz (Timonel v1.1 and up)
+# Settings for running at 8 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:0x62:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
 FUSEOPT_DISABLERESET = -U lfuse:w:0x62:m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
 
