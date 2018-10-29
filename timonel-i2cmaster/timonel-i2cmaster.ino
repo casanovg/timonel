@@ -6,11 +6,11 @@
 // *  Author: Gustavo Casanova                            *
 // *  ..................................................  *
 // *  Firmware Version: 1.1 | MCU: ESP8266                *
-// *  2018-10-17 gustavo.casanova@nicebots.com            *
+// *  2018-10-29 gustavo.casanova@nicebots.com            *
 // ********************************************************
 //
-// Run this master program on a NodeMCU, ESP-01 or ESP-12 Module
-// Run the slave program on a Digispark or ATtiny85
+// Run timonel-i2cmaster on a NodeMCU, ESP-01 or ESP-12 Module
+// Run timonel-bootloader on a Digispark or ATtiny85
 //
 // Basic command path to Attiny85:
 // -------------------------------
@@ -56,7 +56,7 @@ word timonelStart = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set'. U
 
 //
 // *****************************
-// * [][][] Setup Block [][][] *
+// *       Setup Block         *
 // *****************************
 //
 void setup() {
@@ -91,7 +91,7 @@ void(*resetFunc) (void) = 0;//declare reset function at address 0
 
 //
 // ***************************
-// * [][][] Main Loop [][][] *
+// *        Main Loop        *
 // ***************************
 //
 void loop() {
@@ -1003,6 +1003,7 @@ void ShowMenu(void) {
 	}
 }
 
+//Function ShowTrampoline
 void ShowTrampoline(void) {
 #define TIMONEL_START 0x1A40
 #define LSB 0x0E
