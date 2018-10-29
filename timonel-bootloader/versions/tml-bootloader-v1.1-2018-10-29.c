@@ -8,7 +8,7 @@
  *  Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.1 "Sandra" / 2018-10-22
+ *  Version: 1.1 "Sandra" / 2018-10-29
  *  gustavo.casanova@nicebots.com
  */
 
@@ -48,10 +48,6 @@
     #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
-#ifndef F_CPU
-    #define F_CPU 8000000UL                 /* Default CPU speed */
-#endif
-
 #if (RXDATASIZE > 8)
     #pragma GCC warning "Do not set transmission data size too high to avoid hurting I2C reliability!"
 #endif
@@ -105,7 +101,7 @@ int main() {
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
     UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
-    Usi_onReceiverPtr = ReceiveEvent;       /* I2C Receive Event */
+    Usi_onReceivePtr = ReceiveEvent;        /* I2C Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
@@ -118,6 +114,24 @@ int main() {
        |___________________|
     */
     for (;;) {
+        /* .....................................................
+           . I2C Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI counter overflow should be launched .
+           .....................................................
+        */
+        if (USISR & (1 << USIOIF)) {
+            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
+        }         
+        /* .....................................................
+           . I2C Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI start handler should be launched    .
+           .....................................................
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+        }         
         if (dlyCounter-- <= 0) {
             dlyCounter = CYCLESTOWAIT;
             // Initialization check
@@ -181,8 +195,8 @@ int main() {
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(flashPageAddr);
 #if AUTO_TPL_CALC
-                    word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
                         }
@@ -191,6 +205,7 @@ int main() {
                     }
 #if APP_USE_TPL_PG
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
                         for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -222,27 +237,7 @@ int main() {
                     pageIX = 0;
                 }
             }
-        }
-        /* ..................................................
-           . I2C Interrupt Emulation ...................... .
-           . Check the USI Status Register to verify        .
-           . whether a USI start handler should be launched .
-           ..................................................
-        */
-        if (USISR & (1 << USISIF)) {
-            UsiStartHandler();      /* If so, run the USI start handler ... */
-            USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
-        }
-        /* .....................................................
-           . I2C Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify           .
-           . whether a USI counter overflow should be launched .
-           .....................................................
-        */
-        if (USISR & (1 << USIOIF)) {
-            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
-            USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
-        }
+        }      
     }
     return 0;
 }
@@ -381,19 +376,19 @@ void RequestEvent(void) {
             if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
-                reply[ackLng - 1] = 0;				                /* Checksum initialization */
+                reply[ackLng - 1] = 0;                              /* Checksum initialization */
                 const __flash unsigned char * flashAddr;
                 flashAddr = (void *)flashPageAddr; 
-				for (byte i = 1; i < command[3] + 1; i++) {
+                for (byte i = 1; i < command[3] + 1; i++) {
                     reply[i] = (*(flashAddr++) & 0xFF);             /* Actual flash data */
-					reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
-				}                
+                    reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
+                }                
                 for (byte i = 0; i < ackLng; i++) {
                     UsiTwiTransmitByte(reply[i]);
                 }
             }
             else {
-                UsiTwiTransmitByte(UNKNOWNC);		                /* Incorrect operand value received */
+                UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
             }
             break;
         }   
