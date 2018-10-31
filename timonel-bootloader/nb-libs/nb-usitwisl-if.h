@@ -19,37 +19,36 @@
 void UsiTwiSlaveInit(uint8_t);
 void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
-void (*_onTwiDataRequest)(void);
 bool UsiTwiDataInTransmitBuffer(void);
 uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
-void (*Usi_onReceiverPtr)(uint8_t);
+void (*Usi_onReceivePtr)(uint8_t);
 
-// I2C handlers prototypes (interrupts replacements)
+// I2C handlers prototypes (GC: interrupts replacements)
 void UsiStartHandler(void);
 void UsiOverflowHandler(void);
 
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-	#define TWI_RX_BUFFER_SIZE (16)
+    #define TWI_RX_BUFFER_SIZE (16)
 #endif
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
 
 #if (TWI_RX_BUFFER_SIZE & TWI_RX_BUFFER_MASK)
-	#  error TWI RX buffer size is not a power of 2
+    #  error TWI RX buffer size is not a power of 2
 #endif
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-	#define TWI_TX_BUFFER_SIZE (16)
+    #define TWI_TX_BUFFER_SIZE (16)
 #endif
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
 
 #if (TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK)
-	#  error TWI TX buffer size is not a power of 2
+    #  error TWI TX buffer size is not a power of 2
 #endif
 
 #endif /* _NB_USITWISL_IF_H_ */

@@ -1,8 +1,16 @@
-
-//
-// Start Address: 0x0 
-// End Address: 0x1FFF 
-//
+/*
+ * Full Memory Test Application Payload
+ * ====================================
+ * 2018-10-29 Gustavo Casanova
+ * ...............................................
+ * This payload consists of SOS blinker (19 pages)
+ * plus dummy data (88 pages). The purpose is to
+ * test Timonel flashing all the available memory
+ * when it's start position is 0x1B00
+ * ...............................................
+ * Payload Start Address: 0x0 
+ * Payload End Address  : 0x1FFF 
+ */
 const byte payldType = 0;    /* Full Memory Test Application Payload */
 
 const byte payload[6848] = {

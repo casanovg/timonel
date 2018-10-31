@@ -3,7 +3,7 @@
  *  Project: Timonel - I2C Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  .......................................................
- *  2018-10-29 gustavo.casanova@nicebots.com
+ *  2018-10-05 gustavo.casanova@nicebots.com
  */
 
 #ifndef _TML_CONFIG_H_
@@ -53,16 +53,15 @@
 #define CHECK_EMPTY_FL  false   /* GETTMNLV will read the first 100 flash memory positions to check if */
                                 /* there is an application (or some other data) loaded.                */
 
-#define CMD_READFLASH   false   /* This option enables the READFLSH command. It can be useful for      */
-                                /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_MEM_DUMP    false   /* TO IMPLEMENT IN NEXT VERSIONS: this option will enable a command to */
+                                /* dump all the flash memory contents, except the bootloader section.  */
                                    
 /*
    ====== End of feature settings
    ====== shown in the GETTMNLV command.
 */
 
-#define SET_PRESCALER   true    /* If this is enabled, it forces the CPU prescaler division to 1, so   */
-                                /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+#define SET_PRESCALER   true    /* Force setting the CPU clock prescaler for 8 MHz .                   */
 
 #define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
                                 /* writing new data. Normally, it shouldn't be necessary to enable it. */
@@ -71,6 +70,11 @@
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
 /* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
 /* ---------------------------------------------------------------------------------- */
+
+// CPU speed
+#ifndef F_CPU
+#define F_CPU 8000000UL         /* Default CPU speed for delay.h */
+#endif
 
 // flash memory definitions
 #define PAGE_SIZE       64      /* SPM Flash memory page size */
@@ -81,9 +85,8 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define CYCLESTOWAIT    0xFFFF  /* Main loop counter to allow the I2C replies to complete before  */
-                                /* performing the selected actions. Also used as LED toggle delay */
-                                /* before the I2C master initializes the bootloader.              */
+#define CYCLESTOWAIT    0xFFFF  /* Main loop counter to allow the I2C replies to complete. */
+                                /* Also used as LED toggle delay before initialization.    */
 
 // Timonel ID characters
 #define ID_CHAR_1       78      /* N */
@@ -98,8 +101,8 @@
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
 #define ST_INIT_2       1       /* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
 #define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory            */
-#define ST_EXIT_TML     3       /* Status Bit 4 (8)  : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Status Bit 5 (16) : Not used */
+#define ST_EXIT_TML     3       /* Status Bit 5 (16) : Exit Timonel & Run Application */
+#define ST_BIT_4        4       /* Status Bit 4 (8)  : Not used */
 #define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
 #define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
 #define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
@@ -154,7 +157,7 @@
 #else
     #define FT_BIT_6    0
 #endif
-#if (CMD_READFLASH == true)
+#if (CMD_MEM_DUMP == true)
     #define FT_BIT_7    128
 #else
     #define FT_BIT_7    0
