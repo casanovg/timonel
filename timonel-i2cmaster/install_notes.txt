@@ -1,0 +1,15 @@
+Timonel-I2CMaster Quick Install Notes
+=====================================
+1-Install Python on your computer
+2-Verify Python version
+  $ python --version
+
+  $ pip --version
+
+  $ pip install --upgrade esptool
+
+  $ esptool.py --port com14 --baud 115200 erase_flash
+
+  $ esptool.py --port COM14 --baud 115200 write_flash -fs detect -fm qio 0x00000 Release/timonel-i2cmaster.bin
+
+
