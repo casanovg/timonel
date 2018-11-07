@@ -19,7 +19,9 @@ Timonel-I2CMaster Quick Install Notes
    __$ python -m serial.tools.list_ports__
    
    COM1
+   
    __COM14__
+   
    2 ports found
 
 6) Optionally, backup the current ESP8266 firmware
