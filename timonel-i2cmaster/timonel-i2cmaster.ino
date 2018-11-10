@@ -31,6 +31,7 @@
 #include "nb-i2c-crc.h"
 #if ESP8266
 #include <pgmspace.h>
+#include <ESP8266httpUpdate.h>
 #endif /* ESP8266 */
 #include "Payloads/payload.h"
 
@@ -54,37 +55,66 @@ bool memoryLoaded = false;
 word flashPageAddr = 0x0;
 word timonelStart = 0xFFFF;   /* Timonel start address, 0xFFFF means 'not set'. Use Timonel 'version' command to get it */
 
+const char* ssid = "Nicebots.com";     // Set your router SSID
+const char* password = "R2-D2 C-3P0"; // Set your router password
+
 //
 // *****************************
 // *       Setup Block         *
 // *****************************
 //
+
+
 void setup() {
-  Serial.begin(9600);   // Init the serial port
-              // Init the Wire object for I2C
+
+	Serial.begin(9600);   // Init the serial port
+	WiFi.begin(ssid, password);
+	/*connection to WiFi*/
+	while (WiFi.status() != WL_CONNECTED) {
+		Serial.print(".");
+		delay(1000);
+	}
+	/* warning - the update is done after each reboot now */
+	t_httpUpdate_return ret = ESPhttpUpdate.update("http://192.168.1.55/tml-i2cm.bin"); //Location of your binary file
+	//t_httpUpdate_return  ret = ESPhttpUpdate.update("http://192.168.1.55/tml-i2cm.bin");
+	/*upload information only */
+	switch (ret) {
+	case HTTP_UPDATE_FAILED:
+		Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+		break;
+	case HTTP_UPDATE_NO_UPDATES:
+		Serial.println("HTTP_UPDATE_NO_UPDATES");
+		break;
+	case HTTP_UPDATE_OK:
+		Serial.println("HTTP_UPDATE_OK");
+		break;
+	}
+
+// Init the Wire object for I2C
 #if ESP8266
-  Wire.begin(0, 2);   // GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
+	Wire.begin(0, 2);   // GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
 #else
-  Wire.begin();     // Standard pins SDA on D2 and SCL on D1 (NodeMCU)
+	Wire.begin();     // Standard pins SDA on D2 and SCL on D1 (NodeMCU)
 #endif /* ESP8266 */
               //Wire.begin(D3, D4); // Set SDA on D3 and SCL on D4 (NodeMCU)
-  delay(100);       // Wait 100 ms for slave init sequence
+	delay(100);       // Wait 100 ms for slave init sequence
               // Search continuouly for slave addresses
-  while (slaveAddress == 0) {
-    slaveAddress = ScanI2C();
-    delay(250);     // Delay 1/4 second before sending I2C commands
-  }
+	while (slaveAddress == 0) {
+		slaveAddress = ScanI2C();
+		delay(250);     // Delay 1/4 second before sending I2C commands
+	}
 
-  // Run ATtiny85 initialization command
-  InitTiny();
+	// Run ATtiny85 initialization command
+	InitTiny();
 
-  ClrScr();
-  Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1)");
-  Serial.println("============================================================");
-  TwoStepInit(0);
-  Serial.println("");
-  ShowMenu();
+	ClrScr();
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1a)");
+	Serial.println("=============================================================");
+	TwoStepInit(0);
+	Serial.println("");
+	ShowMenu();
 }
+
 #if !(ESP8266)
 void(*resetFunc) (void) = 0;//declare reset function at address 0
 #endif /* ESP8266 */
