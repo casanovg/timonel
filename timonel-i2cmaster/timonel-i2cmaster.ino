@@ -28,12 +28,13 @@
 
 #include <Wire.h>
 #include "nb-i2c-cmd.h"
-#include "nb-i2c-crc.h"
+//#include "nb-i2c-crc.h"
 #if ESP8266
 #include <pgmspace.h>
+//#include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #endif /* ESP8266 */
-#include "Payloads/payload.h"
+//#include "Payloads/payload.h"
 
 // Timonel bootloader
 #define MCUTOTALMEM   8192  /* Slave MCU total flash memory*/
@@ -55,8 +56,8 @@ bool memoryLoaded = false;
 word flashPageAddr = 0x0;
 word timonelStart = 0xFFFF;   /* Timonel start address, 0xFFFF means 'not set'. Use Timonel 'version' command to get it */
 
-const char* ssid = "Nicebots.com";     // Set your router SSID
-const char* password = "R2-D2 C-3P0"; // Set your router password
+const char* ssid = "SPM WIFI";     // Set your router SSID
+const char* password = "Pipa2005"; // Set your router password
 
 //
 // *****************************
@@ -64,31 +65,12 @@ const char* password = "R2-D2 C-3P0"; // Set your router password
 // *****************************
 //
 
-
 void setup() {
 
 	Serial.begin(9600);   // Init the serial port
-	WiFi.begin(ssid, password);
-	/*connection to WiFi*/
-	while (WiFi.status() != WL_CONNECTED) {
-		Serial.print(".");
-		delay(1000);
-	}
-	/* warning - the update is done after each reboot now */
-	t_httpUpdate_return ret = ESPhttpUpdate.update("http://192.168.1.55/tml-i2cm.bin"); //Location of your binary file
-	//t_httpUpdate_return  ret = ESPhttpUpdate.update("http://192.168.1.55/tml-i2cm.bin");
-	/*upload information only */
-	switch (ret) {
-	case HTTP_UPDATE_FAILED:
-		Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-		break;
-	case HTTP_UPDATE_NO_UPDATES:
-		Serial.println("HTTP_UPDATE_NO_UPDATES");
-		break;
-	case HTTP_UPDATE_OK:
-		Serial.println("HTTP_UPDATE_OK");
-		break;
-	}
+	ClrScr();
+
+	ShowHeader();
 
 // Init the Wire object for I2C
 #if ESP8266
@@ -96,9 +78,9 @@ void setup() {
 #else
 	Wire.begin();     // Standard pins SDA on D2 and SCL on D1 (NodeMCU)
 #endif /* ESP8266 */
-              //Wire.begin(D3, D4); // Set SDA on D3 and SCL on D4 (NodeMCU)
+	//Wire.begin(D3, D4); // Set SDA on D3 and SCL on D4 (NodeMCU)
 	delay(100);       // Wait 100 ms for slave init sequence
-              // Search continuouly for slave addresses
+	// Search continuouly for slave addresses
 	while (slaveAddress == 0) {
 		slaveAddress = ScanI2C();
 		delay(250);     // Delay 1/4 second before sending I2C commands
@@ -106,181 +88,240 @@ void setup() {
 
 	// Run ATtiny85 initialization command
 	InitTiny();
-
-	ClrScr();
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1a)");
-	Serial.println("=============================================================");
 	TwoStepInit(0);
-	Serial.println("");
+
+	WiFi.begin(ssid, password);
+	Serial.println("\nTrying to open WiFi connection ... \n");
+	/*connection to WiFi*/
+	while (WiFi.status() != WL_CONNECTED) {
+		Serial.print(".");
+		delay(1000);
+	}
+	Serial.println("\n\n\r");
+
+	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com", 80, "/update.php", "v1.1a");
+	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com", 80, "/bin/plgfw.bin", "v1.1a");
+	t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com/bin/timonel-i2cmaster.ino.bin");
+	switch (ret) {
+	case HTTP_UPDATE_FAILED:
+		Serial.println("[update] Update failed.");
+		break;
+	case HTTP_UPDATE_NO_UPDATES:
+		Serial.println("[update] Firmware is up to date.");
+		break;
+	case HTTP_UPDATE_OK:
+		Serial.println("[update] Update ok."); // may not called we reboot the ESP
+		break;
+	}
+
+	///* warning - the update is done after each reboot now */
+	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com/bin/timonel-i2cmaster.ino.bin"); //Location of your binary file
+	////t_httpUpdate_return  ret = ESPhttpUpdate.update("http://fw.nicebots.com/bin/timonel-i2cmaster.ino.bin");
+	///*upload information only */
+	//switch (ret) {
+	//case HTTP_UPDATE_FAILED:
+	//	Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+	//	break;
+	//case HTTP_UPDATE_NO_UPDATES:
+	//	Serial.println("HTTP_UPDATE_NO_UPDATES");
+	//	break;
+	//case HTTP_UPDATE_OK:
+	//	Serial.println("HTTP_UPDATE_OK");
+	//	break;
+	//}
+
+	Serial.println("\n\n\r");
+	delay(2000);
+
+	ShowHeader();
 	ShowMenu();
+
 }
 
 #if !(ESP8266)
 void(*resetFunc) (void) = 0;//declare reset function at address 0
 #endif /* ESP8266 */
 
-//
-// ***************************
-// *        Main Loop        *
-// ***************************
-//
+// the loop function runs over and over again forever
 void loop() {
-  if (newKey == true) {
-    newKey = false;
-    Serial.println("");
-    Serial.println("");
-    switch (key) {
-    // *********************************
-    // * Test App ||| STDPB1_1 Command *
-    // *********************************
-    case 'a': case 'A': {
-      SetPB1On();
-      break;
-    }
-    // *********************************
-    // * Test App ||| STDPB1_0 Command *
-    // *********************************
-    case 's': case 'S': {
-      SetPB1Off();
-      break;
-    }
-    // *********************************
-    // * Test App ||| RESETINY Command *
-    // *********************************
-    case 'x': case 'X': {
-      ResetTiny();
-      Serial.println("\n  .\n\r . .\n\r. . .\n");
-      delay(2000);
-#if ESP8266
-      ESP.restart();
-#else
-      resetFunc();
-#endif /* ESP8266 */
-      break;
-    }
-    // ******************
-    // * Restart Master *
-    // ******************
-    case 'z': case 'Z': {
-      Serial.println("\nResetting ESP8266 ...");
-      Serial.println("\n.\n.\n.\n");
-#if ESP8266
-      ESP.restart();
-#else
-      resetFunc();
-#endif /* ESP8266 */
-      break;
-    }
-    // ********************************
-    // * Timonel ::: GETTMNLV Command *
-    // ********************************
-    case 'v': case 'V': {
-      //Serial.println("\nBootloader Cmd >>> Get bootloader version ...");
-      GetTimonelVersion();
-      break;
-    }
-    // ********************************
-    // * Timonel ::: EXITTMNL Command *
-    // ********************************
-    case 'r': case 'R': {
-      //Serial.println("\nBootloader Cmd >>> Run Application ...");
-      RunApplication();
-      Serial.println("\n. . .\n\r . .\n\r  .\n");
-      delay(2000);
-#if ESP8266
-      ESP.restart();
-#else
-      resetFunc();
-#endif /* ESP8266 */
-      break;
-    }
-    // ********************************
-    // * Timonel ::: DELFLASH Command *
-    // ********************************
-    case 'e': case 'E': {
-      //Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
-      DeleteFlash();
-      TwoStepInit(750);
-      break;
-    }
-    // ********************************
-    // * Timonel ::: STPGADDR Command *
-    // ********************************
-    case 'b': case 'B': {
-      byte resetFirstByte = 0;
-      byte resetSecondByte = 0;
-      Serial.print("Please enter the flash memory page base address: ");
-      while (newWord == false) {
-        flashPageAddr = ReadWord();
-      }
-      if (timonelStart > MCUTOTALMEM) {
-        Serial.println("\n\n\rWarning: Timonel bootloader start address unknown, please run 'version' command to find it !");
-        //newWord = false;
-        break;
-      }
-      if ((flashPageAddr > (timonelStart - 64)) | (flashPageAddr == 0xFFFF)) {
-        Serial.print("\n\n\rWarning: The highest flash page addreess available is ");
-        Serial.print(timonelStart - 64);
-        Serial.print(" (0x");
-        Serial.print(timonelStart - 64, HEX);
-        Serial.println("), please correct it !!!");
-        newWord = false;
-        break;
-      }
-      if (newWord == true) {
-        Serial.println("");
-        Serial.print("Flash memory page base address: ");
-        Serial.println(flashPageAddr);
-        Serial.print("Address high byte: ");
-        Serial.print((flashPageAddr & 0xFF00) >> 8);
-        Serial.print(" (<< 8) + Address low byte: ");
-        Serial.print(flashPageAddr & 0xFF);
-        SetTmlPageAddr(flashPageAddr);
-        newWord = false;
-      }
-      break;
-    }
-    // ********************************
-    // * Timonel ::: WRITPAGE Command *
-    // ********************************
-    case 'w': case 'W': {
-      WriteFlash();
-      break;
-    }
-    // ********************************
-    // * Timonel ::: READFLSH Command *
-    // ********************************
-    case 'm': case 'M': {
-      byte dataSize = 0;  // flash data size requested to ATtiny85
-      byte dataIX = 0;  // Requested flash data start position
-      DumpFlashMem(MCUTOTALMEM, 8, 32);
-      newByte = false;
-      break;
-    }
-    // ******************
-    // * ? Help Command *
-    // ******************
-    case '?': {
-      Serial.println("\n\rHelp ...");
-      Serial.println("========");
-      //ShowHelp();
-      break;
-    }
-    // *******************
-    // * Unknown Command *
-    // *******************
-    default: {
-      Serial.print("ESP8266 - Command '");
-      Serial.print(key);
-      Serial.println("' unknown ...");
-      break;
-    }
-    }
-    Serial.println("");
-    ShowMenu();
-  }
-  ReadChar();
+	digitalWrite(1, HIGH);   // Turn the LED on (Note that LOW is the voltage level
+									  // but actually the LED is on; this is because 
+									  // it is acive low on the ESP-01)
+	delay(500);                      // Wait for a second
+	digitalWrite(1, LOW);  // Turn the LED off by making the voltage HIGH
+	delay(500);
+	digitalWrite(1, HIGH);
+	delay(500);                      // Wait for a second
+	digitalWrite(1, LOW);  // Turn the LED off by making the voltage HIGH
+	delay(500);
+	digitalWrite(1, HIGH);
+
+	delay(2000);                      // Wait for two seconds (to demonstrate the active low LED)
 }
+
+
+////
+//// ***************************
+//// *        Main Loop        *
+//// ***************************
+////
+//void loop() {
+//  if (newKey == true) {
+//    newKey = false;
+//    Serial.println("");
+//    Serial.println("");
+//    switch (key) {
+//    // *********************************
+//    // * Test App ||| STDPB1_1 Command *
+//    // *********************************
+//    case 'a': case 'A': {
+//      SetPB1On();
+//      break;
+//    }
+//    // *********************************
+//    // * Test App ||| STDPB1_0 Command *
+//    // *********************************
+//    case 's': case 'S': {
+//      SetPB1Off();
+//      break;
+//    }
+//    // *********************************
+//    // * Test App ||| RESETINY Command *
+//    // *********************************
+//    case 'x': case 'X': {
+//      ResetTiny();
+//      Serial.println("\n  .\n\r . .\n\r. . .\n");
+//      delay(2000);
+//#if ESP8266
+//      ESP.restart();
+//#else
+//      resetFunc();
+//#endif /* ESP8266 */
+//      break;
+//    }
+//    // ******************
+//    // * Restart Master *
+//    // ******************
+//    case 'z': case 'Z': {
+//      Serial.println("\nResetting ESP8266 ...");
+//      Serial.println("\n.\n.\n.\n");
+//#if ESP8266
+//      ESP.restart();
+//#else
+//      resetFunc();
+//#endif /* ESP8266 */
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: GETTMNLV Command *
+//    // ********************************
+//    case 'v': case 'V': {
+//      //Serial.println("\nBootloader Cmd >>> Get bootloader version ...");
+//      GetTimonelVersion();
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: EXITTMNL Command *
+//    // ********************************
+//    case 'r': case 'R': {
+//      //Serial.println("\nBootloader Cmd >>> Run Application ...");
+//      RunApplication();
+//      Serial.println("\n. . .\n\r . .\n\r  .\n");
+//      delay(2000);
+//#if ESP8266
+//      ESP.restart();
+//#else
+//      resetFunc();
+//#endif /* ESP8266 */
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: DELFLASH Command *
+//    // ********************************
+//    case 'e': case 'E': {
+//      //Serial.println("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...");
+//      DeleteFlash();
+//      TwoStepInit(750);
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: STPGADDR Command *
+//    // ********************************
+//    case 'b': case 'B': {
+//      byte resetFirstByte = 0;
+//      byte resetSecondByte = 0;
+//      Serial.print("Please enter the flash memory page base address: ");
+//      while (newWord == false) {
+//        flashPageAddr = ReadWord();
+//      }
+//      if (timonelStart > MCUTOTALMEM) {
+//        Serial.println("\n\n\rWarning: Timonel bootloader start address unknown, please run 'version' command to find it !");
+//        //newWord = false;
+//        break;
+//      }
+//      if ((flashPageAddr > (timonelStart - 64)) | (flashPageAddr == 0xFFFF)) {
+//        Serial.print("\n\n\rWarning: The highest flash page addreess available is ");
+//        Serial.print(timonelStart - 64);
+//        Serial.print(" (0x");
+//        Serial.print(timonelStart - 64, HEX);
+//        Serial.println("), please correct it !!!");
+//        newWord = false;
+//        break;
+//      }
+//      if (newWord == true) {
+//        Serial.println("");
+//        Serial.print("Flash memory page base address: ");
+//        Serial.println(flashPageAddr);
+//        Serial.print("Address high byte: ");
+//        Serial.print((flashPageAddr & 0xFF00) >> 8);
+//        Serial.print(" (<< 8) + Address low byte: ");
+//        Serial.print(flashPageAddr & 0xFF);
+//        SetTmlPageAddr(flashPageAddr);
+//        newWord = false;
+//      }
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: WRITPAGE Command *
+//    // ********************************
+//    case 'w': case 'W': {
+//      WriteFlash();
+//      break;
+//    }
+//    // ********************************
+//    // * Timonel ::: READFLSH Command *
+//    // ********************************
+//    case 'm': case 'M': {
+//      byte dataSize = 0;  // flash data size requested to ATtiny85
+//      byte dataIX = 0;  // Requested flash data start position
+//      DumpFlashMem(MCUTOTALMEM, 8, 32);
+//      newByte = false;
+//      break;
+//    }
+//    // ******************
+//    // * ? Help Command *
+//    // ******************
+//    case '?': {
+//      Serial.println("\n\rHelp ...");
+//      Serial.println("========");
+//      //ShowHelp();
+//      break;
+//    }
+//    // *******************
+//    // * Unknown Command *
+//    // *******************
+//    default: {
+//      Serial.print("ESP8266 - Command '");
+//      Serial.print(key);
+//      Serial.println("' unknown ...");
+//      break;
+//    }
+//    }
+//    Serial.println("");
+//    ShowMenu();
+//  }
+//  ReadChar();
+//}
 
 // Function ScanI2C
 byte ScanI2C() {
@@ -317,16 +358,16 @@ byte ScanI2C() {
   return slaveAddr;
 }
 
-// Function CalculateCRC (CRC-8)
-byte CalculateCRC(byte* block, size_t blockLength) {
-  int i;
-  byte crc = 0, data = 0;
-  for (i = 0; i < blockLength; i++) {
-    data = (byte)(block[i] ^ crc); // XOR-in next input byte
-    crc = (byte)(crcTable[data]);  // Get current CRC value = remainder 
-  }
-  return crc;
-}
+//// Function CalculateCRC (CRC-8)
+//byte CalculateCRC(byte* block, size_t blockLength) {
+//  int i;
+//  byte crc = 0, data = 0;
+//  for (i = 0; i < blockLength; i++) {
+//    data = (byte)(block[i] ^ crc); // XOR-in next input byte
+//    crc = (byte)(crcTable[data]);  // Get current CRC value = remainder 
+//  }
+//  return crc;
+//}
 
 // Function ReadChar
 void ReadChar() {
@@ -872,156 +913,156 @@ void DeleteFlash(void) {
   }
 }
 
-// Function SetTmlPageAddr
-void SetTmlPageAddr(word pageAddr) {
-  byte cmdTX[4] = { STPGADDR, 0, 0, 0 };
-  byte txSize = 4;
-  Serial.println("");
-  cmdTX[1] = ((pageAddr & 0xFF00) >> 8);    /* Flash page address high byte */
-  cmdTX[2] = (pageAddr & 0xFF);       /* Flash page address low byte */
-  Serial.print("\n[Timonel] Setting flash page address on Attiny85 >>> ");
-  Serial.print(cmdTX[0]);
-  Serial.println("(STPGADDR)");
-  cmdTX[3] = CalculateCRC(cmdTX, 2);
-  // Transmit command
-  byte transmitData[4] = { 0 };
-  for (int i = 0; i < txSize; i++) {
-    if (i > 0) {
-      if (i < txSize - 1) {
-        Serial.print("[Timonel] - Sending Operand >>> ");
-        Serial.println(cmdTX[i]);
-      }
-      else {
-        Serial.print("[Timonel] - Sending CRC >>> ");
-        Serial.println(cmdTX[i]);
-      }
-    }
-    transmitData[i] = cmdTX[i];
-    Wire.beginTransmission(slaveAddress);
-    Wire.write(transmitData[i]);
-    Wire.endTransmission();
-  }
-  // Receive acknowledgement
-  blockRXSize = Wire.requestFrom(slaveAddress, (byte)2);
-  byte ackRX[2] = { 0 };   // Data received from slave
-  for (int i = 0; i < blockRXSize; i++) {
-    ackRX[i] = Wire.read();
-  }
-  if (ackRX[0] == AKPGADDR) {
-    Serial.print("[Timonel] - Command ");
-    Serial.print(cmdTX[0]);
-    Serial.print(" parsed OK <<< ");
-    Serial.println(ackRX[0]);
-    if (ackRX[1] == (byte)(cmdTX[1] + cmdTX[2])) {
-      Serial.print("[Timonel] - Operands ");
-      Serial.print(cmdTX[1]);
-      Serial.print(" and ");
-      Serial.print(cmdTX[2]);
-      Serial.print(" parsed OK by slave <<< ATtiny85 Flash Page Address Check = ");
-      Serial.println(ackRX[1]);
-    }
-    else {
-      Serial.print("[Timonel] - Operand ");
-      Serial.print(cmdTX[1]);
-      Serial.print(" parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = ");
-      Serial.println(ackRX[1]);
-    }
+//// Function SetTmlPageAddr
+//void SetTmlPageAddr(word pageAddr) {
+//  byte cmdTX[4] = { STPGADDR, 0, 0, 0 };
+//  byte txSize = 4;
+//  Serial.println("");
+//  cmdTX[1] = ((pageAddr & 0xFF00) >> 8);    /* Flash page address high byte */
+//  cmdTX[2] = (pageAddr & 0xFF);       /* Flash page address low byte */
+//  Serial.print("\n[Timonel] Setting flash page address on Attiny85 >>> ");
+//  Serial.print(cmdTX[0]);
+//  Serial.println("(STPGADDR)");
+//  cmdTX[3] = CalculateCRC(cmdTX, 2);
+//  // Transmit command
+//  byte transmitData[4] = { 0 };
+//  for (int i = 0; i < txSize; i++) {
+//    if (i > 0) {
+//      if (i < txSize - 1) {
+//        Serial.print("[Timonel] - Sending Operand >>> ");
+//        Serial.println(cmdTX[i]);
+//      }
+//      else {
+//        Serial.print("[Timonel] - Sending CRC >>> ");
+//        Serial.println(cmdTX[i]);
+//      }
+//    }
+//    transmitData[i] = cmdTX[i];
+//    Wire.beginTransmission(slaveAddress);
+//    Wire.write(transmitData[i]);
+//    Wire.endTransmission();
+//  }
+//  // Receive acknowledgement
+//  blockRXSize = Wire.requestFrom(slaveAddress, (byte)2);
+//  byte ackRX[2] = { 0 };   // Data received from slave
+//  for (int i = 0; i < blockRXSize; i++) {
+//    ackRX[i] = Wire.read();
+//  }
+//  if (ackRX[0] == AKPGADDR) {
+//    Serial.print("[Timonel] - Command ");
+//    Serial.print(cmdTX[0]);
+//    Serial.print(" parsed OK <<< ");
+//    Serial.println(ackRX[0]);
+//    if (ackRX[1] == (byte)(cmdTX[1] + cmdTX[2])) {
+//      Serial.print("[Timonel] - Operands ");
+//      Serial.print(cmdTX[1]);
+//      Serial.print(" and ");
+//      Serial.print(cmdTX[2]);
+//      Serial.print(" parsed OK by slave <<< ATtiny85 Flash Page Address Check = ");
+//      Serial.println(ackRX[1]);
+//    }
+//    else {
+//      Serial.print("[Timonel] - Operand ");
+//      Serial.print(cmdTX[1]);
+//      Serial.print(" parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = ");
+//      Serial.println(ackRX[1]);
+//    }
+//
+//  }
+//  else {
+//    Serial.print("[Timonel] - Error parsing ");
+//    Serial.print(cmdTX[0]);
+//    Serial.print(" command! <<< ");
+//    Serial.println(ackRX[0]);
+//  }
+//}
 
-  }
-  else {
-    Serial.print("[Timonel] - Error parsing ");
-    Serial.print(cmdTX[0]);
-    Serial.print(" command! <<< ");
-    Serial.println(ackRX[0]);
-  }
-}
-
-// Function WriteFlash
-int WriteFlash(void) {
-  int packet = 0;               /* Byte counter to be sent in a single I2C data packet */
-  int padding = 0;              /* Amount of padding bytes to match the page size */
-  int pageEnd = 0;              /* Byte counter to detect the end of flash mem page */
-  int pageCount = 1;
-  int wrtErrors = 0;
-  uint8_t dataPacket[TXDATASIZE] = { 0xFF };
-  int payloadSize = sizeof(payload);
-  if ((payloadSize % FLASHPGSIZE) != 0) {   /* If the payload to be sent is smaller than flash page size, resize it to match */
-    padding = ((((int)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
-    payloadSize += padding;
-  }
-  Serial.println("\nWriting payload to flash ...\n\r");
-  //if (flashPageAddr == 0xFFFF) {
-  //  Serial.println("Warning: Flash page start address no set, please use 'b' command to set it ...\n\r");
-  //  return(1);
-  //}
-  //Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-  //Serial.print(pageCount);
-  //Serial.print(" - Address 0x");
-  //Serial.println(flashPageAddr, HEX);
-  for (int i = 0; i < payloadSize; i++) {
-    if (i < (payloadSize - padding)) {
-      dataPacket[packet] = payload[i];    /* If there are data to fill the page, use it ... */
-    }
-    else {
-      dataPacket[packet] = 0xff;        /* If there are no more data, complete the page with padding (0xff) */
-    }
-    if (packet++ == (TXDATASIZE - 1)) {     /* When a data packet is completed to be sent ... */
-      for (int b = 0; b < TXDATASIZE; b++) {
-        //Serial.print("0x");
-        //if (dataPacket[b] < 0x10) {
-        //  Serial.print("0");
-        //}
-        //Serial.print(dataPacket[b], HEX);
-        //Serial.print(" ");
-        Serial.print(".");
-      }
-      wrtErrors += WritePageBuff(dataPacket); /* Send data to T85 through I2C */
-      packet = 0;
-      delay(10);                /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
-    }
-    if (wrtErrors > 0) {
-      //Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
-      //DeleteFlash();
-      TwoStepInit(2000);
-#if ESP8266
-      ESP.restart();
-#else
-      resetFunc();
-#endif /* ESP8266 */
-      return(wrtErrors);
-    }
-    if (pageEnd++ == (FLASHPGSIZE - 1)) {   /* When a page end is detected ... */
-
-      Serial.print(pageCount++);
-      //DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
-      delay(100);               /* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
-
-      if (i < (payloadSize - 1)) {
-        //Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-        //Serial.print(++pageCount);
-        //Serial.print(" - Address 0x");
-        //Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
-        pageEnd = 0;
-      }
-    }
-  }
-  if (wrtErrors == 0) {
-    Serial.println("\n\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
-  }
-  else {
-    Serial.print("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
-    Serial.print(wrtErrors);
-    Serial.println(" ===");
-    //DeleteFlash();
-    TwoStepInit(2000);
-#if ESP8266
-    ESP.restart();
-#else
-    resetFunc();
-#endif /* ESP8266 */
-  }
-  return(wrtErrors);
-}
+//// Function WriteFlash
+//int WriteFlash(void) {
+//  int packet = 0;               /* Byte counter to be sent in a single I2C data packet */
+//  int padding = 0;              /* Amount of padding bytes to match the page size */
+//  int pageEnd = 0;              /* Byte counter to detect the end of flash mem page */
+//  int pageCount = 1;
+//  int wrtErrors = 0;
+//  uint8_t dataPacket[TXDATASIZE] = { 0xFF };
+//  int payloadSize = sizeof(payload);
+//  if ((payloadSize % FLASHPGSIZE) != 0) {   /* If the payload to be sent is smaller than flash page size, resize it to match */
+//    padding = ((((int)(payloadSize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadSize);
+//    payloadSize += padding;
+//  }
+//  Serial.println("\nWriting payload to flash ...\n\r");
+//  //if (flashPageAddr == 0xFFFF) {
+//  //  Serial.println("Warning: Flash page start address no set, please use 'b' command to set it ...\n\r");
+//  //  return(1);
+//  //}
+//  //Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+//  //Serial.print(pageCount);
+//  //Serial.print(" - Address 0x");
+//  //Serial.println(flashPageAddr, HEX);
+//  for (int i = 0; i < payloadSize; i++) {
+//    if (i < (payloadSize - padding)) {
+//      dataPacket[packet] = payload[i];    /* If there are data to fill the page, use it ... */
+//    }
+//    else {
+//      dataPacket[packet] = 0xff;        /* If there are no more data, complete the page with padding (0xff) */
+//    }
+//    if (packet++ == (TXDATASIZE - 1)) {     /* When a data packet is completed to be sent ... */
+//      for (int b = 0; b < TXDATASIZE; b++) {
+//        //Serial.print("0x");
+//        //if (dataPacket[b] < 0x10) {
+//        //  Serial.print("0");
+//        //}
+//        //Serial.print(dataPacket[b], HEX);
+//        //Serial.print(" ");
+//        Serial.print(".");
+//      }
+//      wrtErrors += WritePageBuff(dataPacket); /* Send data to T85 through I2C */
+//      packet = 0;
+//      delay(10);                /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
+//    }
+//    if (wrtErrors > 0) {
+//      //Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+//      //DeleteFlash();
+//      TwoStepInit(2000);
+//#if ESP8266
+//      ESP.restart();
+//#else
+//      resetFunc();
+//#endif /* ESP8266 */
+//      return(wrtErrors);
+//    }
+//    if (pageEnd++ == (FLASHPGSIZE - 1)) {   /* When a page end is detected ... */
+//
+//      Serial.print(pageCount++);
+//      //DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
+//      delay(100);               /* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+//
+//      if (i < (payloadSize - 1)) {
+//        //Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
+//        //Serial.print(++pageCount);
+//        //Serial.print(" - Address 0x");
+//        //Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
+//        pageEnd = 0;
+//      }
+//    }
+//  }
+//  if (wrtErrors == 0) {
+//    Serial.println("\n\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
+//  }
+//  else {
+//    Serial.print("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
+//    Serial.print(wrtErrors);
+//    Serial.println(" ===");
+//    //DeleteFlash();
+//    TwoStepInit(2000);
+//#if ESP8266
+//    ESP.restart();
+//#else
+//    resetFunc();
+//#endif /* ESP8266 */
+//  }
+//  return(wrtErrors);
+//}
 
 //Function ShowMenu
 void ShowMenu(void) {
@@ -1031,6 +1072,14 @@ void ShowMenu(void) {
   else {
     Serial.print("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash, 'm' mem dump): ");
   }
+}
+
+//Function ShowHeader
+void ShowHeader(void) {
+	Serial.println("");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1 florida)");
+	Serial.println("====================================================================");
+	Serial.println("");
 }
 
 //Function ShowTrampoline
