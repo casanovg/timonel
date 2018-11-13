@@ -1081,8 +1081,8 @@ void ShowMenu(void) {
 //Function ShowHeader
 void ShowHeader(void) {
 	Serial.println("");
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1 florida)");
-	Serial.println("====================================================================");
+	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.1 gengis)");
+	Serial.println("===================================================================");
 	Serial.println("");
 }
 
