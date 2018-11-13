@@ -56,8 +56,8 @@ bool memoryLoaded = false;
 word flashPageAddr = 0x0;
 word timonelStart = 0xFFFF;   /* Timonel start address, 0xFFFF means 'not set'. Use Timonel 'version' command to get it */
 
-const char* ssid = "SPM WIFI";     // Set your router SSID
-const char* password = "Pipa2005"; // Set your router password
+const char* ssid = "Nicebots.com";     // Set your router SSID
+const char* password = "R2-D2 C-3P0"; // Set your router password
 
 //
 // *****************************
@@ -99,9 +99,13 @@ void setup() {
 	}
 	Serial.println("\n\n\r");
 
-	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com", 80, "/update.php", "v1.1a");
-	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com", 80, "/bin/plgfw.bin", "v1.1a");
-	t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com/bin/timonel-i2cmaster.ino.bin");
+	char* fwserver = "fw.nicebots.com";
+	char* firmware = "/update.php";
+	//char* firmware = "/bin/timonel-i2cmaster.ino.bin";
+	byte port = 80;
+
+	t_httpUpdate_return ret = ESPhttpUpdate.update(fwserver, port, firmware);
+	//t_httpUpdate_return ret = ESPhttpUpdate.update("http://fw.nicebots.com/bin/timonel-i2cmaster.ino.bin");
 	switch (ret) {
 	case HTTP_UPDATE_FAILED:
 		Serial.println("[update] Update failed.");
