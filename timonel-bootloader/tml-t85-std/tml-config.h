@@ -46,7 +46,7 @@
                                 /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
-                                /* an I2C master for starting. Otherwise, single-step init is enough   */
+                                /* an I2C master for starting. Otherwise, single-step init is enough.  */
 
 #define USE_WDT_RESET   true    /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 
