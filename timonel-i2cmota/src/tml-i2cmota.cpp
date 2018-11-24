@@ -56,7 +56,7 @@ void setup() {
     }
   }  
 
-  USE_SERIAL.println(F("\n\rPluggie setup and update finished, starting loop code ...\n\r"));
+  USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
   USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
 
   // set the digital pin as output:
