@@ -1,12 +1,22 @@
+// ********************************************************
+// *  Timonel I2C Master OTA Updates                      *
+// *  ==============================                      *
+// *  I2C Master for Bootloader Tests                     *
+// *  ..................................................  *
+// *  Author: Gustavo Casanova                            *
+// *  ..................................................  *
+// *  Firmware Version: 1.2 | MCU: ESP8266                *
+// *  2018-11-24 gustavo.casanova@nicebots.com            *
+// ********************************************************
+//
 #include <Arduino.h>
-
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 
 #define USE_SERIAL Serial
-#define BLINK_DELAY 0x1FFF;
+#define BLINK_DELAY 0xFFFF;
 
 ESP8266WiFiMulti WiFiMulti;
 
@@ -52,9 +62,9 @@ void setup() {
         USE_SERIAL.println(F("HTTP_UPDATE_OK\n\r"));
         break;
     }
-  }  
+  }
 
-  USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
+  USE_SERIAL.println(F("\n\NB setup and update finished, starting loop code ...\n\r"));
   USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
 
   // set the digital pin as output:
@@ -74,7 +84,7 @@ void loop() {
       ledState = LOW;
     }
     // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);    
+    digitalWrite(ledPin, ledState);
   }
-  
+
 }
