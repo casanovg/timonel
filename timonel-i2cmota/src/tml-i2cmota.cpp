@@ -6,7 +6,7 @@
 #include <ESP8266httpUpdate.h>
 
 #define USE_SERIAL Serial
-#define BLINK_DELAY 0x7FFF;
+#define BLINK_DELAY 0x1FFF;
 
 ESP8266WiFiMulti WiFiMulti;
 
