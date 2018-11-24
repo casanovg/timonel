@@ -11,10 +11,8 @@
 ESP8266WiFiMulti WiFiMulti;
 
 // Blink
-const int ledPin =  2;                // the number of the LED pin (2 = GPIO2 / ESP-01)
-int ledState = LOW;                   // ledState used to set the LED
-//unsigned long previousMillis = 0;     // will store last time LED was updated
-//const long interval = 1000;            // interval at which to blink (milliseconds)
+const int ledPin =  2;                // Led pin (2 = GPIO2 / ESP-01)
+int ledState = LOW;                   // Led state used to set the LED
 int blinkDly = BLINK_DELAY;
 
 void setup() {
