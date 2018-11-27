@@ -14,6 +14,7 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
+#include <WiFiManager.h>
 
 #define USE_SERIAL Serial
 #define BLINK_DELAY 0xFFFF;
@@ -40,42 +41,84 @@ void setup() {
     delay(1000);
   }
 
-  WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP("Nicebots.com", "R2-D2 C-3P0");
+  WiFiManager wm;
 
-    // wait for WiFi connection
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
+  bool connectionStatus;
+  // res = wm.autoConnect(); // auto generated AP name from chipid
+  // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
+  connectionStatus = wm.autoConnect("AutoConnectAP","password"); // password protected ap
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(F("http://fw.nicebots.com/update.php"));
-    //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin", "", "fingerprint");
-
-    switch (ret) {
-      case HTTP_UPDATE_FAILED:
-        USE_SERIAL.printf_P("HTTP_UPDATE_FAILED Error (%d): %s\n\r", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-        break;
-
-      case HTTP_UPDATE_NO_UPDATES:
-        USE_SERIAL.println(F("HTTP_UPDATE_NO_UPDATES\n\r"));
-        break;
-
-      case HTTP_UPDATE_OK:
-        USE_SERIAL.println(F("HTTP_UPDATE_OK\n\r"));
-        break;
-    }
-
-  USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
-  USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
-
-  // set the digital pin as output:
-  pinMode(ledPin, OUTPUT);
-
+  if(!connectionStatus) {
+    USE_SERIAL.println(F("Failed to connect, rebooting"));
+    delay(3000);
+    ESP.restart();
   }
   else {
-      USE_SERIAL.println(F("WiFi disconnected, reboting ..."));
-      delay(1000);
-      ESP.restart();
+    //if you get here you have connected to the WiFi
+    USE_SERIAL.println(F("Connected to access point!"));
+
+        t_httpUpdate_return ret = ESPhttpUpdate.update(F("http://fw.nicebots.com/update.php"));
+        //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin", "", "fingerprint");
+
+        switch (ret) {
+          case HTTP_UPDATE_FAILED:
+            USE_SERIAL.printf_P("HTTP_UPDATE_FAILED Error (%d): %s\n\r", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+            break;
+
+          case HTTP_UPDATE_NO_UPDATES:
+            USE_SERIAL.println(F("HTTP_UPDATE_NO_UPDATES\n\r"));
+            break;
+
+          case HTTP_UPDATE_OK:
+            USE_SERIAL.println(F("HTTP_UPDATE_OK\n\r"));
+            break;
+        }
+
+      USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
+      USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
+
+      // set the digital pin as output:
+      pinMode(ledPin, OUTPUT);
   }
+
 }
+
+  //WiFi.mode(WIFI_STA);
+  //WiFiMulti.addAP("Nicebots.com", "R2-D2 C-3P0");
+
+    // wait for WiFi connection
+//   if ((WiFiMulti.run() == WL_CONNECTED)) {
+//
+//     t_httpUpdate_return ret = ESPhttpUpdate.update(F("http://fw.nicebots.com/update.php"));
+//     //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin", "", "fingerprint");
+//
+//     switch (ret) {
+//       case HTTP_UPDATE_FAILED:
+//         USE_SERIAL.printf_P("HTTP_UPDATE_FAILED Error (%d): %s\n\r", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+//         break;
+//
+//       case HTTP_UPDATE_NO_UPDATES:
+//         USE_SERIAL.println(F("HTTP_UPDATE_NO_UPDATES\n\r"));
+//         break;
+//
+//       case HTTP_UPDATE_OK:
+//         USE_SERIAL.println(F("HTTP_UPDATE_OK\n\r"));
+//         break;
+//     }
+//
+//   USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
+//   USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
+//
+//   // set the digital pin as output:
+//   pinMode(ledPin, OUTPUT);
+//
+//   }
+//   else {
+//       USE_SERIAL.println(F("WiFi disconnected, reboting ..."));
+//       delay(1000);
+//       ESP.restart();
+//   }
+// }
 
 void loop() {
   // put your main code here, to run repeatedly:
