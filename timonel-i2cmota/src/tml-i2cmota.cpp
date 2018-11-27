@@ -46,7 +46,7 @@ void setup() {
     // wait for WiFi connection
   if ((WiFiMulti.run() == WL_CONNECTED)) {
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update( F("http://fw.nicebots.com/update.php") );
+    t_httpUpdate_return ret = ESPhttpUpdate.update(F("http://fw.nicebots.com/update.php"));
     //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin", "", "fingerprint");
 
     switch (ret) {
@@ -62,7 +62,6 @@ void setup() {
         USE_SERIAL.println(F("HTTP_UPDATE_OK\n\r"));
         break;
     }
-  }
 
   USE_SERIAL.println(F("\n\rNB setup and update finished, starting loop code ...\n\r"));
   USE_SERIAL.printf_P("Led blink delay: 0x%04X\n\n\r", blinkDly);
@@ -70,6 +69,12 @@ void setup() {
   // set the digital pin as output:
   pinMode(ledPin, OUTPUT);
 
+  }
+  else {
+      USE_SERIAL.println(F("WiFi disconnected, reboting ..."));
+      delay(1000);
+      ESP.restart();
+  }
 }
 
 void loop() {
