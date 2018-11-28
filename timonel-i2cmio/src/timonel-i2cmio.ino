@@ -24,7 +24,7 @@
 // x - (RESETINY) Reset ATtiny85
 // ? - (HELP) Command help
 
-#define ESP8266      true  /* True = ESP8266, False = Arduino */
+//#define ESP8266      true  /* True = ESP8266, False = Arduino */
 
 #include <Wire.h>
 #include "nb-i2c-cmd.h"
@@ -235,8 +235,8 @@ void loop() {
    // * Timonel ::: STPGADDR Command *
    // ********************************
    case 'b': case 'B': {
-     byte resetFirstByte = 0;
-     byte resetSecondByte = 0;
+     //byte resetFirstByte = 0;
+     //byte resetSecondByte = 0;
      Serial.print("Please enter the flash memory page base address: ");
      while (newWord == false) {
        flashPageAddr = ReadWord();
@@ -279,9 +279,9 @@ void loop() {
    // * Timonel ::: READFLSH Command *
    // ********************************
    case 'm': case 'M': {
-     byte dataSize = 0;  // flash data size requested to ATtiny85
-     byte dataIX = 0;  // Requested flash data start position
-     DumpFlashMem(MCUTOTALMEM, 8, 32);
+     byte dataSize = 8;  // flash data size requested to ATtiny85
+     byte valuesPerLine = 32;  // Requested flash data start position
+     DumpFlashMem(MCUTOTALMEM, dataSize, valuesPerLine);
      newByte = false;
      break;
    }
@@ -749,7 +749,7 @@ void GetTimonelVersion(void) {
   Serial.println("(GETTMNLV)");
   // Transmit command
   byte transmitData[1] = { 0 };
-  for (int i = 0; i < txSize; i++) {
+  for (byte i = 0; i < txSize; i++) {
     transmitData[i] = cmdTX[i];
     Wire.beginTransmission(slaveAddress);
     Wire.write(transmitData[i]);
@@ -1063,10 +1063,10 @@ void ShowMenu(void) {
 
 //Function ShowHeader
 void ShowHeader(void) {
-	Serial.println("");
-	Serial.println("Timonel Bootloader and Application I2C Commander Test (v1.2 Lanus)");
-	Serial.println("==================================================================");
-	Serial.println("");
+	USE_SERIAL.println();
+	USE_SERIAL.println(F("Timonel Bootloader and Application I2C Commander Test (v1.2 Lanus"));
+	USE_SERIAL.println(F("================================================================="));
+	USE_SERIAL.println();
 }
 
 //Function ShowTrampoline
