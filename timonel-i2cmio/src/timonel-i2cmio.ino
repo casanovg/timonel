@@ -347,7 +347,7 @@ byte ScanI2C() {
 
 // Function CalculateCRC (CRC-8)
 byte CalculateCRC(byte* block, size_t blockLength) {
- int i;
+ unsigned int i;
  byte crc = 0, data = 0;
  for (i = 0; i < blockLength; i++) {
    data = (byte)(block[i] ^ crc); // XOR-in next input byte
@@ -764,7 +764,9 @@ void GetTimonelVersion(void) {
   if (ackRX[0] == ACKTMNLV) {
     timonelStart = (ackRX[5] << 8) + ackRX[6];
     word trampolineJump = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
-    trampolineJump = ((((timonelStart >> 1) - ++trampolineJump) & 0xFFF) << 1);
+    //trampolineJump = ((((timonelStart >> 1) - ++trampolineJump) & 0xFFF) << 1);
+		trampolineJump++;
+		trampolineJump = ((((timonelStart >> 1) - trampolineJump) & 0xFFF) << 1);
     //Serial.print("[Timonel] - Command ");
     //Serial.print(cmdTX[0]);
     //Serial.print(" parsed OK <<< ");
@@ -1064,8 +1066,8 @@ void ShowMenu(void) {
 //Function ShowHeader
 void ShowHeader(void) {
 	USE_SERIAL.println();
-	USE_SERIAL.println(F("Timonel Bootloader and Application I2C Commander Test (v1.2 Lanus"));
-	USE_SERIAL.println(F("================================================================="));
+	USE_SERIAL.println(F("Timonel Bootloader and Application I2C Commander Test (v1.2 Lanus)"));
+	USE_SERIAL.println(F("=================================================================="));
 	USE_SERIAL.println();
 }
 
@@ -1083,7 +1085,9 @@ void ShowTrampoline(void) {
   word jumpOffset = ((MSB << 8) | LSB);
   Serial.print("QQ = 0x");
   Serial.println(jumpOffset, HEX);
-  jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+  //jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+	jumpOffset++;
+	jumpOffset = (((~((TIMONEL_START >> 1) - (jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
   Serial.print("JUMP ADDRESS = 0x");
   Serial.println(jumpOffset, HEX);
 }
