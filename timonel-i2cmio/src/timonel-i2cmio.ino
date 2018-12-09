@@ -247,22 +247,29 @@ void loop() {
        break;
      }
      if ((flashPageAddr > (timonelStart - 64)) | (flashPageAddr == 0xFFFF)) {
-       USE_SERIAL.print(F("\n\n\rWarning: The highest flash page addreess available is "));
-       USE_SERIAL.print(timonelStart - 64);
-       USE_SERIAL.print(F(" (0x"));
-       USE_SERIAL.print(timonelStart - 64, HEX);
-       USE_SERIAL.println(F("), please correct it !!!"));
+
+       USE_SERIAL.printf_P("\n\n\rWarning: The highest flash page addreess available is %04X, please correct it !!!\n\r", timonelStart - 64);
+
+       // USE_SERIAL.print(F("\n\n\rWarning: The highest flash page addreess available is "));
+       // USE_SERIAL.print(timonelStart - 64);
+       // USE_SERIAL.print(F(" (0x"));
+       // USE_SERIAL.print(timonelStart - 64, HEX);
+       // USE_SERIAL.println(F("), please correct it !!!"));
        newWord = false;
        break;
      }
      if (newWord == true) {
-       USE_SERIAL.println();
-       USE_SERIAL.print(F("Flash memory page base address: "));
-       USE_SERIAL.println(flashPageAddr);
-       USE_SERIAL.print(F("Address high byte: "));
-       USE_SERIAL.print((flashPageAddr & 0xFF00) >> 8);
-       USE_SERIAL.print(F(" (<< 8) + Address low byte: "));
-       USE_SERIAL.print(flashPageAddr & 0xFF);
+
+			 USE_SERIAL.printf_P("\n\rFlash memory page base address: %04X\n\r", flashPageAddr);
+			 USE_SERIAL.printf_P("\n\rAddress high byte: %02X  (<< 8) + Address low byte: %02X\n\r", (flashPageAddr & 0xFF00) >> 8, flashPageAddr & 0xFF);
+
+       // USE_SERIAL.println();
+       // USE_SERIAL.print(F("Flash memory page base address: "));
+       // USE_SERIAL.println(flashPageAddr);
+       // USE_SERIAL.print(F("Address high byte: "));
+       // USE_SERIAL.print((flashPageAddr & 0xFF00) >> 8);
+       // USE_SERIAL.print(F(" (<< 8) + Address low byte: "));
+       // USE_SERIAL.print(flashPageAddr & 0xFF);
        SetTmlPageAddr(flashPageAddr);
        newWord = false;
      }
@@ -289,8 +296,8 @@ void loop() {
    // * ? Help Command *
    // ******************
    case '?': {
-     USE_SERIAL.println(F("\n\rHelp ..."));
-     USE_SERIAL.println(F("========"));
+     USE_SERIAL.println(F("\n\rHelp ...\n\r========\n\r"));
+     //USE_SERIAL.println(F("========"));
      //ShowHelp();
      break;
    }
@@ -298,9 +305,12 @@ void loop() {
    // * Unknown Command *
    // *******************
    default: {
-     USE_SERIAL.print(F("ESP8266 - Command '"));
-     USE_SERIAL.print(key);
-     USE_SERIAL.println(F("' unknown ..."));
+
+		 USE_SERIAL.printf_P("ESP8266 - Command '%c' unknown ...\n\r", key);
+
+     // USE_SERIAL.print(F("ESP8266 - Command '"));
+     // USE_SERIAL.print(key);
+     // USE_SERIAL.println(F("' unknown ..."));
      break;
    }
    }
@@ -326,17 +336,19 @@ byte ScanI2C() {
     Wire.beginTransmission(scanAddr);
     if (Wire.endTransmission() == 0) {
       if (scanAddr < 36) {
-        USE_SERIAL.print(F("Timonel Bootloader found at address: "));
+				USE_SERIAL.printf_P("Timonel Bootloader found at address: %d (0X%02X)\n\r", scanAddr, scanAddr);
+        //USE_SERIAL.print(F("Timonel Bootloader found at address: "));
         appMode = false;
       }
       else {
-        USE_SERIAL.print(F("Test App Firmware found at address: "));
+				USE_SERIAL.printf_P("Test App Firmware found at address: %d (0X%02X)\n\r", scanAddr, scanAddr);
+        //USE_SERIAL.print(F("Test App Firmware found at address: "));
         appMode = true;
       }
-      USE_SERIAL.print(scanAddr, DEC);
-      USE_SERIAL.print(F(" (0x"));
-      USE_SERIAL.print(scanAddr, HEX);
-      USE_SERIAL.println(F(")"));
+      // USE_SERIAL.print(scanAddr, DEC);
+      // USE_SERIAL.print(F(" (0x"));
+      // USE_SERIAL.print(scanAddr, HEX);
+      // USE_SERIAL.println(F(")"));
       delay(500);
       slaveAddr = scanAddr;
     }
@@ -387,9 +399,10 @@ byte ReadByte(void) {
     }
   }
   if ((atoi(serialData) < 0 || atoi(serialData) > 255) && newByte == true) {
-    USE_SERIAL.println();
-    USE_SERIAL.print(F("WARNING! Byte values must be 0 to 255 -> Truncating to "));
-    USE_SERIAL.println((byte)atoi(serialData));
+    //USE_SERIAL.println();
+		USE_SERIAL.printf_P("WARNING! Byte values must be 0 to 255 -> Truncating to %d\n\r", (byte)atoi(serialData));
+    //USE_SERIAL.print(F("WARNING! Byte values must be 0 to 255 -> Truncating to "));
+    //USE_SERIAL.println((byte)atoi(serialData));
   }
   return((byte)atoi(serialData));
 }
@@ -420,11 +433,14 @@ word ReadWord(void) {
     for (int i = 0; i < dataLength; i++) {
       serialData[i] = 0;
     }
-    USE_SERIAL.println();
-    USE_SERIAL.print(F("WARNING! Word memory positions must be between 0 and "));
-    USE_SERIAL.print(MCUTOTALMEM);
-    USE_SERIAL.print(F(" -> Changing to "));
-    USE_SERIAL.println((word)atoi(serialData));
+
+		USE_SERIAL.printf_P("\n\rWARNING! Word memory positions must be between 0 and %d -> Changing to %d\n\r", MCUTOTALMEM, (word)atoi(serialData));
+
+    // USE_SERIAL.println();
+    // USE_SERIAL.print(F("WARNING! Word memory positions must be between 0 and "));
+    // USE_SERIAL.print(MCUTOTALMEM);
+    // USE_SERIAL.print(F(" -> Changing to "));
+    // USE_SERIAL.println((word)atoi(serialData));
   }
   return((word)atoi(serialData));
 }
