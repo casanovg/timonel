@@ -457,9 +457,12 @@ void ClrScr() {
 void SetPB1On(void) {
   byte cmdTX[1] = { STDPB1_1 };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(STDPB1_1)"));
+
+	USE_SERIAL.printf_P("ESP8266 - Sending Opcode >>> %d (STDPB1_1)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(STDPB1_1)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (int i = 0; i < txSize; i++) {
@@ -475,16 +478,22 @@ void SetPB1On(void) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == AKDPB1_1) {
-    USE_SERIAL.print(F("ESP8266 - Command "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" parsed OK <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Command "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" parsed OK <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
   else {
-    USE_SERIAL.print(F("ESP8266 - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -492,9 +501,12 @@ void SetPB1On(void) {
 void SetPB1Off(void) {
 	byte cmdTX[1] = { STDPB1_0 };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(STDPB1_0)"));
+
+	USE_SERIAL.printf_P("ESP8266 - Sending Opcode >>> %d (STDPB1_0)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(STDPB1_0)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (int i = 0; i < txSize; i++) {
