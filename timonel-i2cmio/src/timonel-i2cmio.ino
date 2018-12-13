@@ -1079,10 +1079,10 @@ void SetTmlPageAddr(word pageAddr) {
 
 	 USE_SERIAL.printf_P("[Timonel] - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
 
-   USE_SERIAL.print(F("[Timonel] - Error parsing "));
-   USE_SERIAL.print(cmdTX[0]);
-   USE_SERIAL.print(F(" command! <<< "));
-   USE_SERIAL.println(ackRX[0]);
+   // USE_SERIAL.print(F("[Timonel] - Error parsing "));
+   // USE_SERIAL.print(cmdTX[0]);
+   // USE_SERIAL.print(F(" command! <<< "));
+   // USE_SERIAL.println(ackRX[0]);
  }
 }
 
@@ -1199,18 +1199,26 @@ void ShowTrampoline(void) {
 #define TIMONEL_START 0x1A40
 #define LSB 0x0E
 #define MSB 0xC0
-  USE_SERIAL.print(F("\nTIMONEL START = 0x"));
-  USE_SERIAL.println(TIMONEL_START, HEX);
-  USE_SERIAL.print(F("LSB = 0x"));
-  USE_SERIAL.print(LSB, HEX);
-  USE_SERIAL.print(F(" ||| MSB = 0x"));
-  USE_SERIAL.println(MSB, HEX);
-  word jumpOffset = ((MSB << 8) | LSB);
-  USE_SERIAL.print(F("QQ = 0x"));
-  USE_SERIAL.println(jumpOffset, HEX);
+
+	USE_SERIAL.printf_P("\nTIMONEL START = 0x%02X LSB = 0x%02X ||| MSB = 0x%02X\n\r", TIMONEL_START, LSB, MSB);
+	word jumpOffset = ((MSB << 8) | LSB);
+	USE_SERIAL.printf_P("QQ = 0x%02X\n\r", jumpOffset);
+
+  // USE_SERIAL.print(F("\nTIMONEL START = 0x"));
+  // USE_SERIAL.println(TIMONEL_START, HEX);
+  // USE_SERIAL.print(F("LSB = 0x"));
+  // USE_SERIAL.print(LSB, HEX);
+  // USE_SERIAL.print(F(" ||| MSB = 0x"));
+  // USE_SERIAL.println(MSB, HEX);
+  //word jumpOffset = ((MSB << 8) | LSB);
+  // USE_SERIAL.print(F("QQ = 0x"));
+  // USE_SERIAL.println(jumpOffset, HEX);
   //jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 	jumpOffset++;
 	jumpOffset = (((~((TIMONEL_START >> 1) - (jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-  USE_SERIAL.print(F("JUMP ADDRESS = 0x"));
-  USE_SERIAL.println(jumpOffset, HEX);
+
+	USE_SERIAL.printf_P("JUMP ADDRESS = 0x%04X\n\r", jumpOffset);
+
+  // USE_SERIAL.print(F("JUMP ADDRESS = 0x"));
+  // USE_SERIAL.println(jumpOffset, HEX);
 }
