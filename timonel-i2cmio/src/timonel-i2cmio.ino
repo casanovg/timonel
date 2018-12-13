@@ -6,7 +6,7 @@
 // *  Author: Gustavo Casanova                            *
 // *  ..................................................  *
 // *  Firmware Version: 1.2 | MCU: ESP8266                *
-// *  2018-11-27 gustavo.casanova@nicebots.com            *
+// *  2018-12-13 gustavo.casanova@nicebots.com            *
 // ********************************************************
 //
 // Run timonel-i2cmaster on a NodeMCU, ESP-01 or ESP-12 Module
