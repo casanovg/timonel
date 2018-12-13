@@ -522,16 +522,22 @@ void SetPB1Off(void) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == AKDPB1_0) {
-    USE_SERIAL.print(F("ESP8266 - Command "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" parsed OK <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Command "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" parsed OK <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
   else {
-    USE_SERIAL.print(F("ESP8266 - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -546,9 +552,11 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
   USE_SERIAL.println(F("\n\n\r[Timonel] - Dumping Flash Memory ..."));
   USE_SERIAL.println();
 
-  USE_SERIAL.print(F("Addr "));
-  USE_SERIAL.print(0, HEX);
-  USE_SERIAL.print(F(":    "));
+	USE_SERIAL.printf_P("Addr 0:    ");
+
+  // USE_SERIAL.print(F("Addr "));
+  // USE_SERIAL.print(0, HEX);
+  // USE_SERIAL.print(F(":    "));
 
   for (word addr = 0; addr < flashSize; addr += dataSize) {
     //byte dataSize = 0;  // Requested T85 buffer data size
@@ -588,8 +596,11 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
         if (v == valuesPerLine) {
           USE_SERIAL.println();
           if ((addr + dataSize) < flashSize) {
-            USE_SERIAL.print(F("Addr "));
-            USE_SERIAL.print(addr + dataSize, HEX);
+
+						USE_SERIAL.printf_P("Addr %04X\n\r", addr + dataSize);
+
+            // USE_SERIAL.print(F("Addr "));
+            // USE_SERIAL.print(addr + dataSize, HEX);
             if ((addr + dataSize) < 0x1000) {
               if ((addr + dataSize) < 0x100) {
                 USE_SERIAL.print(F(":   "));
@@ -617,8 +628,11 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
         //USE_SERIAL.println(checksum);
       }
       else {
-        USE_SERIAL.print(F("\n\r   ### Checksum ERROR! ###   "));
-        USE_SERIAL.println(checksum);
+
+				USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   %d\n\r", checksum);
+
+        // USE_SERIAL.print(F("\n\r   ### Checksum ERROR! ###   "));
+        // USE_SERIAL.println(checksum);
         //USE_SERIAL.print(checksum + 1);
         //USE_SERIAL.print(F(" <-- calculated, received --> "));
         //USE_SERIAL.println(ackRX[dataSize + 1]);
@@ -630,10 +644,13 @@ void DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
       }
     }
     else {
-      USE_SERIAL.print(F("[Timonel] - DumpFlashMem Error parsing "));
-      USE_SERIAL.print(cmdTX[0]);
-      USE_SERIAL.print(F(" command! <<< "));
-      USE_SERIAL.println(ackRX[0]);
+
+			USE_SERIAL.printf_P("[Timonel] - DumpFlashMem Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+      // USE_SERIAL.print(F("[Timonel] - DumpFlashMem Error parsing "));
+      // USE_SERIAL.print(cmdTX[0]);
+      // USE_SERIAL.print(F(" command! <<< "));
+      // USE_SERIAL.println(ackRX[0]);
     }
     delay(100);
   }
@@ -692,8 +709,11 @@ int WritePageBuff(uint8_t dataArray[]) {
       //USE_SERIAL.println();
     }
     else {
-      USE_SERIAL.print(F("[Timonel] - Data parsed with {{{ERROR}}} <<< Checksum = 0x"));
-      USE_SERIAL.println(ackRX[1], HEX);
+
+			USE_SERIAL.printf_P("[Timonel] - Data parsed with {{{ERROR}}} <<< Checksum = 0x%x\n\r", ackRX[1]);
+
+      // USE_SERIAL.print(F("[Timonel] - Data parsed with {{{ERROR}}} <<< Checksum = 0x"));
+      // USE_SERIAL.println(ackRX[1], HEX);
       //USE_SERIAL.println();
       if (commErrors++ > 0) {         /* Checksum error detected ... */
         USE_SERIAL.println(F("\n\r[Timonel] - WritePageBuff Checksum Errors, Aborting ..."));
@@ -702,11 +722,14 @@ int WritePageBuff(uint8_t dataArray[]) {
     }
   }
   else {
-    USE_SERIAL.print(F("[Timonel] - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
-    USE_SERIAL.println();
+
+		USE_SERIAL.printf_P("[Timonel] - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
+    // USE_SERIAL.println();
     if (commErrors++ > 0) {         /* Opcode error detected ... */
       USE_SERIAL.println(F("\n\r[Timonel] - WritePageBuff Opcode Reply Errors, Aborting ..."));
       exit(commErrors);
@@ -720,9 +743,12 @@ void ResetTiny(void) {
   USE_SERIAL.println(F("Sending ATtiny85 Reset Command ..."));
   byte cmdTX[1] = { RESETINY };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(RESETINY)"));
+
+	USE_SERIAL.printf_P("ESP8266 - Sending Opcode >>> %d (RESETINY)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(RESETINY)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (int i = 0; i < txSize; i++) {
@@ -738,16 +764,22 @@ void ResetTiny(void) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == ACKRESTY) {
-    USE_SERIAL.print(F("ESP8266 - Command "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" parsed OK <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Command "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" parsed OK <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
   else {
-    USE_SERIAL.print(F("ESP8266 - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("ESP8266 - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -772,9 +804,12 @@ void TwoStepInit(word time) {
 void GetTimonelVersion(void) {
   byte cmdTX[1] = { GETTMNLV };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("\nGet Timonel Version >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(GETTMNLV)"));
+
+ 	USE_SERIAL.printf_P("\n\rGet Timonel Version >>> %d (GETTMNLV)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("\nGet Timonel Version >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(GETTMNLV)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (byte i = 0; i < txSize; i++) {
@@ -804,9 +839,12 @@ void GetTimonelVersion(void) {
     if (ackRX[1] == 84) {
       USE_SERIAL.print(F("| Timonel Bootloader v"));
     }
-    USE_SERIAL.print(ackRX[2]);
-    USE_SERIAL.print(F("."));
-    USE_SERIAL.print(ackRX[3]);
+
+		USE_SERIAL.printf_P("%d.%d", ackRX[2], ackRX[3]);
+
+    // USE_SERIAL.print(ackRX[2]);
+    // USE_SERIAL.print(F("."));
+    // USE_SERIAL.print(ackRX[3]);
     switch (ackRX[2]) {
       case 0: {
         USE_SERIAL.println(F(" Pre-release "));
@@ -821,21 +859,30 @@ void GetTimonelVersion(void) {
         break;
       }
     }
-    USE_SERIAL.println(F("| ================================"));
-    USE_SERIAL.print(F("| Bootloader address: 0x"));
-    USE_SERIAL.print(timonelStart, HEX);
-    USE_SERIAL.println(F(" "));
-    USE_SERIAL.print(F("|  Application start: "));
-    USE_SERIAL.print(ackRX[8], HEX);
-    USE_SERIAL.print(ackRX[7], HEX);
+    USE_SERIAL.printf_P("| ================================");
+
+		USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", timonelStart);
+
+    // USE_SERIAL.print(F("| Bootloader address: 0x"));
+    // USE_SERIAL.print(timonelStart, HEX);
+    // USE_SERIAL.println(F(" "));
+
+		USE_SERIAL.printf_P("|  Application start: %02X%02X\n\r", ackRX[8], ackRX[7]);
+
+    // USE_SERIAL.print(F("|  Application start: "));
+    // USE_SERIAL.print(ackRX[8], HEX);
+    // USE_SERIAL.print(ackRX[7], HEX);
     if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
-      USE_SERIAL.print(F(" (Not Set"));
+      USE_SERIAL.printf_P(" (Not Set)");
     }
     else {
-      USE_SERIAL.print(F(" (0x"));
-      USE_SERIAL.print(trampolineJump, HEX);
+
+			USE_SERIAL.printf_P(" (0x%04X)\n\r", trampolineJump);
+
+      // USE_SERIAL.print(F(" (0x"));
+      // USE_SERIAL.print(trampolineJump, HEX);
     }
-    USE_SERIAL.println(F(") "));
+    //USE_SERIAL.println(F(") "));
     //if (ackRX[9] == 0) {
     //  USE_SERIAL.println(F("|       Flash Memory: ** Clear **"));
     //  memoryLoaded = false;
@@ -844,17 +891,23 @@ void GetTimonelVersion(void) {
     //  USE_SERIAL.println(F("|       Flash Memory: >> Loaded <<"));
     //  memoryLoaded = true;
     //}
-    USE_SERIAL.print(F("|      Features Code: "));
-    USE_SERIAL.print(ackRX[4]);
-    USE_SERIAL.println(F(" "));
-    USE_SERIAL.println(F(" ____________________________________"));
-    USE_SERIAL.println(F(""));
+
+		USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
+
+    // USE_SERIAL.print(F("|      Features Code: "));
+    // USE_SERIAL.print(ackRX[4]);
+    // USE_SERIAL.println(F(" "));
+    USE_SERIAL.printf_P(" ____________________________________\n\r");
+    //USE_SERIAL.println(F(""));
   }
   else {
-    USE_SERIAL.print(F("[Timonel] - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -862,10 +915,13 @@ void GetTimonelVersion(void) {
 void RunApplication(void) {
   byte cmdTX[1] = { EXITTMNL };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("\n[Timonel] Exit bootloader & run application >>> "));
-  //USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(EXITTMNL)"));
+
+	USE_SERIAL.printf_P("\n[Timonel] Exit bootloader & run application >>> %d (EXITTMNL)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("\n[Timonel] Exit bootloader & run application >>> "));
+  // //USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(EXITTMNL)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (int i = 0; i < txSize; i++) {
@@ -881,16 +937,22 @@ void RunApplication(void) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == ACKEXITT) {
-    USE_SERIAL.print(F("[Timonel] - Command "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" parsed OK <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("[Timonel] - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Command "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" parsed OK <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
   else {
-    USE_SERIAL.print(F("[Timonel] - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -898,10 +960,13 @@ void RunApplication(void) {
 void DeleteFlash(void) {
   byte cmdTX[1] = { DELFLASH };
   byte txSize = sizeof(cmdTX);
-  USE_SERIAL.print(F("\n[Timonel] Delete Flash Memory >>> "));
-  //USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
-  USE_SERIAL.print(cmdTX[0]);
-  USE_SERIAL.println(F("(DELFLASH)"));
+
+	USE_SERIAL.printf_P("\n[Timonel] Delete Flash Memory >>> %d (DELFLASH)\n\r", cmdTX[0]);
+
+  // USE_SERIAL.print(F("\n[Timonel] Delete Flash Memory >>> "));
+  // //USE_SERIAL.print(F("ESP8266 - Sending Opcode >>> "));
+  // USE_SERIAL.print(cmdTX[0]);
+  // USE_SERIAL.println(F("(DELFLASH)"));
   // Transmit command
   byte transmitData[1] = { 0 };
   for (int i = 0; i < txSize; i++) {
@@ -917,16 +982,22 @@ void DeleteFlash(void) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == ACKDELFL) {
-    USE_SERIAL.print(F("[Timonel] - Command "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" parsed OK <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("[Timonel] - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Command "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" parsed OK <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
   else {
-    USE_SERIAL.print(F("[Timonel] - Error parsing "));
-    USE_SERIAL.print(cmdTX[0]);
-    USE_SERIAL.print(F(" command! <<< "));
-    USE_SERIAL.println(ackRX[0]);
+
+		USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+    // USE_SERIAL.print(F("[Timonel] - Error parsing "));
+    // USE_SERIAL.print(cmdTX[0]);
+    // USE_SERIAL.print(F(" command! <<< "));
+    // USE_SERIAL.println(ackRX[0]);
   }
 }
 
@@ -937,21 +1008,30 @@ void SetTmlPageAddr(word pageAddr) {
  USE_SERIAL.println();
  cmdTX[1] = ((pageAddr & 0xFF00) >> 8);    /* Flash page address high byte */
  cmdTX[2] = (pageAddr & 0xFF);       /* Flash page address low byte */
- USE_SERIAL.print(F("\n[Timonel] Setting flash page address on Attiny85 >>> "));
- USE_SERIAL.print(cmdTX[0]);
- USE_SERIAL.println(F("(STPGADDR)"));
+
+ USE_SERIAL.printf_P("\n[Timonel] Setting flash page address on Attiny85 >>> %d (STPGADDR)\n\r", cmdTX[0]);
+
+ // USE_SERIAL.print(F("\n[Timonel] Setting flash page address on Attiny85 >>> "));
+ // USE_SERIAL.print(cmdTX[0]);
+ // USE_SERIAL.println(F("(STPGADDR)"));
  cmdTX[3] = CalculateCRC(cmdTX, 2);
  // Transmit command
  byte transmitData[4] = { 0 };
  for (int i = 0; i < txSize; i++) {
    if (i > 0) {
      if (i < txSize - 1) {
-       USE_SERIAL.print(F("[Timonel] - Sending Operand >>> "));
-       USE_SERIAL.println(cmdTX[i]);
+
+			 USE_SERIAL.printf_P("[Timonel] - Sending Operand >>> %d\n\r", cmdTX[i]);
+
+       // USE_SERIAL.print(F("[Timonel] - Sending Operand >>> "));
+       // USE_SERIAL.println(cmdTX[i]);
      }
      else {
-       USE_SERIAL.print(F("[Timonel] - Sending CRC >>> "));
-       USE_SERIAL.println(cmdTX[i]);
+
+			 USE_SERIAL.printf_P("[Timonel] - Sending CRC >>> %d\n\r", cmdTX[i]);
+
+       // USE_SERIAL.print(F("[Timonel] - Sending CRC >>> "));
+       // USE_SERIAL.println(cmdTX[i]);
      }
    }
    transmitData[i] = cmdTX[i];
@@ -966,27 +1046,39 @@ void SetTmlPageAddr(word pageAddr) {
    ackRX[i] = Wire.read();
  }
  if (ackRX[0] == AKPGADDR) {
-   USE_SERIAL.print(F("[Timonel] - Command "));
-   USE_SERIAL.print(cmdTX[0]);
-   USE_SERIAL.print(F(" parsed OK <<< "));
-   USE_SERIAL.println(ackRX[0]);
+
+	 USE_SERIAL.printf_P("[Timonel] - Command %d parsed OK <<< %d\n\r", cmdTX[0], ackRX[0]);
+
+   // USE_SERIAL.print(F("[Timonel] - Command "));
+   // USE_SERIAL.print(cmdTX[0]);
+   // USE_SERIAL.print(F(" parsed OK <<< "));
+   // USE_SERIAL.println(ackRX[0]);
    if (ackRX[1] == (byte)(cmdTX[1] + cmdTX[2])) {
-     USE_SERIAL.print(F("[Timonel] - Operands "));
-     USE_SERIAL.print(cmdTX[1]);
-     USE_SERIAL.print(F(" and "));
-     USE_SERIAL.print(cmdTX[2]);
-     USE_SERIAL.print(F(" parsed OK by slave <<< ATtiny85 Flash Page Address Check = "));
-     USE_SERIAL.println(ackRX[1]);
+
+		 USE_SERIAL.printf_P("[Timonel] - Operands %d and %d parsed OK by slave <<< ATtiny85 Flash Page Address Check = %d\n\r", cmdTX[1], cmdTX[2], ackRX[1]);
+
+     // USE_SERIAL.print(F("[Timonel] - Operands "));
+     // USE_SERIAL.print(cmdTX[1]);
+     // USE_SERIAL.print(F(" and "));
+     // USE_SERIAL.print(cmdTX[2]);
+     // USE_SERIAL.print(F(" parsed OK by slave <<< ATtiny85 Flash Page Address Check = "));
+     // USE_SERIAL.println(ackRX[1]);
    }
    else {
-     USE_SERIAL.print(F("[Timonel] - Operand "));
-     USE_SERIAL.print(cmdTX[1]);
-     USE_SERIAL.print(F(" parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = "));
-     USE_SERIAL.println(ackRX[1]);
+
+		 USE_SERIAL.printf_P("[Timonel] - Operand %d parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = %d\n\r", cmdTX[1], ackRX[1]);
+
+     // USE_SERIAL.print(F("[Timonel] - Operand "));
+     // USE_SERIAL.print(cmdTX[1]);
+     // USE_SERIAL.print(F(" parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = "));
+     // USE_SERIAL.println(ackRX[1]);
    }
 
  }
  else {
+
+	 USE_SERIAL.printf_P("[Timonel] - Error parsing %d command! <<< %d\n\r", cmdTX[0], ackRX[0]);
+
    USE_SERIAL.print(F("[Timonel] - Error parsing "));
    USE_SERIAL.print(cmdTX[0]);
    USE_SERIAL.print(F(" command! <<< "));
@@ -1067,9 +1159,12 @@ int WriteFlash(void) {
    USE_SERIAL.println(F("\n\n\r==== WriteFlash: Firmware was successfully transferred to T85, please select 'run app' command to start it ..."));
  }
  else {
-   USE_SERIAL.print(F("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: "));
-   USE_SERIAL.print(wrtErrors);
-   USE_SERIAL.println(F(" ==="));
+
+	 USE_SERIAL.printf_P("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d ====\n\r", wrtErrors);
+
+   // USE_SERIAL.print(F("\n\n\r==== WriteFlash: Communication errors detected during firmware transfer, please retry !!! ErrCnt: "));
+   // USE_SERIAL.print(wrtErrors);
+   // USE_SERIAL.println(F(" ==="));
    //DeleteFlash();
    TwoStepInit(2000);
 #if ESP8266
@@ -1093,10 +1188,10 @@ void ShowMenu(void) {
 
 //Function ShowHeader
 void ShowHeader(void) {
-	USE_SERIAL.println();
-	USE_SERIAL.println(F("Timonel Bootloader and Application I2C Commander Test (v1.2 Lanus)"));
-	USE_SERIAL.println(F("=================================================================="));
-	USE_SERIAL.println();
+	//USE_SERIAL.println();
+	USE_SERIAL.println(F("\n\rTimonel Bootloader and Application I2C Commander Test (v1.2 Lanus)"));
+	USE_SERIAL.println(F("==================================================================\n\r"));
+	//USE_SERIAL.println();
 }
 
 //Function ShowTrampoline
