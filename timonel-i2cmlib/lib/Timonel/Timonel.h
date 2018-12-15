@@ -8,6 +8,8 @@
 #ifndef Timonel_h
 #define Timonel_h
 
+#define USE_SERIAL Serial
+
 #include "Arduino.h"
 
 class Timonel {
@@ -15,10 +17,13 @@ class Timonel {
     Timonel(byte address);
     //void dot();
     //void dash();
-    byte getTmlVerMaj();
-    byte getTmlVerMin();
+    byte getVersionMaj();
+    byte getVersionMin();
+    byte getFeatures();
   private:
     byte _addr;
+    word _timonelStart = 0xFFFF;
+    byte _blockRXSize = 0;
 };
 
 #endif

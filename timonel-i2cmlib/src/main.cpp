@@ -8,8 +8,8 @@ void setup() {
   // put your setup code here, to run once:
   USE_SERIAL.begin(9600);   // Init the serial port
   Timonel tml(11);
-  byte tmlVerMaj = tml.getTmlVerMaj();
-  byte tmlVerMin = tml.getTmlVerMin();
+  byte tmlVerMaj = tml.getVersionMaj();
+  byte tmlVerMin = tml.getVersionMin();
   USE_SERIAL.print("\n\rTimonel v");
   USE_SERIAL.print(tmlVerMaj);
   USE_SERIAL.print(".");
