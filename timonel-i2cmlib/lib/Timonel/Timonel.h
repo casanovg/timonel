@@ -17,13 +17,14 @@ class Timonel {
     Timonel(byte address);
     //void dot();
     //void dash();
-    byte getVersionMaj();
-    byte getVersionMin();
-    byte getFeatures();
+    byte GetVersionMaj();
+    byte GetVersionMin();
   private:
     byte _addr;
     word _timonelStart = 0xFFFF;
     byte _blockRXSize = 0;
+    byte _version[8] = { 0 };
+    byte GetTmlID();
 };
 
 #endif
