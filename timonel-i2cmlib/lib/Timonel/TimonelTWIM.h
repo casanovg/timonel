@@ -5,8 +5,8 @@
   microcontroller that runs the Timonel I2C bootloader.
   2018-12-13 Gustavo Casanova.
 */
-#ifndef Timonel_h
-#define Timonel_h
+#ifndef TimonelTWIM_h
+#define TimonelTWIM_h
 
 #define USE_SERIAL Serial
 

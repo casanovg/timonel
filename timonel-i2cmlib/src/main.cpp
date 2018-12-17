@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "Timonel.h"
+#include "TimonelTWIM.h"
 #include "payload.h"
 
 #define USE_SERIAL Serial
