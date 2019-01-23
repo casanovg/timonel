@@ -12,7 +12,7 @@
 #include "nb-i2c-cmd.h"
 
 // Timonel class constructor
-Timonel::Timonel(byte address) {
+Timonel::Timonel(byte twi_address) {
   _addr = address;
   GetTmlID();
 }

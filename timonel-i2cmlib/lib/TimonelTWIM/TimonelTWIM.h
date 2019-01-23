@@ -14,7 +14,7 @@
 
 class Timonel {
   public:
-    Timonel(byte address);
+    Timonel(byte twi_address);
     //void dot();
     //void dash();
     byte GetVersionMaj();
