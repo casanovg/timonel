@@ -13,7 +13,7 @@
 
 // Timonel class constructor
 Timonel::Timonel(byte twi_address) {
-  _addr = address;
+  _addr = twi_address;
   GetTmlID();
 }
 
