@@ -1,6 +1,6 @@
 {
     "board": "esp8266:esp8266:generic",
     "configuration": "CpuFrequency=80,VTable=flash,ResetMethod=ck,CrystalFreq=26,FlashFreq=40,FlashMode=qio,FlashSize=512K0,led=2,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=115200",
-    "port": "COM4",
+    "port": "COM5",
     "programmer": "AVRISP mkII"
 }
