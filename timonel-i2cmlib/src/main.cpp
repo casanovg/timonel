@@ -7,7 +7,7 @@
 void setup() {
   // put your setup code here, to run once:
   USE_SERIAL.begin(9600);   // Init the serial port
-  Timonel tml(11);
+  Timonel tml(4);
   byte tmlVerMaj = tml.GetVersionMaj();
   byte tmlVerMin = tml.GetVersionMin();
   USE_SERIAL.print("\n\rTimonel v");
