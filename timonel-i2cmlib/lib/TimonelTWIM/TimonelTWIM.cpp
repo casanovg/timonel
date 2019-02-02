@@ -14,7 +14,7 @@
 // Timonel class constructor
 Timonel::Timonel(byte twi_address) {
   _addr = twi_address;
-  //GetTmlID();
+  GetTmlID();
 }
 
 // Member function to get the Timonel Version Major number
