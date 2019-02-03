@@ -1,7 +1,7 @@
 /*
   TimonelTWIM.cpp
   ===============
-  Library for uploading firmware to an Atmel ATTiny85
+  Library code for uploading firmware to an Atmel ATTiny85
   microcontroller that runs the Timonel I2C bootloader.
   ---------------------------
   2018-12-13 Gustavo Casanova

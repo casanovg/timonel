@@ -1,3 +1,11 @@
+/*
+  main.cpp
+  ========
+  Test program for Timonel libraries.
+  ---------------------------
+  2018-12-13 Gustavo Casanova
+  ---------------------------
+*/
 #include <Arduino.h>
 #include "TimonelTWIM.h"
 #include "payload.h"

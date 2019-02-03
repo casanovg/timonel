@@ -1,9 +1,11 @@
 /*
-  Timonel.h
-  =========
-  Library for uploading firmware to an Atmel ATTiny85
+  TimonelTWIM.h
+  =============
+  Library header for uploading firmware to an Atmel ATTiny85
   microcontroller that runs the Timonel I2C bootloader.
-  2018-12-13 Gustavo Casanova.
+  ---------------------------
+  2018-12-13 Gustavo Casanova
+  ---------------------------
 */
 #ifndef TimonelTWIM_h
 #define TimonelTWIM_h
