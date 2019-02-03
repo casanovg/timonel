@@ -66,18 +66,18 @@ byte Timonel::GetTmlID() {
     }
     USE_SERIAL.printf_P("| ================================");
     USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", _timonelStart);
-		 USE_SERIAL.printf_P("|  Application start: %02X%02X\n\r", ackRX[8], ackRX[7]);
+		USE_SERIAL.printf_P("|  Application start: %02X%02X\n\r", ackRX[8], ackRX[7]);
     if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
       USE_SERIAL.printf_P(" (Not Set)");
     }
-      else {
-        USE_SERIAL.printf_P(" (0x%04X)\n\r", trampolineJump);
-      }
-  		USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
-      USE_SERIAL.printf_P(" ____________________________________\n\r");
-    }
     else {
-      USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+      USE_SERIAL.printf_P(" (0x%04X)\n\r", trampolineJump);
     }
-    return 0;
+  	USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
+    USE_SERIAL.printf_P(" ____________________________________\n\r");
+  }
+  else {
+    USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+  }
+  return 0;
 }
