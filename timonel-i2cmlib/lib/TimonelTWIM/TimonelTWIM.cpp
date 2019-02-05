@@ -51,8 +51,15 @@ byte Timonel::GetTmlID() {
     word trampolineJump = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
     trampolineJump++;
     trampolineJump = ((((_timonelStart >> 1) - trampolineJump) & 0xFFF) << 1);
+
+    Serial.write(27);       // ESC command
+	  Serial.printf_P("[2J");    // clear screen command
+	  Serial.write(27);       // ESC command
+	  Serial.printf_P("[H");     // cursor to home command
+
     if (ackRX[1] == 84) { /* T */
-      USE_SERIAL.printf_P("\n\n\r| ================================\n\r");
+      //USE_SERIAL.printf_P("\n\n\r| ================================\n\r");
+      USE_SERIAL.printf_P("\n\r ____________________________________\n\n\r");
       USE_SERIAL.printf_P("| Timonel Bootloader v");
     
       USE_SERIAL.printf_P("%d.%d", ackRX[2], ackRX[3]);
