@@ -16,7 +16,8 @@
 
 class Timonel {
   public:
-    Timonel(byte twi_address, byte sda, byte scl);
+    Timonel(byte twi_address); /* Constructor A */
+    Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
     //void dot();
     //void dash();
     byte GetVersionMaj();

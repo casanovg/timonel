@@ -15,7 +15,13 @@
 
 #define USE_SERIAL Serial
 
-// Timonel class constructor
+// Timonel class constructor A (TWI channel is already opened)
+Timonel::Timonel(byte twi_address) {
+  _addr = twi_address;
+   GetTmlID();
+}
+
+// Timonel class constructor B (it opens the TWI channel)
 Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   _addr = twi_address;
   _sda = sda;
