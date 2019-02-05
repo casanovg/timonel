@@ -13,10 +13,14 @@
 #include "Wire.h"
 #include "nb-i2c-cmd.h"
 
+#define USE_SERIAL Serial
+
 // Timonel class constructor
-Timonel::Timonel(byte twi_address) {
+Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   _addr = twi_address;
-  Wire.begin(0, 2);		// GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
+  _sda = sda;
+  _scl = scl;
+  Wire.begin(_sda, _scl);   /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
   GetTmlID();
 }
 
@@ -48,37 +52,41 @@ byte Timonel::GetTmlID() {
     trampolineJump++;
     trampolineJump = ((((_timonelStart >> 1) - trampolineJump) & 0xFFF) << 1);
     if (ackRX[1] == 84) { /* T */
+      USE_SERIAL.printf_P("\n\n\r| ================================\n\r");
       USE_SERIAL.printf_P("| Timonel Bootloader v");
-    }
-  	USE_SERIAL.printf_P("%d.%d", ackRX[2], ackRX[3]);
-    switch (ackRX[2]) {
-      case 0: {
-        USE_SERIAL.printf_P(" Pre-release ");
-          break;
-        }
-        case 1: {
-          USE_SERIAL.printf_P(" \"Sandra\" ");
-          break;
-        }
-        default: {
-          USE_SERIAL.printf_P(" Unknown ");
-          break;
-        }
-    }
-    USE_SERIAL.printf_P("| ================================");
-    USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", _timonelStart);
-		 USE_SERIAL.printf_P("|  Application start: %02X%02X\n\r", ackRX[8], ackRX[7]);
-    if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
-      USE_SERIAL.printf_P(" (Not Set)");
-    }
+    
+      USE_SERIAL.printf_P("%d.%d", ackRX[2], ackRX[3]);
+      switch (ackRX[2]) {
+        case 0: {
+          USE_SERIAL.printf_P(" Pre-release \n\r");
+            break;
+          }
+          case 1: {
+            USE_SERIAL.printf_P(" \"Sandra\" \n\r");
+            break;
+          }
+          default: {
+            USE_SERIAL.printf_P(" Unknown \n\r");
+            break;
+          }
+      }
+      USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", _timonelStart);
+      USE_SERIAL.printf_P("|  Application start: %02X%02X", ackRX[8], ackRX[7]);
+      if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
+        USE_SERIAL.printf_P(" (Not Set)\n\r");
+      }
       else {
         USE_SERIAL.printf_P(" (0x%04X)\n\r", trampolineJump);
       }
-  		USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
+      USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
       USE_SERIAL.printf_P(" ____________________________________\n\r");
     }
     else {
-      USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+      USE_SERIAL.printf_P("\n\n\rWarning: Firmware Unknown ...\n\r");
     }
-    return 0;
+  }
+  else {
+    USE_SERIAL.printf_P("ESP8266 - Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+  }
+  return 0;
 }

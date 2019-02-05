@@ -16,13 +16,15 @@
 
 class Timonel {
   public:
-    Timonel(byte twi_address);
+    Timonel(byte twi_address, byte sda, byte scl);
     //void dot();
     //void dash();
     byte GetVersionMaj();
     byte GetVersionMin();
   private:
     byte _addr;
+    byte _sda;
+    byte _scl;
     word _timonelStart = 0xFFFF;
     byte _blockRXSize = 0;
     byte _version[8] = { 0 };
