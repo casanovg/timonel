@@ -18,17 +18,28 @@ class Timonel {
   public:
     Timonel(byte twi_address); /* Constructor A */
     Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
-    //void dot();
-    //void dash();
+    //char signature_char = 0;
+    //byte version_major = 0;
+    //byte version_minor = 0;
+    //byte features = 0;
+    char GetSignature();
     byte GetVersionMaj();
     byte GetVersionMin();
+    byte GetFeatures();
   private:
     byte _addr;
-    byte _sda;
-    byte _scl;
-    word _timonelStart = 0xFFFF;
-    byte _blockRXSize = 0;
-    byte _version[8] = { 0 };
+    bool _led_ui_enabled = 0;
+    bool _auto_trampoline_calc = 0;
+    bool _app_use_trampoline_page = 0;
+    bool _allow_set_page_addr = 0;
+    bool _two_step_init_enabled = 0;
+    bool _use_wdt_reset = 0;
+    bool _check_blank_flash = 0;
+    bool _allow_read_flash = 0;
+    word _timonel_start = 0x0;
+    word _trampoline_addr = 0x0;
+    byte _block_rx_size = 0;
+    byte _version_reply[8] = { 0 };
     byte GetTmlID();
 };
 

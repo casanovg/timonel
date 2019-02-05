@@ -15,18 +15,18 @@
 
 #define USE_SERIAL Serial
 
-// Timonel class constructor A (TWI channel is already opened)
+// Timonel class constructor A (use it when a TWI channel is already opened)
 Timonel::Timonel(byte twi_address) {
-  _addr = twi_address;
+  //_addr = twi_address;
    GetTmlID();
 }
 
-// Timonel class constructor B (it opens the TWI channel)
+// Timonel class constructor B (use it to open the TWI channel)
 Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   _addr = twi_address;
-  _sda = sda;
-  _scl = scl;
-  Wire.begin(_sda, _scl);   /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
+  //_sda = sda;
+  //_scl = scl;
+  Wire.begin(sda, scl);   /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
   GetTmlID();
 }
 
@@ -47,16 +47,16 @@ byte Timonel::GetTmlID() {
   Wire.write(GETTMNLV);
   Wire.endTransmission();
   // I2X RX
-  _blockRXSize = Wire.requestFrom(_addr, (byte)9);
+  _block_rx_size = Wire.requestFrom(_addr, (byte)9);
   byte ackRX[9] = { 0 };   // Data received from slave
-  for (int i = 0; i < _blockRXSize; i++) {
+  for (int i = 0; i < _block_rx_size; i++) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == ACKTMNLV) {
-    _timonelStart = (ackRX[5] << 8) + ackRX[6];
-    word trampolineJump = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
-    trampolineJump++;
-    trampolineJump = ((((_timonelStart >> 1) - trampolineJump) & 0xFFF) << 1);
+    _timonel_start = (ackRX[5] << 8) + ackRX[6];
+    _trampoline_addr = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
+    _trampoline_addr++;
+    _trampoline_addr = ((((_timonel_start >> 1) - _trampoline_addr) & 0xFFF) << 1);
 
     Serial.write(27);       // ESC command
 	  Serial.printf_P("[2J");    // clear screen command
@@ -82,13 +82,13 @@ byte Timonel::GetTmlID() {
             break;
           }
       }
-      USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", _timonelStart);
+      USE_SERIAL.printf_P("| Bootloader address: 0x%04X\n\r", _timonel_start);
       USE_SERIAL.printf_P("|  Application start: %02X%02X", ackRX[8], ackRX[7]);
       if ((ackRX[8] == 0xFF) && (ackRX[7] == 0xFF)) {
         USE_SERIAL.printf_P(" (Not Set)\n\r");
       }
       else {
-        USE_SERIAL.printf_P(" (0x%04X)\n\r", trampolineJump);
+        USE_SERIAL.printf_P(" (0x%04X)\n\r", _trampoline_addr);
       }
       USE_SERIAL.printf_P("|      Features Code: %d\n\r", ackRX[4]);
       USE_SERIAL.printf_P(" ____________________________________\n\r");
