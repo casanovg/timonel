@@ -16,6 +16,7 @@
 // Timonel class constructor
 Timonel::Timonel(byte twi_address) {
   _addr = twi_address;
+  Wire.begin(0, 2);		// GPIO0 - GPIO2 (ESP-01) // D3 - D4 (NodeMCU)
   GetTmlID();
 }
 
