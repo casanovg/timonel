@@ -11,6 +11,7 @@
 #define TimonelTWIM_h
 
 #define USE_SERIAL Serial
+#define T_SIGNATURE 84      /* T */ 
 
 #include "Arduino.h"
 
@@ -18,6 +19,7 @@ class Timonel {
   public:
     Timonel(byte twi_address); /* Constructor A */
     Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
+    ~Timonel(); /* Destructor */
     //char signature_char = 0;
     //byte version_major = 0;
     //byte version_minor = 0;
