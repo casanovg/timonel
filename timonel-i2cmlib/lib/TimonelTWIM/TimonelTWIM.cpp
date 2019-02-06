@@ -20,7 +20,7 @@ Timonel::Timonel(byte twi_address) {
   _addr = twi_address;
   if(GetTmlID() > 0) {
     this->~Timonel();  /* If the I2C device is not a Timonel, call class destructor */
-    delete this;       /* then destroy it ... */
+    delete this;       /* then destroy the object ... */
   }
 }
 
