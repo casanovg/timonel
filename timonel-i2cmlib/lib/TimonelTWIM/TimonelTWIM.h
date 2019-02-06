@@ -38,6 +38,7 @@ class Timonel {
     bool _use_wdt_reset = 0;
     bool _check_blank_flash = 0;
     bool _allow_read_flash = 0;
+    bool _reusing_twi_connection = true;
     word _timonel_start = 0x0;
     word _trampoline_addr = 0x0;
     byte _block_rx_size = 0;
