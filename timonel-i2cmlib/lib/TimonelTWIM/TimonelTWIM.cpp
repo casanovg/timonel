@@ -15,15 +15,16 @@
 
 #define USE_SERIAL Serial
 
-// Timonel constructor A (use it when a TWI channel is already opened)
+// Constructor A (use it when a TWI channel is already opened)
 Timonel::Timonel(byte twi_address) {
   _addr = twi_address;
   if(GetTmlID() > 0) {
     this->~Timonel();  /* If the I2C device is not a Timonel, call class destructor */
+    delete this;       /* then destroy it ... */
   }
 }
 
-// Timonel constructor B (use it to open the TWI channel, then call constructor A)
+// Constructor B (use it to open the TWI channel, then call constructor A)
 Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
   //_addr = twi_address;
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
@@ -33,7 +34,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
   //}
 }
 
-// Timonel destructor
+// Destructor
 Timonel::~Timonel() {
   //USE_SERIAL.printf_P("\n\rClass Timonel object destroyed ...\n\r");
 }
@@ -48,7 +49,7 @@ byte Timonel::GetVersionMin() {
   return(_version_reply[2]);
 }
 
-// Member function to get the Timonel version minor number
+// Member function to get the available features
 byte Timonel::GetFeatures() {
   return(_version_reply[3]);
 }
