@@ -15,8 +15,7 @@
 #define SDA 0 /* I2C SDA pin */
 #define SCL 2 /* SDA SCL pin */
 
-void setup()
-{
+void setup() {
   // put your setup code here, to run once:
   USE_SERIAL.begin(9600); /* Init the serial port */
   Timonel tml(8, SDA, SCL);
@@ -32,7 +31,6 @@ void setup()
   USE_SERIAL.println(tml_features);
 }
 
-void loop()
-{
+void loop() {
   // put your main code here, to run repeatedly:
 }
