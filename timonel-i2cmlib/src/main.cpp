@@ -8,8 +8,10 @@
   ---------------------------
 */
 #include <Arduino.h>
+#include <Memory>
 #include "TimonelTWIM.h"
 #include "payload.h"
+
 
 #define USE_SERIAL Serial
 #define SDA 0 /* I2C SDA pin */
@@ -17,6 +19,9 @@
 
 void setup() {
   // put your setup code here, to run once:
+
+  //std::weak_ptr<int> tml;
+
   USE_SERIAL.begin(9600); /* Init the serial port */
   Timonel tml(8, SDA, SCL);
   //Timonel le_timonier(9);

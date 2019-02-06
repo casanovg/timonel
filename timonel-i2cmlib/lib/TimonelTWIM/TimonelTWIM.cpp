@@ -17,21 +17,20 @@
 
 // Timonel constructor A (use it when a TWI channel is already opened)
 Timonel::Timonel(byte twi_address) {
-  //_addr = twi_address;
-   if(GetTmlID() > 0) {
-     this->~Timonel();  /* If the I2C device is not a Timonel, destroy this object */
-   }
+  _addr = twi_address;
+  if(GetTmlID() > 0) {
+    this->~Timonel();  /* If the I2C device is not a Timonel, call class destructor */
+  }
 }
 
-// Timonel constructor B (use it to open the TWI channel)
-Timonel::Timonel(byte twi_address, byte sda, byte scl) {
-  _addr = twi_address;
-  //_sda = sda;
-  //_scl = scl;
+// Timonel constructor B (use it to open the TWI channel, then call constructor A)
+Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
+  //_addr = twi_address;
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
-   if(GetTmlID() > 0) {
-     this->~Timonel();  /* If the I2C device is not a Timonel, destroy this object */
-   }
+  //this->Timonel(1);       /* Call constuctor A */
+  //if(GetTmlID() > 0) {
+  //  this->~Timonel();  /* If the I2C device is not a Timonel, destroy this object */
+  //}
 }
 
 // Timonel destructor
