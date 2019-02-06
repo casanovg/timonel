@@ -12,15 +12,15 @@
 #include "payload.h"
 
 #define USE_SERIAL Serial
-#define sda 0 /* SDA I2C line */
-#define scl 2 /* SCL I2C line */
+#define SDA 0 /* I2C SDA pin */
+#define SCL 2 /* SDA SCL pin */
 
 void setup()
 {
   // put your setup code here, to run once:
   USE_SERIAL.begin(9600); /* Init the serial port */
-  Timonel tml(8, sda, scl);
-  //Timonel popote(9);
+  Timonel tml(8, SDA, SCL);
+  //Timonel le_timonier(9);
   byte tml_ver_maj = tml.GetVersionMaj();
   byte tml_ver_min = tml.GetVersionMin();
   byte tml_features = tml.GetFeatures();
