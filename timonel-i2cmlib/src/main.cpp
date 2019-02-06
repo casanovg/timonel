@@ -21,12 +21,15 @@ void setup()
   USE_SERIAL.begin(9600); /* Init the serial port */
   Timonel tml(8, sda, scl);
   //Timonel popote(9);
-  byte tmlVerMaj = tml.GetVersionMaj();
-  byte tmlVerMin = tml.GetVersionMin();
-  USE_SERIAL.print("\n\rTimonel v");
-  USE_SERIAL.print(tmlVerMaj);
+  byte tml_ver_maj = tml.GetVersionMaj();
+  byte tml_ver_min = tml.GetVersionMin();
+  byte tml_features = tml.GetFeatures();
+  USE_SERIAL.print("\n\n\rTimonel v");
+  USE_SERIAL.print(tml_ver_maj);
   USE_SERIAL.print(".");
-  USE_SERIAL.println(tmlVerMin);
+  USE_SERIAL.println(tml_ver_min);
+  USE_SERIAL.print("Features code: ");
+  USE_SERIAL.println(tml_features);
 }
 
 void loop()

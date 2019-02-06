@@ -49,6 +49,11 @@ byte Timonel::GetVersionMin() {
   return(_version_reply[2]);
 }
 
+// Member function to get the Timonel version minor number
+byte Timonel::GetFeatures() {
+  return(_version_reply[3]);
+}
+
 // Member function to get the Timonel available features code
 byte Timonel::GetTmlID() {
   // I2C TX
