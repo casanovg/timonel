@@ -28,7 +28,7 @@ Timonel::Timonel(byte twi_address) {
 Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
   //_addr = twi_address;
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
-  this->_reusing_twi_connection = false;
+  _reusing_twi_connection = false;
   //this->Timonel(1);       /* Call constuctor A */
   //if(GetTmlID() > 0) {
   //  this->~Timonel();  /* If the I2C device is not a Timonel, destroy this object */
@@ -37,8 +37,12 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
 
 // Destructor
 Timonel::~Timonel() {
-  //USE_SERIAL.printf_P("\n\rClass Timonel object destroyed ...\n\r");
-  //this->
+  if(_reusing_twi_connection == true) {
+    USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
+  }
+  else {
+    USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
+  }
 }
 
 // Member function to get the Timonel version major number
@@ -70,29 +74,29 @@ byte Timonel::GetTmlID() {
   }
   if (ackRX[0] == ACKTMNLV) {
     if (ackRX[1] == T_SIGNATURE) {
-      this->_timonel_start = (ackRX[5] << 8) + ackRX[6];
-      this->_trampoline_addr = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
-      this->_trampoline_addr++;
-      this->_trampoline_addr = ((((_timonel_start >> 1) - _trampoline_addr) & 0xFFF) << 1);
-      this->_version_reply[0] = ackRX[1]; /* Signature */
-      this->_version_reply[1] = ackRX[2]; /* Timonel version major */
-      this->_version_reply[2] = ackRX[3]; /* Timonel version minor */
-      this->_version_reply[3] = ackRX[4]; /* Features code */
-      this->_version_reply[4] = ackRX[5]; /* Timonel address MSB */
-      this->_version_reply[5] = ackRX[6]; /* Timonel address LSB */
-      this->_version_reply[6] = ackRX[7]; /* Trampoline address MSB */
-      this->_version_reply[7] = ackRX[8]; /* Trampoline address LSB */
+      _timonel_start = (ackRX[5] << 8) + ackRX[6];
+      _trampoline_addr = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
+      _trampoline_addr++;
+      _trampoline_addr = ((((_timonel_start >> 1) - _trampoline_addr) & 0xFFF) << 1);
+      _version_reply[0] = ackRX[1]; /* Signature */
+      _version_reply[1] = ackRX[2]; /* Timonel version major */
+      _version_reply[2] = ackRX[3]; /* Timonel version minor */
+      _version_reply[3] = ackRX[4]; /* Features code */
+      _version_reply[4] = ackRX[5]; /* Timonel address MSB */
+      _version_reply[5] = ackRX[6]; /* Timonel address LSB */
+      _version_reply[6] = ackRX[7]; /* Trampoline address MSB */
+      _version_reply[7] = ackRX[8]; /* Trampoline address LSB */
     }
     else {
       USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Firmware signature unknown!\n\r");
-      return 2;
+      return(2);
     }
   }
   else {
     USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
-    return 1;
+    return(1);
   }
-  return 0;
+  return(0);
 }
 
 // Member function to get the Timonel available features code
