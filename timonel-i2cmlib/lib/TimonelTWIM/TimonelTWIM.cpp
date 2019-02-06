@@ -67,7 +67,7 @@ byte Timonel::GetTmlID() {
   Wire.write(GETTMNLV);
   Wire.endTransmission(_addr);
   // I2X RX
-  _block_rx_size = Wire.requestFrom(_addr, (byte)9, true);
+  _block_rx_size = Wire.requestFrom(_addr, (byte)9);
   byte ackRX[9] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < _block_rx_size; i++) {
     ackRX[i] = Wire.read();
