@@ -38,10 +38,10 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
 // Destructor
 Timonel::~Timonel() {
   if(_reusing_twi_connection == true) {
-    USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
+    //USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
   }
   else {
-    USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
+    //USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
   }
 }
 
