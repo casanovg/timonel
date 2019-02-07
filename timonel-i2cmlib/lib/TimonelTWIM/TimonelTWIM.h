@@ -11,7 +11,16 @@
 #define TimonelTWIM_h
 
 #define USE_SERIAL Serial
-#define T_SIGNATURE 84      /* T */ 
+#define V_CMD_LENGTH 9    /* Timonel version reply lenght */
+#define T_SIGNATURE 84    /* Timonel signature (expected "T") */
+#define V_SIGNATURE 0     /* Ver cmd reply: signature position */
+#define V_MAJOR 1         /* Ver cmd reply: major number position */
+#define V_MINOR 2         /* Ver cmd reply: minor number position */
+#define V_FEATURES 3      /* Ver cmd reply: available features code position */
+#define V_BOOT_ADDR_MSB 4 /* Ver cmd reply: Timonel start address MSB position */
+#define V_BOOT_ADDR_LSB 5 /* Ver cmd reply: Timonel start address LSB position */
+#define V_TMPL_ADDR_MSB 6 /* Ver cmd reply: Trampoline address MSB position */
+#define V_TMPL_ADDR_LSB 7 /* Ver cmd reply: Trampoline address LSB position */
 
 #include "Arduino.h"
 #include "Wire.h"

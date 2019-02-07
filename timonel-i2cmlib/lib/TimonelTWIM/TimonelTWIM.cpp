@@ -72,7 +72,7 @@ byte Timonel::GetTmlID() {
   Wire.write(GETTMNLV);
   Wire.endTransmission(_addr);
   // I2X RX
-  _block_rx_size = Wire.requestFrom(_addr, (byte)9, true);
+  _block_rx_size = Wire.requestFrom(_addr, V_CMD_LENGTH, true);
   byte ackRX[9] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < _block_rx_size; i++) {
     ackRX[i] = Wire.read();
@@ -83,14 +83,14 @@ byte Timonel::GetTmlID() {
       _trampoline_addr = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
       _trampoline_addr++;
       _trampoline_addr = ((((_timonel_start >> 1) - _trampoline_addr) & 0xFFF) << 1);
-      _version_reply[0] = ackRX[1]; /* Signature */
-      _version_reply[1] = ackRX[2]; /* Timonel version major */
-      _version_reply[2] = ackRX[3]; /* Timonel version minor */
-      _version_reply[3] = ackRX[4]; /* Features code */
-      _version_reply[4] = ackRX[5]; /* Timonel address MSB */
-      _version_reply[5] = ackRX[6]; /* Timonel address LSB */
-      _version_reply[6] = ackRX[7]; /* Trampoline address MSB */
-      _version_reply[7] = ackRX[8]; /* Trampoline address LSB */
+      _version_reply[V_SIGNATURE] = ackRX[V_SIGNATURE + 1];
+      _version_reply[V_MAJOR] = ackRX[V_MAJOR + 1];
+      _version_reply[V_MINOR] = ackRX[V_MINOR + 1];
+      _version_reply[V_FEATURES] = ackRX[V_FEATURES + 1];
+      _version_reply[V_BOOT_ADDR_MSB] = ackRX[V_BOOT_ADDR_MSB + 1];
+      _version_reply[V_BOOT_ADDR_LSB] = ackRX[V_BOOT_ADDR_LSB + 1];
+      _version_reply[V_TMPL_ADDR_MSB] = ackRX[V_TMPL_ADDR_MSB + 1];
+      _version_reply[V_TMPL_ADDR_LSB] = ackRX[V_TMPL_ADDR_LSB + 1];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
