@@ -24,6 +24,7 @@
 
 #include "Arduino.h"
 #include "Wire.h"
+#include <stdbool.h>
 #include "nb-i2c-cmd.h"
 
 class Timonel {

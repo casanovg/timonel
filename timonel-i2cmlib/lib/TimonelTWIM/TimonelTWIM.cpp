@@ -10,7 +10,7 @@
 
 #include "TimonelTWIM.h"
 
-// Constructor A (use it when a TWI channel is already opened)
+// Constructor A (Use it when a TWI channel is already opened)
 Timonel::Timonel(byte twi_address) {
   _addr = twi_address;
   if(GetTmlID() == 0) {
@@ -22,7 +22,7 @@ Timonel::Timonel(byte twi_address) {
   }
 }
 
-// Constructor B (use it to open the TWI channel)
+// Constructor B (Use it to open the TWI channel)
 Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   _addr = twi_address;
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
@@ -72,15 +72,15 @@ byte Timonel::GetTmlID() {
   Wire.write(GETTMNLV);
   Wire.endTransmission(_addr);
   // I2X RX
-  _block_rx_size = Wire.requestFrom(_addr, V_CMD_LENGTH, true);
+  _block_rx_size = Wire.requestFrom(_addr, (int)V_CMD_LENGTH, (int)true);
   byte ackRX[9] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < _block_rx_size; i++) {
     ackRX[i] = Wire.read();
   }
   if (ackRX[0] == ACKTMNLV) {
     if (ackRX[1] == T_SIGNATURE) {
-      _timonel_start = (ackRX[5] << 8) + ackRX[6];
-      _trampoline_addr = (~(((ackRX[7] << 8) | ackRX[8]) & 0xFFF));
+      _timonel_start = (ackRX[V_BOOT_ADDR_MSB + 1] << 8) + ackRX[V_BOOT_ADDR_LSB + 1];
+      _trampoline_addr = (~(((ackRX[V_TMPL_ADDR_MSB + 1] << 8) | ackRX[V_TMPL_ADDR_LSB + 1]) & 0xFFF));
       _trampoline_addr++;
       _trampoline_addr = ((((_timonel_start >> 1) - _trampoline_addr) & 0xFFF) << 1);
       _version_reply[V_SIGNATURE] = ackRX[V_SIGNATURE + 1];
