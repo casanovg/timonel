@@ -14,6 +14,8 @@
 #define T_SIGNATURE 84      /* T */ 
 
 #include "Arduino.h"
+#include "Wire.h"
+#include "nb-i2c-cmd.h"
 
 class Timonel {
   public:
@@ -25,6 +27,7 @@ class Timonel {
     //byte version_minor = 0;
     //byte features = 0;
     char GetSignature();
+    bool IsTimonelContacted();
     byte GetVersionMaj();
     byte GetVersionMin();
     byte GetFeatures();
@@ -38,6 +41,7 @@ class Timonel {
     bool _use_wdt_reset = 0;
     bool _check_blank_flash = 0;
     bool _allow_read_flash = 0;
+    bool _timonel_contacted = false;
     bool _reusing_twi_connection = true;
     word _timonel_start = 0x0;
     word _trampoline_addr = 0x0;

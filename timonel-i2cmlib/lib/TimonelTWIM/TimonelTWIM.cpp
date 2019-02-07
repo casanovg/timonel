@@ -8,31 +8,31 @@
   ---------------------------
 */
 
-#include "Arduino.h"
 #include "TimonelTWIM.h"
-#include "Wire.h"
-#include "nb-i2c-cmd.h"
-
-#define USE_SERIAL Serial
 
 // Constructor A (use it when a TWI channel is already opened)
 Timonel::Timonel(byte twi_address) {
-  this->_addr = twi_address;
-  if(GetTmlID() > 0) {
-    this->~Timonel();  /* If the I2C device is not a Timonel, call class destructor */
-    delete this;       /* then destroy the object ... */
+  _addr = twi_address;
+  if(GetTmlID() == 0) {
+    _timonel_contacted = true;
+    _reusing_twi_connection = true;
+  }
+  else {
+    //delete this;  /* If the I2C device is not a Timonel, destroy the object ... */
   }
 }
 
-// Constructor B (use it to open the TWI channel, then call constructor A)
-Timonel::Timonel(byte twi_address, byte sda, byte scl) : Timonel(twi_address) {
-  //_addr = twi_address;
+// Constructor B (use it to open the TWI channel)
+Timonel::Timonel(byte twi_address, byte sda, byte scl) {
+  _addr = twi_address;
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
-  _reusing_twi_connection = false;
-  //this->Timonel(1);       /* Call constuctor A */
-  //if(GetTmlID() > 0) {
-  //  this->~Timonel();  /* If the I2C device is not a Timonel, destroy this object */
-  //}
+  if(GetTmlID() == 0) {
+    _timonel_contacted = true;
+    _reusing_twi_connection = false;
+  }
+  else {
+    //delete this;  /* If the I2C device is not a Timonel, destroy the object ... */    
+  }
 }
 
 // Destructor
@@ -43,6 +43,11 @@ Timonel::~Timonel() {
   else {
     USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
   }
+}
+
+// Member function to know if Timonel was contacted
+bool Timonel::IsTimonelContacted() {
+  return(_timonel_contacted);
 }
 
 // Member function to get the Timonel version major number
@@ -67,7 +72,7 @@ byte Timonel::GetTmlID() {
   Wire.write(GETTMNLV);
   Wire.endTransmission(_addr);
   // I2X RX
-  _block_rx_size = Wire.requestFrom(_addr, (byte)9);
+  _block_rx_size = Wire.requestFrom(_addr, (byte)9, true);
   byte ackRX[9] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < _block_rx_size; i++) {
     ackRX[i] = Wire.read();
@@ -88,12 +93,12 @@ byte Timonel::GetTmlID() {
       _version_reply[7] = ackRX[8]; /* Trampoline address LSB */
     }
     else {
-      USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Firmware signature unknown!\n\r");
+      //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
       return(2);
     }
   }
   else {
-    USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+    //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
     return(1);
   }
   return(0);
