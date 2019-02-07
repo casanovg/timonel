@@ -7,8 +7,15 @@
   2018-12-13 Gustavo Casanova
   ---------------------------
 */
-#ifndef TimonelTWIM_h
-#define TimonelTWIM_h
+
+#ifndef _TIMONELTWIM_H_
+#define _TIMONELTWIM_H_
+
+#include "Arduino.h"
+#include "Wire.h"
+#include <stdbool.h>
+#include "tml-twimconfig.h"
+#include "nb-i2c-cmd.h"
 
 #define USE_SERIAL Serial
 #define V_CMD_LENGTH 9    /* Timonel version reply lenght */
@@ -22,10 +29,9 @@
 #define V_TMPL_ADDR_MSB 6 /* Ver cmd reply: Trampoline address MSB position */
 #define V_TMPL_ADDR_LSB 7 /* Ver cmd reply: Trampoline address LSB position */
 
-#include "Arduino.h"
-#include "Wire.h"
-#include <stdbool.h>
-#include "nb-i2c-cmd.h"
+// Error GetTmlID (0) 1: No conn
+#define ERR_01 0x0        /* Error GetTmlID (0) 1:   */
+
 
 class Timonel {
   public:
@@ -60,4 +66,4 @@ class Timonel {
     byte GetTmlID();
 };
 
-#endif
+#endif /* _TIMONELTWIM_H_ */

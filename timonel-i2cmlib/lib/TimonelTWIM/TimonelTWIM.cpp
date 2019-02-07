@@ -52,17 +52,17 @@ bool Timonel::IsTimonelContacted() {
 
 // Member function to get the Timonel version major number
 byte Timonel::GetVersionMaj() {
-  return(_version_reply[1]);
+  return(_version_reply[V_MAJOR]);
 }
 
 // Member function to get the Timonel version minor number
 byte Timonel::GetVersionMin() {
-  return(_version_reply[2]);
+  return(_version_reply[V_MINOR]);
 }
 
 // Member function to get the available features
 byte Timonel::GetFeatures() {
-  return(_version_reply[3]);
+  return(_version_reply[V_FEATURES]);
 }
 
 // Member function to get the Timonel available features code
@@ -102,6 +102,7 @@ byte Timonel::GetTmlID() {
     return(1);
   }
   return(0);
+  //return(ERR)
 }
 
 // Member function to get the Timonel available features code
