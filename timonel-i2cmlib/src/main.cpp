@@ -23,16 +23,16 @@ void setup() {
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
   if(tml.IsTimonelContacted() == true) {
-    USE_SERIAL.print("\n\n\rTimonel v");
-    USE_SERIAL.print(tml.GetVersionMaj());
-    USE_SERIAL.print(".");
-    USE_SERIAL.println(tml.GetVersionMin());
-    USE_SERIAL.print("Features code: ");
-    USE_SERIAL.println(tml.GetFeatures());
-    USE_SERIAL.print("Timonel start: ");
-    USE_SERIAL.println(tml.GetTmlStart(), HEX);
-    USE_SERIAL.print("Trampoline addr: ");
-    USE_SERIAL.println(tml.GetTrampoline(), HEX);
+    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d\n\r", tml.GetVersionMaj(), tml.GetVersionMin());
+    //USE_SERIAL.printf_P(tml.GetVersionMaj());
+    //USE_SERIAL.print(".");
+    //USE_SERIAL.println(tml.GetVersionMin());
+    USE_SERIAL.printf_P("Features code: %d\n\r", tml.GetFeatures());
+    //USE_SERIAL.println(tml.GetFeatures());
+    USE_SERIAL.printf_P("Timonel start: %H\n\r", tml.GetTmlStart());
+    //USE_SERIAL.println(tml.GetTmlStart(), HEX);
+    USE_SERIAL.printf_P("Trampoline addr: %H\n\r", tml.GetTrampoline());
+    //USE_SERIAL.println(tml.GetTrampoline(), HEX);
 
   }
   else {
