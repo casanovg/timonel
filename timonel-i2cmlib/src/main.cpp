@@ -22,22 +22,17 @@ void setup() {
   Timonel tml(8, SDA, SCL);
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
-  if(tml.IsTimonelContacted() == true) {
+  if (tml.IsTimonelContacted() == true) {
     USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d\n\r", tml.GetVersionMaj(), tml.GetVersionMin());
-    //USE_SERIAL.printf_P(tml.GetVersionMaj());
-    //USE_SERIAL.print(".");
-    //USE_SERIAL.println(tml.GetVersionMin());
     USE_SERIAL.printf_P("Features code: %d\n\r", tml.GetFeatures());
-    //USE_SERIAL.println(tml.GetFeatures());
-    USE_SERIAL.printf_P("Timonel start: %H\n\r", tml.GetTmlStart());
-    //USE_SERIAL.println(tml.GetTmlStart(), HEX);
-    USE_SERIAL.printf_P("Trampoline addr: %H\n\r", tml.GetTrampoline());
-    //USE_SERIAL.println(tml.GetTrampoline(), HEX);
-
+    USE_SERIAL.printf_P("Timonel start: 0x%X\n\r", tml.GetTmlStart());
+    USE_SERIAL.printf_P("Trampoline addr: 0x%X\n\r", tml.GetTrampoline());
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
   }
+  USE_SERIAL.printf_P("Cotza: 0x%X\n\r", payload[44]);
+  //tml.UploadFirmware(payload[]);
 }
 
 void loop() {

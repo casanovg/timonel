@@ -32,7 +32,8 @@ class Timonel {
     byte GetVersionMin();
     byte GetFeatures();
     word GetTmlStart();
-    word GetTrampoline();    
+    word GetTrampoline();
+    byte UploadFirmware(byte payload[]);
   private:
     byte _addr;
     bool _timonel_contacted = false;

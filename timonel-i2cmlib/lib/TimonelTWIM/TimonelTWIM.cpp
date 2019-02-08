@@ -109,3 +109,8 @@ byte Timonel::GetTmlID() {
   }
   return(OK);
 }
+
+// Function cotza
+byte Timonel::UploadFirmware(byte payload[]) {
+  USE_SERIAL.printf_P("Cotza: 0x%X\n\r", payload[45]);
+}
