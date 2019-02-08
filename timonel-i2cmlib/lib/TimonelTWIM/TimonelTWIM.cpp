@@ -65,6 +65,16 @@ byte Timonel::GetFeatures() {
   return(_tml_features_code);
 }
 
+// Function to get the Timonel bootloader start address
+word Timonel::GetTmlStart() {
+  return(_timonel_start);
+}
+
+// Function to get the tranpoline address
+word Timonel::GetTrampoline() {
+  return(_trampoline_addr);
+}
+
 // Function to get the Timonel available features code
 byte Timonel::GetTmlID() {
   // I2C TX
@@ -103,14 +113,4 @@ byte Timonel::GetTmlID() {
     return(ERR_01);
   }
   return(OK);
-}
-
-// Function to get the Timonel bootloader start address
-word Timonel::GetTmlStart() {
-  return(_timonel_start);
-}
-
-// Function to get the tranpoline address
-word Timonel::GetTrampoline() {
-  return(_trampoline_addr);
 }
