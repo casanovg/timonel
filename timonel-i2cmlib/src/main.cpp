@@ -23,15 +23,17 @@ void setup() {
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
   if(tml.IsTimonelContacted() == true) {
-    byte tml_ver_maj = tml.GetVersionMaj();
-    byte tml_ver_min = tml.GetVersionMin();
-    byte tml_features = tml.GetFeatures();
     USE_SERIAL.print("\n\n\rTimonel v");
-    USE_SERIAL.print(tml_ver_maj);
+    USE_SERIAL.print(tml.GetVersionMaj());
     USE_SERIAL.print(".");
-    USE_SERIAL.println(tml_ver_min);
+    USE_SERIAL.println(tml.GetVersionMin());
     USE_SERIAL.print("Features code: ");
-    USE_SERIAL.println(tml_features);
+    USE_SERIAL.println(tml.GetFeatures());
+    USE_SERIAL.print("Timonel start: ");
+    USE_SERIAL.println(tml.GetTmlStart(), HEX);
+    USE_SERIAL.print("Trampoline addr: ");
+    USE_SERIAL.println(tml.GetTrampoline(), HEX);
+
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
