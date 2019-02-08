@@ -97,11 +97,6 @@ byte Timonel::GetTmlID() {
       _tml_ver_major = ackRX[V_MAJOR];
       _tml_ver_minor = ackRX[V_MINOR];
       _tml_features_code = ackRX[V_FEATURES];
-      
-      //_version_reply[V_BOOT_ADDR_MSB] = ackRX[V_BOOT_ADDR_MSB + 1];
-      //_version_reply[V_BOOT_ADDR_LSB] = ackRX[V_BOOT_ADDR_LSB + 1];
-      //_version_reply[V_TMPL_ADDR_MSB] = ackRX[V_TMPL_ADDR_MSB + 1];
-      //_version_reply[V_TMPL_ADDR_LSB] = ackRX[V_TMPL_ADDR_LSB + 1];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
