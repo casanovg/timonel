@@ -27,14 +27,24 @@ class Timonel {
     //byte version_minor = 0;
     //byte features = 0;
     char GetSignature();
-    bool IsTimonelContacted();
-    byte GetVersionMaj();
-    byte GetVersionMin();
-    byte GetFeatures();
-    word GetTmlStart();
-    word GetAppStart();
-    word GetTplAddr();
-    byte UploadFirmware(const byte payload[], int payloadsize);
+    bool IsTimonelContacted() const;
+    byte GetVersionMaj() const;
+    byte GetVersionMin() const;
+    byte GetFeatures() const;
+    word GetTmlStart() const;
+    word GetAppStart() const;
+    word GetTplAddr() const;
+    byte UploadFirmware(const byte payload[], int payload_size);
+
+    struct status {
+      byte tml_features;
+      byte ver_major;
+      byte ver_minor;
+    };
+    status sts_;
+
+    //struct status GetGoose(void);
+
   private:
     byte addr_;
     bool timonel_contacted_ = false;
@@ -60,6 +70,7 @@ class Timonel {
     // bool _use_wdt_reset = 0;
     // bool _check_blank_flash = 0;
     // bool _allow_read_flash = 0;
+
 
 };
 

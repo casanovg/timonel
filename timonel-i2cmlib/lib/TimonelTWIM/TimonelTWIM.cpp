@@ -25,6 +25,9 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   TwoStepInit(0);
   //GetTmlID();  
   reusing_twi_connection_ = false;
+  sts_.tml_features = 77;
+  sts_.ver_major = 5;
+  sts_.ver_minor = 48;
 }
 
 // Destructor
@@ -38,37 +41,37 @@ Timonel::~Timonel() {
 }
 
 // Function to know if Timonel was contacted
-bool Timonel::IsTimonelContacted() {
+bool Timonel::IsTimonelContacted() const {
   return(timonel_contacted_);
 }
 
 // Function to get the Timonel version major number
-byte Timonel::GetVersionMaj() {
+byte Timonel::GetVersionMaj() const {
   return(tml_ver_major_);
 }
 
 // Function to get the Timonel version minor number
-byte Timonel::GetVersionMin() {
+byte Timonel::GetVersionMin() const {
   return(tml_ver_minor_);
 }
 
 // Function to get the available features
-byte Timonel::GetFeatures() {
+byte Timonel::GetFeatures() const {
   return(tml_features_code_);
 }
 
 // Function to get the Timonel bootloader start address
-word Timonel::GetTmlStart() {
+word Timonel::GetTmlStart() const {
   return(timonel_start_);
 }
 
 // Function to get the Timonel bootloader start address
-word Timonel::GetAppStart() {
+word Timonel::GetAppStart() const {
   return(application_start_);
 }
 
 // Function to get the tranpoline address
-word Timonel::GetTplAddr() {
+word Timonel::GetTplAddr() const {
   return(trampoline_addr_);
 }
 
@@ -236,3 +239,11 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 	}
 	return(comm_errors);
 }
+
+// struct status GetGoose(void) {
+// 	struct status sss;
+// 	sss.tml_features = 11;
+// 	sss.ver_major = 48;
+// 	sss.ver_minor = 49;
+// 	return sss;
+// }

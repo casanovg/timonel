@@ -59,7 +59,7 @@ void setup() {
   USE_SERIAL.printf_P("*\n\r");
   delay(2000);
   tml.UploadFirmware(payload, sizeof(payload));
-
+  //tml.
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
