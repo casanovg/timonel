@@ -23,16 +23,41 @@ void setup() {
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
   if (tml.IsTimonelContacted() == true) {
-    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d\n\r", tml.GetVersionMaj(), tml.GetVersionMin());
+    byte version_major = tml.GetVersionMaj();
+    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml.GetVersionMin());
+		switch (version_major) {
+			case 0: {
+				USE_SERIAL.printf_P(" Pre-release \n\r");
+				break;
+			}
+			case 1: {
+				USE_SERIAL.printf_P(" \"Sandra\" \n\r");
+				break;
+			}
+			default: {
+				USE_SERIAL.printf_P(" Unknown \n\r");
+				break;
+			}
+		}    
+        USE_SERIAL.printf_P(".....................\n\r");
     USE_SERIAL.printf_P("Features code: %d\n\r", tml.GetFeatures());
-    USE_SERIAL.printf_P("Timonel start: 0x%X\n\r", tml.GetTmlStart());
-    USE_SERIAL.printf_P("Trampoline addr: 0x%X\n\r", tml.GetTrampoline());
+    USE_SERIAL.printf_P("Bootloader start: 0x%X\n\r", tml.GetTmlStart());
+    USE_SERIAL.printf_P("Trampoline addr: 0x%X\n\r", tml.GetTplAddr());
+    word app_start = tml.GetAppStart();
+    if (app_start != 0xFFFF) {
+      USE_SERIAL.printf_P("Application start: 0x%X\n\r", app_start);
+    }
+    else {
+      USE_SERIAL.printf_P("Application start: (Not Set)\n\r");
+    }
+
+  delay(2000);
+  //tml.UploadFirmware(payload, sizeof(payload));
+
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
   }
-  USE_SERIAL.printf_P("Cotza: 0x%X\n\r", payload[44]);
-  //tml.UploadFirmware(payload[]);
 }
 
 void loop() {

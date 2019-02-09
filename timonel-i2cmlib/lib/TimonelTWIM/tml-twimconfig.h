@@ -20,8 +20,11 @@
 #define V_FEATURES 4      /* Ver cmd reply: available features code position */
 #define V_BOOT_ADDR_MSB 5 /* Ver cmd reply: Timonel start address MSB position */
 #define V_BOOT_ADDR_LSB 6 /* Ver cmd reply: Timonel start address LSB position */
-#define V_TMPL_ADDR_MSB 7 /* Ver cmd reply: Trampoline address MSB position */
-#define V_TMPL_ADDR_LSB 8 /* Ver cmd reply: Trampoline address LSB position */
+#define V_APPL_ADDR_MSB 7 /* Ver cmd reply: Application address MSB position */
+#define V_APPL_ADDR_LSB 8 /* Ver cmd reply: Application address LSB position */
+
+#define TXDATASIZE 8  		/* TX data size for WRITBUFF command */
+#define FLASHPGSIZE 64		/* Tiny85 flash page buffer size */
 
 #define OK 0              /* No error */
 #define ERR_01 0x01       /* Error GetTmlID (0) 1: Error parsing GETTMNLV command */
