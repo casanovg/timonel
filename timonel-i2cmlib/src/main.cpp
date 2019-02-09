@@ -57,6 +57,7 @@ void setup() {
   USE_SERIAL.printf_P("*");
   delay(2000);
   USE_SERIAL.printf_P("*\n\r");
+  delay(2000);
   tml.UploadFirmware(payload, sizeof(payload));
 
   }
