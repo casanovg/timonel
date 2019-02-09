@@ -80,21 +80,23 @@ byte Timonel::GetTmlID() {
   Wire.endTransmission(addr_);
   // I2X RX
   block_rx_size_ = Wire.requestFrom(addr_, (int)V_CMD_LENGTH, (int)true);
-  byte ackRX[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
+  byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < block_rx_size_; i++) {
-    ackRX[i] = Wire.read();
+    ack_rx[i] = Wire.read();
   }
-  if (ackRX[CMD_ACK_POS] == ACKTMNLV) {
-    if (ackRX[V_SIGNATURE] == T_SIGNATURE) {
-      timonel_start_ = (ackRX[V_BOOT_ADDR_MSB] << 8) + ackRX[V_BOOT_ADDR_LSB];
-      application_start_ = (ackRX[V_APPL_ADDR_MSB] << 8) + ackRX[V_APPL_ADDR_LSB];
-      trampoline_addr_ = (~(((ackRX[V_APPL_ADDR_MSB] << 8) | ackRX[V_APPL_ADDR_LSB]) & 0xFFF));
+  if (ack_rx[CMD_ACK_POS] == ACKTMNLV) {
+    if (ack_rx[V_SIGNATURE] == T_SIGNATURE) {
+      timonel_start_ = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
+      application_start_ = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
+			//word trampoline_jump = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
+			//trampoline_jump = ((((timonel_start_ >> 1) - ++trampoline_jump) & 0xFFF) << 1);
+      trampoline_addr_ = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
       trampoline_addr_++;
       trampoline_addr_ = ((((timonel_start_ >> 1) - trampoline_addr_) & 0xFFF) << 1);
-      tml_signature_ = ackRX[V_SIGNATURE];
-      tml_ver_major_ = ackRX[V_MAJOR];
-      tml_ver_minor_ = ackRX[V_MINOR];
-      tml_features_code_ = ackRX[V_FEATURES];
+      tml_signature_ = ack_rx[V_SIGNATURE];
+      tml_ver_major_ = ack_rx[V_MAJOR];
+      tml_ver_minor_ = ack_rx[V_MINOR];
+      tml_features_code_ = ack_rx[V_FEATURES];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
@@ -102,7 +104,7 @@ byte Timonel::GetTmlID() {
     }
   }
   else {
-    //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ackRX[0]);
+    //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ack_rx[0]);
     return(ERR_01);
   }
   timonel_contacted_ = true;
@@ -110,49 +112,34 @@ byte Timonel::GetTmlID() {
 }
 
 // Function to upload firmware to the ATTiny85
-byte Timonel::UploadFirmware(const byte payload[], int payloadsize) {
-	byte packet = 0;								/* Byte counter to be sent in a single I2C data packet */
-	byte padding = 0;							/* Amount of padding bytes to match the page size */
-	byte pageEnd = 0;							/* Byte counter to detect the end of flash mem page */
-	byte pageCount = 1;
-	byte wrtErrors = 0;
-	uint8_t dataPacket[TXDATASIZE] = { 0xFF };
-	if ((payloadsize % FLASHPGSIZE) != 0) {		/* If the payload to be sent is smaller than flash page size, resize it to match */
-		padding = ((((int)(payloadsize / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payloadsize);
-		payloadsize += padding;
+byte Timonel::UploadFirmware(const byte payload[], int payload_size) {
+	byte packet = 0;															/* Byte counter to be sent in a single I2C data packet */
+	byte padding = 0;															/* Amount of padding bytes to match the page size */
+	byte page_end = 0;														/* Byte counter to detect the end of flash mem page */
+	byte page_count = 1;
+	byte wrt_errors = 0;
+	byte data_packet[TXDATASIZE] = { 0xFF };
+	if ((payload_size % FLASHPGSIZE) != 0) {			/* If the payload to be sent is smaller than flash page size, resize it to match */
+		padding = ((((int)(payload_size / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payload_size);
+		payload_size += padding;
 	}
-	Serial.println("\nWriting payload to flash ...\n\r");
-	//if (flashPageAddr == 0xFFFF) {
-	//	Serial.println("Warning: Flash page start address no set, please use 'b' command to set it ...\n\r");
-	//	return(1);
-	//}
-	//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-	//Serial.print(pageCount);
-	//Serial.print(" - Address 0x");
-	//Serial.println(flashPageAddr, HEX);
-	for (int i = 0; i < payloadsize; i++) {
-		if (i < (payloadsize - padding)) {
-			dataPacket[packet] = payload[i];		/* If there are data to fill the page, use it ... */
+	Serial.printf_P("\n[UploadFirmware] Writing payload to flash ...\n\r");
+	for (int i = 0; i < payload_size; i++) {
+		if (i < (payload_size - padding)) {
+			data_packet[packet] = payload[i];					/* If there are data to fill the page, use it ... */
 		}
 		else {
-			dataPacket[packet] = 0xff;				/* If there are no more data, complete the page with padding (0xff) */
+			data_packet[packet] = 0xff;								/* If there are no more data, complete the page with padding (0xff) */
 		}
-		if (packet++ == (TXDATASIZE - 1)) {			/* When a data packet is completed to be sent ... */
+		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
-				//Serial.print("0x");
-				//if (dataPacket[b] < 0x10) {
-				//	Serial.print("0");
-				//}
-				//Serial.print(dataPacket[b], HEX);
-				//Serial.print(" ");
 				Serial.print(".");
 			}
-			wrtErrors += WritePageBuff(dataPacket);	/* Send data to T85 through I2C */
+			wrt_errors += WritePageBuff(data_packet);	/* Send data to T85 through I2C */
 			packet = 0;
-			delay(10);								/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
+			delay(10);																/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
 		}
-		if (wrtErrors > 0) {
-			//Serial.println("\n\r==== WriteFlash: There were transmission errors, aborting ...");
+		if (wrt_errors > 0) {
 			//DeleteFlash();
 			TwoStepInit(2000);
 #if ESP8266
@@ -160,29 +147,24 @@ byte Timonel::UploadFirmware(const byte payload[], int payloadsize) {
 #else
 			resetFunc();
 #endif /* ESP8266 */
-			return(wrtErrors);
+			return(wrt_errors);
 		}
-		if (pageEnd++ == (FLASHPGSIZE - 1)) {		/* When a page end is detected ... */
+		if (page_end++ == (FLASHPGSIZE - 1)) {			/* When a page end is detected ... */
 
-			Serial.print(pageCount++);
+			Serial.print(page_count++);
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
-			delay(100);								/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+			delay(100);																/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
-			if (i < (payloadsize - 1)) {
-				//Serial.print("::::::::::::::::::::::::::::::::::::::: Page ");
-				//Serial.print(++pageCount);
-				//Serial.print(" - Address 0x");
-				//Serial.println(((flashPageAddr + 1 + i) & 0xFFFF), HEX);
-				pageEnd = 0;
+			if (i < (payload_size - 1)) {
+				page_end = 0;
 			}
 		}
 	}
-	if (wrtErrors == 0) {
-		Serial.println("\n\n\r[UploadFirmware] Firmware was successfully transferred to T85, please select 'run app' command to start it ...");
+	if (wrt_errors == 0) {
+		Serial.printf_P("\n\n\r[UploadFirmware] Application was successfully transferred to T85, please select 'run app' command to start it ...\n\r");
 	}
 	else {
-		Serial.print("\n\n\r[UploadFirmware] Communication errors detected during firmware transfer, please retry !!! ErrCnt: ");
-		Serial.print(wrtErrors);
+		Serial.printf_P("\n\n\r[UploadFirmware] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\r", wrt_errors);
 		//DeleteFlash();
 		TwoStepInit(2000);
 #if ESP8266
@@ -191,17 +173,15 @@ byte Timonel::UploadFirmware(const byte payload[], int payloadsize) {
 		resetFunc();
 #endif /* ESP8266 */
 	}
-	return(wrtErrors);
+	return(wrt_errors);
 }
 
 // Function InitTiny
 void Timonel::InitTiny(void) {
-	byte cmdTX[1] = { INITTINY };
 	Wire.beginTransmission(addr_);
-	Wire.write(cmdTX[0]);
+	Wire.write(INITTINY);
 	Wire.endTransmission();
-	//blockRXSize = Wire.requestFrom(slaveAddress, (byte)1);
-	//blockRXSize = 0;
+	Wire.requestFrom(addr_, (byte)1);
 }
 
 // Function TwoStepInit
@@ -212,77 +192,47 @@ void Timonel::TwoStepInit(word time) {
 }
 
 // Function WritePageBuff
-byte Timonel::WritePageBuff(uint8_t dataArray[]) {
-	const byte txSize = TXDATASIZE + 2;
-	byte cmdTX[txSize] = { 0 };
-	byte commErrors = 0;					/* I2C communication error counter */
+byte Timonel::WritePageBuff(uint8_t data_array[]) {
+	const byte tx_size = TXDATASIZE + 2;
+	byte cmd_tx[tx_size] = { 0 };
+	byte comm_errors = 0;					/* I2C communication error counter */
 	byte checksum = 0;
-	//Serial.println("");
-	cmdTX[0] = WRITPAGE;
-	for (int b = 1; b < txSize - 1; b++) {
-		cmdTX[b] = dataArray[b - 1];
-		checksum += (byte)dataArray[b - 1];
+	cmd_tx[0] = WRITPAGE;
+	for (int b = 1; b < tx_size - 1; b++) {
+		cmd_tx[b] = data_array[b - 1];
+		checksum += (byte)data_array[b - 1];
 	}
-	cmdTX[txSize - 1] = checksum;
-	//Serial.print("[Timonel] Writting data to Attiny85 memory page buffer >>> ");
-	//Serial.print(cmdTX[0]);
-	//Serial.println("(WRITBUFF)");
-	// Transmit command
-	byte transmitData[txSize] = { 0 };
-	//Serial.print("[Timonel] - Sending data >>> ");
-	for (int i = 0; i < txSize; i++) {
-		//if (i > 0) {
-		//	if (i < txSize - 1) {
-		//		Serial.print("0x");
-		//		Serial.print(cmdTX[i], HEX);
-		//		Serial.print(" ");WritePageBuff
-		//	}
-		//	else {
-		//		Serial.print("\n\r[Timonel] - Sending CRC >>> ");
-		//		Serial.println(cmdTX[i]);
-		//	}
-		//}
-		transmitData[i] = cmdTX[i];
+	cmd_tx[tx_size - 1] = checksum;
+	byte transmit_data[tx_size] = { 0 };
+	for (int i = 0; i < tx_size; i++) {
+		transmit_data[i] = cmd_tx[i];
 		Wire.beginTransmission(addr_);
-		Wire.write(transmitData[i]);
+		Wire.write(transmit_data[i]);
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
 	byte blockRXSize = Wire.requestFrom(addr_, (byte)2);
-	byte ackRX[2] = { 0 };   // Data received from slave
+	byte ack_rx[2] = { 0 };   // Data received from slave
 	for (int i = 0; i < blockRXSize; i++) {
-		ackRX[i] = Wire.read();
+		ack_rx[i] = Wire.read();
 	}
-	if (ackRX[0] == ACKWTPAG) {
-		//Serial.print("[Timonel] - Command ");
-		//Serial.print(cmdTX[0]);
-		//Serial.print(" parsed OK <<< ");
-		//Serial.println(ackRX[0]);
-		if (ackRX[1] == checksum) {
-			//Serial.print("[Timonel] - Data parsed OK by slave <<< Checksum = 0x");
-			//Serial.println(ackRX[1], HEX);
-			//Serial.println("");
+	if (ack_rx[0] == ACKWTPAG) {
+		if (ack_rx[1] == checksum) {
 		}
 		else {
-			Serial.print("[Timonel] - Data parsed with {{{ERROR}}} <<< Checksum = 0x");
-			Serial.println(ackRX[1], HEX);
-			//Serial.println("");
-			if (commErrors++ > 0) {					/* Checksum error detected ... */
-				Serial.println("\n\r[Timonel] - WritePageBuff Checksum Errors, Aborting ...");
-				exit(commErrors);
+			Serial.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", ack_rx[1]);
+			if (comm_errors++ > 0) {					/* Checksum error detected ... */
+				Serial.printf_P("\n\r[WritePageBuff] Checksum Errors, Aborting ...\r\n");
+				exit(comm_errors);
 			}
 		}
 	}
 	else {
-		Serial.print("[Timonel] - Error parsing ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" command! <<< ");
-		Serial.println(ackRX[0]);
-		Serial.println("");
-		if (commErrors++ > 0) {					/* Opcode error detected ... */
-			Serial.println("\n\r[Timonel] - WritePageBuff Opcode Reply Errors, Aborting ...");
-			exit(commErrors);
+		Serial.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", cmd_tx[0], ack_rx[0]);
+		if (comm_errors++ > 0) {					/* Opcode error detected ... */
+			Serial.printf_P("\n\r[WritePageBuff] Opcode Reply Errors, Aborting ...\n\r");
+			exit(comm_errors);
 		}
 	}
-	return(commErrors);
+	return(comm_errors);
 }

@@ -51,8 +51,13 @@ void setup() {
       USE_SERIAL.printf_P("Application start: (Not Set)\n\r");
     }
 
+  delay(5000);
+  USE_SERIAL.printf_P("\n\r*");
   delay(2000);
-  //tml.UploadFirmware(payload, sizeof(payload));
+  USE_SERIAL.printf_P("*");
+  delay(2000);
+  USE_SERIAL.printf_P("*\n\r");
+  tml.UploadFirmware(payload, sizeof(payload));
 
   }
   else {
