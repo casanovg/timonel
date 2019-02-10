@@ -25,9 +25,6 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   TwoStepInit(0);
   //GetTmlID();  
   reusing_twi_connection_ = false;
-  sts_.tml_features = 77;
-  sts_.ver_major = 5;
-  sts_.ver_minor = 48;
 }
 
 // Destructor
@@ -45,38 +42,8 @@ bool Timonel::IsTimonelContacted() const {
   return(timonel_contacted_);
 }
 
-// Function to get the Timonel version major number
-byte Timonel::GetVersionMaj() const {
-  return(tml_ver_major_);
-}
-
-// Function to get the Timonel version minor number
-byte Timonel::GetVersionMin() const {
-  return(tml_ver_minor_);
-}
-
-// Function to get the available features
-byte Timonel::GetFeatures() const {
-  return(tml_features_code_);
-}
-
-// Function to get the Timonel bootloader start address
-word Timonel::GetTmlStart() const {
-  return(timonel_start_);
-}
-
-// Function to get the Timonel bootloader start address
-word Timonel::GetAppStart() const {
-  return(application_start_);
-}
-
-// Function to get the tranpoline address
-word Timonel::GetTplAddr() const {
-  return(trampoline_addr_);
-}
-
 // Function to get the Timonel available features code
-byte Timonel::GetTmlID() {
+byte Timonel::QueryTmlStatus() {
   // I2C TX
   Wire.beginTransmission(addr_);
   Wire.write(GETTMNLV);
@@ -89,17 +56,15 @@ byte Timonel::GetTmlID() {
   }
   if (ack_rx[CMD_ACK_POS] == ACKTMNLV) {
     if (ack_rx[V_SIGNATURE] == T_SIGNATURE) {
-      timonel_start_ = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
-      application_start_ = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
-			//word trampoline_jump = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
-			//trampoline_jump = ((((timonel_start_ >> 1) - ++trampoline_jump) & 0xFFF) << 1);
-      trampoline_addr_ = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
-      trampoline_addr_++;
-      trampoline_addr_ = ((((timonel_start_ >> 1) - trampoline_addr_) & 0xFFF) << 1);
-      tml_signature_ = ack_rx[V_SIGNATURE];
-      tml_ver_major_ = ack_rx[V_MAJOR];
-      tml_ver_minor_ = ack_rx[V_MINOR];
-      tml_features_code_ = ack_rx[V_FEATURES];
+      status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
+      status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
+      status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
+      status_.trampoline_addr++;
+      status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+      status_.signature = ack_rx[V_SIGNATURE];
+      status_.version_major = ack_rx[V_MAJOR];
+      status_.version_minor = ack_rx[V_MINOR];
+      status_.features_code = ack_rx[V_FEATURES];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
@@ -191,7 +156,7 @@ void Timonel::InitTiny(void) {
 void Timonel::TwoStepInit(word time) {
   delay(time);
 	InitTiny();			/* Two-step Tiny85 initialization: STEP 1 */
-	GetTmlID();	    /* Two-step Tiny85 initialization: STEP 2 */
+	QueryTmlStatus();	    /* Two-step Tiny85 initialization: STEP 2 */
 }
 
 // Function WritePageBuff
@@ -240,10 +205,8 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 	return(comm_errors);
 }
 
-// struct status GetGoose(void) {
-// 	struct status sss;
-// 	sss.tml_features = 11;
-// 	sss.ver_major = 48;
-// 	sss.ver_minor = 49;
-// 	return sss;
-// }
+// Function GetStatus
+Timonel::status Timonel::GetStatus(void) {
+	//return timonel_status;
+	return status_;
+}
