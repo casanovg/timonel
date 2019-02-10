@@ -23,7 +23,8 @@ void setup() {
   struct Timonel::status tml_status = tml.GetStatus();
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
-  if (tml.IsTimonelContacted() == true) {
+  //if (tml.IsTimonelContacted() == true) {
+  if((tml_status.signature == 84) && (tml_status.version_major != 0) && (tml_status.version_minor != 0)) {  
     byte version_major = tml_status.version_major;
     USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml_status.version_minor);
 		switch (version_major) {
