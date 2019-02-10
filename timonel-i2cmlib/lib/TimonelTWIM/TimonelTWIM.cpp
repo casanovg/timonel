@@ -37,11 +37,6 @@ Timonel::~Timonel() {
   }
 }
 
-// Function to know if Timonel was contacted
-bool Timonel::IsTimonelContacted() const {
-  return(timonel_contacted_);
-}
-
 // Function to query the bootloader running on the ATTiny85
 byte Timonel::QueryTmlStatus() {
   // I2C TX
@@ -75,7 +70,6 @@ byte Timonel::QueryTmlStatus() {
     //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ack_rx[0]);
     return(ERR_01);
   }
-  timonel_contacted_ = true;
   return(OK);
 }
 

@@ -47,7 +47,6 @@ public:
   struct status GetStatus(void);  
 private:
   byte addr_;
-  bool timonel_contacted_ = false;
   bool reusing_twi_connection_ = true;
   byte tml_signature_ = 0;
   word timonel_start_ = 0x0000;
