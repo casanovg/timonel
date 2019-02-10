@@ -42,7 +42,7 @@ bool Timonel::IsTimonelContacted() const {
   return(timonel_contacted_);
 }
 
-// Function to get the Timonel available features code
+// Function to query the bootloader running on the ATTiny85
 byte Timonel::QueryTmlStatus() {
   // I2C TX
   Wire.beginTransmission(addr_);
