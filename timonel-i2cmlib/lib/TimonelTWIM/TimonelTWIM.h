@@ -34,7 +34,7 @@ public:
   };
   struct status GetStatus(void);  
   bool CheckNewApp(void);
-  byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0);
+  byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0x0000);
 private:
   byte addr_;
   bool reusing_twi_connection_ = true;

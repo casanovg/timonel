@@ -58,7 +58,8 @@ void setup() {
     }
     if(tml.CheckNewApp() == true) {
       // Upload new firmware version to ATTiny85 ...
-      tml.UploadFirmware(payload, sizeof(payload), 0xff);
+      USE_SERIAL.printf_P("\n\r");
+      tml.UploadFirmware(payload, sizeof(payload));
     }
   }
   else {

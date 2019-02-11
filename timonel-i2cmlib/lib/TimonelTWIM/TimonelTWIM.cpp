@@ -143,7 +143,7 @@ Timonel::status Timonel::GetStatus(void) {
 
 // Function to determine if there is an ATTiny85 application update
 bool Timonel::CheckNewApp(void) {
-	return false;
+	return true;
 }
 
 // Function to upload firmware to the ATTiny85
@@ -158,7 +158,7 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 		padding = ((((int)(payload_size / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payload_size);
 		payload_size += padding;
 	}
-	Serial.printf_P("\n[UploadFirmware] Writing payload to flash ...\n\r");
+	Serial.printf_P("\n[UploadFirmware] Writing payload to flash, starting at 0x%04X ...\n\n\r", start_address);
 	for (int i = 0; i < payload_size; i++) {
 		if (i < (payload_size - padding)) {
 			data_packet[packet] = payload[i];					/* If there are data to fill the page, use it ... */
