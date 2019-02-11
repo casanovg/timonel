@@ -21,7 +21,7 @@ class Timonel {
 public:
   Timonel(byte twi_address); /* Constructor A */
   Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
-  ~Timonel(); /* Destructor */
+  ~Timonel(void); /* Destructor */
   // Struct that holds a Timonel instance's status 
   struct status {
     byte signature = 0;
@@ -33,13 +33,14 @@ public:
     word trampoline_addr = 0x0000;
   };
   struct status GetStatus(void);  
-  byte UploadFirmware(const byte payload[], int payload_size);
+  bool CheckNewApp(void);
+  byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0);
 private:
   byte addr_;
   bool reusing_twi_connection_ = true;
   byte block_rx_size_ = 0;
   struct Timonel::status status_;
-  byte QueryTmlStatus();
+  byte QueryTmlStatus(void);
   void InitTiny(void);
   void TwoStepInit(word time);
   byte WritePageBuff(uint8_t dataArray[]);

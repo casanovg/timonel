@@ -40,25 +40,26 @@ void setup() {
 				break;
 			}
 		}    
-    USE_SERIAL.printf_P(".....................\n\r");
+    USE_SERIAL.printf_P("........................\n\r");
     USE_SERIAL.printf_P("Features code: %d\n\r", tml_status.features_code);
     USE_SERIAL.printf_P("Bootloader start: 0x%X\n\r", tml_status.bootloader_start);
     USE_SERIAL.printf_P("Trampoline addr: 0x%X\n\r", tml_status.trampoline_addr);
     word app_start = tml_status.application_start;
     if (app_start != 0xFFFF) {
-      USE_SERIAL.printf_P("Application start: 0x%X\n\r", app_start);
+      USE_SERIAL.printf_P("Application start: 0x%X\n\n\r", app_start);
     }
     else {
-      USE_SERIAL.printf_P("Application start: (Not Set)\n\r");
+      USE_SERIAL.printf_P("Application start: (Not Set)\n\n\r");
     }
     delay(5000);
-    USE_SERIAL.printf_P("\n\r*");
-    delay(2000);
-    USE_SERIAL.printf_P("*");
-    delay(2000);
-    USE_SERIAL.printf_P("*\n\r");
-    delay(2000);
-    tml.UploadFirmware(payload, sizeof(payload));
+    for (byte i = 1; i < 4; i++) {
+      USE_SERIAL.printf_P("*");
+      delay(2000);
+    }
+    if(tml.CheckNewApp() == true) {
+      // Upload new firmware version to ATTiny85 ...
+      tml.UploadFirmware(payload, sizeof(payload), 0xff);
+    }
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");

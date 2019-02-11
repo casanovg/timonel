@@ -28,7 +28,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
 }
 
 // Class destructor
-Timonel::~Timonel() {
+Timonel::~Timonel(void) {
   if(reusing_twi_connection_ == true) {
     //USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
   }
@@ -38,13 +38,13 @@ Timonel::~Timonel() {
 }
 
 // Function to check the status parameters of the bootloader running on the ATTiny85
-byte Timonel::QueryTmlStatus() {
+byte Timonel::QueryTmlStatus(void) {
   // I2C TX
   Wire.beginTransmission(addr_);
   Wire.write(GETTMNLV);
   Wire.endTransmission(addr_);
   // I2X RX
-  block_rx_size_ = Wire.requestFrom(addr_, (int)V_CMD_LENGTH, (int)true);
+  block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
   byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
   for (int i = 0; i < block_rx_size_; i++) {
     ack_rx[i] = Wire.read();
@@ -59,7 +59,7 @@ byte Timonel::QueryTmlStatus() {
       status_.signature = ack_rx[V_SIGNATURE];
       status_.version_major = ack_rx[V_MAJOR];
       status_.version_minor = ack_rx[V_MINOR];
-      status_.features_code = ack_rx[V_FEATURES];
+			status_.features_code = ack_rx[V_FEATURES];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
@@ -141,8 +141,13 @@ Timonel::status Timonel::GetStatus(void) {
 	return status_;
 }
 
+// Function to determine if there is an ATTiny85 application update
+bool Timonel::CheckNewApp(void) {
+	return false;
+}
+
 // Function to upload firmware to the ATTiny85
-byte Timonel::UploadFirmware(const byte payload[], int payload_size) {
+byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_address) {
 	byte packet = 0;															/* Byte counter to be sent in a single I2C data packet */
 	byte padding = 0;															/* Amount of padding bytes to match the page size */
 	byte page_end = 0;														/* Byte counter to detect the end of flash mem page */
