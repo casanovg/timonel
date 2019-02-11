@@ -23,8 +23,7 @@ void setup() {
   struct Timonel::status tml_status = tml.GetStatus();
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
-  //if (tml.IsTimonelContacted() == true) {
-  if((tml_status.signature == T_SIGNATURE) && (tml_status.version_major != 0) && (tml_status.version_minor != 0)) {  
+  if((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {  
     byte version_major = tml_status.version_major;
     USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml_status.version_minor);
 		switch (version_major) {
@@ -59,7 +58,7 @@ void setup() {
     delay(2000);
     USE_SERIAL.printf_P("*\n\r");
     delay(2000);
-    //tml.UploadFirmware(payload, sizeof(payload));
+    tml.UploadFirmware(payload, sizeof(payload));
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
