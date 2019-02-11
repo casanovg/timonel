@@ -27,7 +27,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   reusing_twi_connection_ = false;
 }
 
-// Destructor
+// Class destructor
 Timonel::~Timonel() {
   if(reusing_twi_connection_ == true) {
     //USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
@@ -37,7 +37,7 @@ Timonel::~Timonel() {
   }
 }
 
-// Function to query the bootloader running on the ATTiny85
+// Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryTmlStatus() {
   // I2C TX
   Wire.beginTransmission(addr_);
@@ -71,6 +71,74 @@ byte Timonel::QueryTmlStatus() {
     return(ERR_01);
   }
   return(OK);
+}
+
+
+// Function InitTiny
+void Timonel::InitTiny(void) {
+	Wire.beginTransmission(addr_);
+	Wire.write(INITTINY);
+	Wire.endTransmission();
+	Wire.requestFrom(addr_, (byte)1);
+}
+
+// Function TwoStepInit
+void Timonel::TwoStepInit(word time) {
+  delay(time);
+	InitTiny();			/* Two-step Tiny85 initialization: STEP 1 */
+	QueryTmlStatus();	    /* Two-step Tiny85 initialization: STEP 2 */
+}
+
+// Function WritePageBuff
+byte Timonel::WritePageBuff(uint8_t data_array[]) {
+	const byte tx_size = TXDATASIZE + 2;
+	byte cmd_tx[tx_size] = { 0 };
+	byte comm_errors = 0;					/* I2C communication error counter */
+	byte checksum = 0;
+	cmd_tx[0] = WRITPAGE;
+	for (int b = 1; b < tx_size - 1; b++) {
+		cmd_tx[b] = data_array[b - 1];
+		checksum += (byte)data_array[b - 1];
+	}
+	cmd_tx[tx_size - 1] = checksum;
+	byte transmit_data[tx_size] = { 0 };
+	for (int i = 0; i < tx_size; i++) {
+		transmit_data[i] = cmd_tx[i];
+		Wire.beginTransmission(addr_);
+		Wire.write(transmit_data[i]);
+		Wire.endTransmission();
+	}
+	// Receive acknowledgement
+	byte blockRXSize = Wire.requestFrom(addr_, (byte)2);
+	byte ack_rx[2] = { 0 };   // Data received from slave
+	for (int i = 0; i < blockRXSize; i++) {
+		ack_rx[i] = Wire.read();
+	}
+	if (ack_rx[0] == ACKWTPAG) {
+		if (ack_rx[1] == checksum) {
+		}
+		else {
+			Serial.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", ack_rx[1]);
+			if (comm_errors++ > 0) {					/* Checksum error detected ... */
+				Serial.printf_P("\n\r[WritePageBuff] Checksum Errors, Aborting ...\r\n");
+				exit(comm_errors);
+			}
+		}
+	}
+	else {
+		Serial.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", cmd_tx[0], ack_rx[0]);
+		if (comm_errors++ > 0) {					/* Opcode error detected ... */
+			Serial.printf_P("\n\r[WritePageBuff] Opcode Reply Errors, Aborting ...\n\r");
+			exit(comm_errors);
+		}
+	}
+	return(comm_errors);
+}
+
+// Function to get all the status parameters of a Timonel instance
+Timonel::status Timonel::GetStatus(void) {
+	//return timonel_status;
+	return status_;
 }
 
 // Function to upload firmware to the ATTiny85
@@ -136,71 +204,4 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size) {
 #endif /* ESP8266 */
 	}
 	return(wrt_errors);
-}
-
-// Function InitTiny
-void Timonel::InitTiny(void) {
-	Wire.beginTransmission(addr_);
-	Wire.write(INITTINY);
-	Wire.endTransmission();
-	Wire.requestFrom(addr_, (byte)1);
-}
-
-// Function TwoStepInit
-void Timonel::TwoStepInit(word time) {
-  delay(time);
-	InitTiny();			/* Two-step Tiny85 initialization: STEP 1 */
-	QueryTmlStatus();	    /* Two-step Tiny85 initialization: STEP 2 */
-}
-
-// Function WritePageBuff
-byte Timonel::WritePageBuff(uint8_t data_array[]) {
-	const byte tx_size = TXDATASIZE + 2;
-	byte cmd_tx[tx_size] = { 0 };
-	byte comm_errors = 0;					/* I2C communication error counter */
-	byte checksum = 0;
-	cmd_tx[0] = WRITPAGE;
-	for (int b = 1; b < tx_size - 1; b++) {
-		cmd_tx[b] = data_array[b - 1];
-		checksum += (byte)data_array[b - 1];
-	}
-	cmd_tx[tx_size - 1] = checksum;
-	byte transmit_data[tx_size] = { 0 };
-	for (int i = 0; i < tx_size; i++) {
-		transmit_data[i] = cmd_tx[i];
-		Wire.beginTransmission(addr_);
-		Wire.write(transmit_data[i]);
-		Wire.endTransmission();
-	}
-	// Receive acknowledgement
-	byte blockRXSize = Wire.requestFrom(addr_, (byte)2);
-	byte ack_rx[2] = { 0 };   // Data received from slave
-	for (int i = 0; i < blockRXSize; i++) {
-		ack_rx[i] = Wire.read();
-	}
-	if (ack_rx[0] == ACKWTPAG) {
-		if (ack_rx[1] == checksum) {
-		}
-		else {
-			Serial.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", ack_rx[1]);
-			if (comm_errors++ > 0) {					/* Checksum error detected ... */
-				Serial.printf_P("\n\r[WritePageBuff] Checksum Errors, Aborting ...\r\n");
-				exit(comm_errors);
-			}
-		}
-	}
-	else {
-		Serial.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", cmd_tx[0], ack_rx[0]);
-		if (comm_errors++ > 0) {					/* Opcode error detected ... */
-			Serial.printf_P("\n\r[WritePageBuff] Opcode Reply Errors, Aborting ...\n\r");
-			exit(comm_errors);
-		}
-	}
-	return(comm_errors);
-}
-
-// Function GetStatus
-Timonel::status Timonel::GetStatus(void) {
-	//return timonel_status;
-	return status_;
 }

@@ -1,7 +1,8 @@
 /*
   main.cpp
   ========
-  Test program for Timonel libraries.
+  Timonel library test program
+  ----------------------------
   Style: https://google.github.io/styleguide/cppguide.html#Naming
   ---------------------------
   2018-12-13 Gustavo Casanova
@@ -17,10 +18,9 @@
 #define SCL 2 /* SDA SCL pin */
 
 void setup() {
-  // put your setup code here, to run once:
-  USE_SERIAL.begin(9600); /* Init the serial port */
-  Timonel tml(8, SDA, SCL);
-  struct Timonel::status tml_status = tml.GetStatus();
+  USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
+  Timonel tml(8, SDA, SCL); /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
+  struct Timonel::status tml_status = tml.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
   //Wire.begin(SDA, SCL);
   //Timonel tml(8);
   if((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {  
