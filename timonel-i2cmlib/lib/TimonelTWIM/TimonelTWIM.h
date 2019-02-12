@@ -22,25 +22,32 @@ public:
   Timonel(byte twi_address); /* Constructor A */
   Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
   ~Timonel(void); /* Destructor */
-  // Struct that holds a Timonel instance's status 
-  struct status {
+  // Struct that holds a Timonel instance's id
+  struct id {
     byte signature = 0;
     byte version_major = 0;
     byte version_minor = 0;
-    byte features_code = 0;
+    byte features_code = 0;    
+  };
+  // Struct that holds a Timonel instance's status 
+  struct status {
     word bootloader_start = 0x0000;
     word application_start = 0x0000;
     word trampoline_addr = 0x0000;
   };
+  struct id GetID(void);
   struct status GetStatus(void);  
   bool CheckNewApp(void);
   byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0x0000);
+  void RunApplication(void);
+  void DeleteFirmware(void);
 private:
   byte addr_;
   bool reusing_twi_connection_ = true;
   byte block_rx_size_ = 0;
-  struct Timonel::status status_;
-  byte QueryTmlStatus(void);
+  struct Timonel::id id_;
+  //struct Timonel::status status_;
+  byte QueryID(void);
   void InitTiny(void);
   void TwoStepInit(word time);
   byte WritePageBuff(uint8_t dataArray[]);

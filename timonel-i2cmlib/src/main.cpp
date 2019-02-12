@@ -17,15 +17,42 @@
 #define SDA 0 /* I2C SDA pin */
 #define SCL 2 /* SDA SCL pin */
 
+// Prototypes
+void PrintStatus(Timonel tml);
+void ThreeStarDelay(void);
+
 void setup() {
   USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
   Timonel tml(8, SDA, SCL); /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
-  struct Timonel::status tml_status = tml.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
-  //Wire.begin(SDA, SCL);
-  //Timonel tml(8);
-  if((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {  
-    byte version_major = tml_status.version_major;
-    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml_status.version_minor);
+  
+  if(tml.CheckNewApp() == true) {
+    PrintStatus(tml);
+    ThreeStarDelay();
+    USE_SERIAL.printf_P("\n\n\rCalling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+    tml.UploadFirmware(payload, sizeof(payload));
+    PrintStatus(tml);
+    ThreeStarDelay();    
+    USE_SERIAL.printf_P("\n\n\rDeleting application ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+    tml.DeleteFirmware();
+    ThreeStarDelay();
+    tml.RunApplication();
+    ESP.restart();
+  }
+  else {
+    USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
+  }
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+}
+
+// Print Timonel instance status
+void PrintStatus(Timonel timonel) {
+  struct Timonel::id tml_id = timonel.GetID(); /* Get the instance id parameters received from the ATTiny85 */
+  if((tml_id.signature == T_SIGNATURE) && ((tml_id.version_major != 0) || (tml_id.version_minor != 0))) {  
+    byte version_major = tml_id.version_major;
+    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml_id.version_minor);
 		switch (version_major) {
 			case 0: {
 				USE_SERIAL.printf_P(" Pre-release \n\r");
@@ -41,7 +68,8 @@ void setup() {
 			}
 		}    
     USE_SERIAL.printf_P("........................\n\r");
-    USE_SERIAL.printf_P("Features code: %d\n\r", tml_status.features_code);
+    struct Timonel::status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+    USE_SERIAL.printf_P("Features code: %d\n\r", tml_id.features_code);
     USE_SERIAL.printf_P("Bootloader start: 0x%X\n\r", tml_status.bootloader_start);
     USE_SERIAL.printf_P("Trampoline addr: 0x%X\n\r", tml_status.trampoline_addr);
     word app_start = tml_status.application_start;
@@ -51,22 +79,14 @@ void setup() {
     else {
       USE_SERIAL.printf_P("Application start: (Not Set)\n\n\r");
     }
-    delay(5000);
-    for (byte i = 1; i < 4; i++) {
-      USE_SERIAL.printf_P("*");
-      delay(2000);
-    }
-    if(tml.CheckNewApp() == true) {
-      // Upload new firmware version to ATTiny85 ...
-      USE_SERIAL.printf_P("\n\r");
-      tml.UploadFirmware(payload, sizeof(payload));
-    }
-  }
-  else {
-    USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
   }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+// Function ThreeStarDelay
+void ThreeStarDelay(void) {
+  delay(3000);
+  for (byte i = 1; i < 4; i++) {
+    USE_SERIAL.printf_P("*");
+    delay(2000);
+  }  
 }

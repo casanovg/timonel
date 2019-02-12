@@ -14,7 +14,6 @@
 Timonel::Timonel(byte twi_address) {
   addr_ = twi_address;
   TwoStepInit(0);
-  //GetTmlID();
   reusing_twi_connection_ = true;
 }
 
@@ -23,7 +22,6 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
   addr_ = twi_address;
   TwoStepInit(0);
-  //GetTmlID();  
   reusing_twi_connection_ = false;
 }
 
@@ -38,7 +36,8 @@ Timonel::~Timonel(void) {
 }
 
 // Function to check the status parameters of the bootloader running on the ATTiny85
-byte Timonel::QueryTmlStatus(void) {
+byte Timonel::QueryID(void) {
+	struct status status_;
   // I2C TX
   Wire.beginTransmission(addr_);
   Wire.write(GETTMNLV);
@@ -56,10 +55,10 @@ byte Timonel::QueryTmlStatus(void) {
       status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
       status_.trampoline_addr++;
       status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
-      status_.signature = ack_rx[V_SIGNATURE];
-      status_.version_major = ack_rx[V_MAJOR];
-      status_.version_minor = ack_rx[V_MINOR];
-			status_.features_code = ack_rx[V_FEATURES];
+      id_.signature = ack_rx[V_SIGNATURE];
+      id_.version_major = ack_rx[V_MAJOR];
+      id_.version_minor = ack_rx[V_MINOR];
+			id_.features_code = ack_rx[V_FEATURES];
     }
     else {
       //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
@@ -73,6 +72,32 @@ byte Timonel::QueryTmlStatus(void) {
   return(OK);
 }
 
+Timonel::status Timonel::GetStatus(void) {
+	struct status status_;
+  // I2C TX
+  Wire.beginTransmission(addr_);
+  Wire.write(GETTMNLV);
+  Wire.endTransmission(addr_);
+  // I2X RX
+  block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
+  byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
+  for (int i = 0; i < block_rx_size_; i++) {
+    ack_rx[i] = Wire.read();
+  }
+  if (ack_rx[CMD_ACK_POS] == ACKTMNLV) {
+    if (ack_rx[V_SIGNATURE] == T_SIGNATURE) {
+      status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
+      status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
+      status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
+      status_.trampoline_addr++;
+      status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+    }
+    else {
+      //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
+    }
+		return(status_);
+  }	
+}
 
 // Function InitTiny
 void Timonel::InitTiny(void) {
@@ -85,8 +110,10 @@ void Timonel::InitTiny(void) {
 // Function TwoStepInit
 void Timonel::TwoStepInit(word time) {
   delay(time);
-	InitTiny();			/* Two-step Tiny85 initialization: STEP 1 */
-	QueryTmlStatus();	    /* Two-step Tiny85 initialization: STEP 2 */
+	InitTiny();					/* Two-step Tiny85 initialization: STEP 1 */
+	//QueryTmlStatus(); /* Two-step Tiny85 initialization: STEP 2 */
+	//GetStatus();
+	QueryID();
 }
 
 // Function WritePageBuff
@@ -135,10 +162,9 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 	return(comm_errors);
 }
 
-// Function to get all the status parameters of a Timonel instance
-Timonel::status Timonel::GetStatus(void) {
-	//return timonel_status;
-	return status_;
+// Function to get all the id parameters of a Timonel instance
+Timonel::id Timonel::GetID(void) {
+	return id_;
 }
 
 // Function to determine if there is an ATTiny85 application update
@@ -209,4 +235,76 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 #endif /* ESP8266 */
 	}
 	return(wrt_errors);
+}
+
+// Function RunApplication
+void Timonel::RunApplication(void) {
+	byte cmdTX[1] = { EXITTMNL };
+	byte txSize = sizeof(cmdTX);
+	Serial.print("\n[Timonel] Exit bootloader & run application >>> ");
+	//Serial.print("ESP8266 - Sending Opcode >>> ");
+	Serial.print(cmdTX[0]);
+	Serial.println("(EXITTMNL)");
+	// Transmit command
+	byte transmitData[1] = { 0 };
+	for (int i = 0; i < txSize; i++) {
+		transmitData[i] = cmdTX[i];
+		Wire.beginTransmission(addr_);
+		Wire.write(transmitData[i]);
+		Wire.endTransmission();
+	}
+	// Receive acknowledgement
+	byte blockRXSize = Wire.requestFrom(addr_, (byte)1);
+	byte ackRX[1] = { 0 };   // Data received from slave
+	for (int i = 0; i < blockRXSize; i++) {
+		ackRX[i] = Wire.read();
+	}
+	if (ackRX[0] == ACKEXITT) {
+		Serial.print("[Timonel] - Command ");
+		Serial.print(cmdTX[0]);
+		Serial.print(" parsed OK <<< ");
+		Serial.println(ackRX[0]);
+	}
+	else {
+		Serial.print("[Timonel] - Error parsing ");
+		Serial.print(cmdTX[0]);
+		Serial.print(" command! <<< ");
+		Serial.println(ackRX[0]);
+	}
+}
+
+// Function DeleteFirmware
+void Timonel::DeleteFirmware(void) {
+	byte cmdTX[1] = { DELFLASH };
+	byte txSize = sizeof(cmdTX);
+	Serial.print("\n[Timonel] Delete Flash Memory >>> ");
+	//Serial.print("ESP8266 - Sending Opcode >>> ");
+	Serial.print(cmdTX[0]);
+	Serial.println("(DELFLASH)");
+	// Transmit command
+	byte transmitData[1] = { 0 };
+	for (int i = 0; i < txSize; i++) {
+		transmitData[i] = cmdTX[i];
+		Wire.beginTransmission(addr_);
+		Wire.write(transmitData[i]);
+		Wire.endTransmission();
+	}
+	// Receive acknowledgement
+	byte blockRXSize = Wire.requestFrom(addr_, (byte)1);
+	byte ackRX[1] = { 0 };   // Data received from slave
+	for (int i = 0; i < blockRXSize; i++) {
+		ackRX[i] = Wire.read();
+	}
+	if (ackRX[0] == ACKDELFL) {
+		Serial.print("[Timonel] - Command ");
+		Serial.print(cmdTX[0]);
+		Serial.print(" parsed OK <<< ");
+		Serial.println(ackRX[0]);
+	}
+	else {
+		Serial.print("[Timonel] - Error parsing ");
+		Serial.print(cmdTX[0]);
+		Serial.print(" command! <<< ");
+		Serial.println(ackRX[0]);
+	}
 }
