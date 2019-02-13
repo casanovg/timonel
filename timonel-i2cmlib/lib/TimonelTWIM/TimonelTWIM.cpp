@@ -48,23 +48,21 @@ byte Timonel::QueryID(void) {
   for (int i = 0; i < block_rx_size_; i++) {
     ack_rx[i] = Wire.read();
   }
-  if (ack_rx[CMD_ACK_POS] == ACKTMNLV) {
-    if (ack_rx[V_SIGNATURE] == T_SIGNATURE) {
-      status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
-      status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
-      status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
-      status_.trampoline_addr++;
-      status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
-      id_.signature = ack_rx[V_SIGNATURE];
-      id_.version_major = ack_rx[V_MAJOR];
-      id_.version_minor = ack_rx[V_MINOR];
-			id_.features_code = ack_rx[V_FEATURES];
-    }
-    else {
-      //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
-      return(ERR_02);
-    }
-  }
+  if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
+		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
+		status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
+		status_.trampoline_addr++;
+		status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+		id_.signature = ack_rx[V_SIGNATURE];
+		id_.version_major = ack_rx[V_MAJOR];
+		id_.version_minor = ack_rx[V_MINOR];
+		id_.features_code = ack_rx[V_FEATURES];
+	}
+	// else {
+	// 	//USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
+	// 	return(ERR_02);
+	// }
   else {
     //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ack_rx[0]);
     return(ERR_01);
@@ -84,19 +82,17 @@ Timonel::status Timonel::GetStatus(void) {
   for (int i = 0; i < block_rx_size_; i++) {
     ack_rx[i] = Wire.read();
   }
-  if (ack_rx[CMD_ACK_POS] == ACKTMNLV) {
-    if (ack_rx[V_SIGNATURE] == T_SIGNATURE) {
-      status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
-      status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
-      status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
-      status_.trampoline_addr++;
-      status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
-    }
-    else {
-      //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
-    }
-		return(status_);
-  }	
+	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
+		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
+		status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
+		status_.trampoline_addr++;
+		status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+	}
+	else {
+		//USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
+	}
+	return(status_);
 }
 
 // Function InitTiny
@@ -105,6 +101,7 @@ void Timonel::InitTiny(void) {
 	Wire.write(INITTINY);
 	Wire.endTransmission();
 	Wire.requestFrom(addr_, (byte)1);
+	//byte block_rx_size = 0;
 }
 
 // Function TwoStepInit
@@ -136,9 +133,9 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
-	byte blockRXSize = Wire.requestFrom(addr_, (byte)2);
+	byte block_rx_size = Wire.requestFrom(addr_, (byte)2);
 	byte ack_rx[2] = { 0 };   // Data received from slave
-	for (int i = 0; i < blockRXSize; i++) {
+	for (int i = 0; i < block_rx_size; i++) {
 		ack_rx[i] = Wire.read();
 	}
 	if (ack_rx[0] == ACKWTPAG) {
@@ -254,9 +251,9 @@ void Timonel::RunApplication(void) {
 		Wire.endTransmission();
 	}
 	// Receive acknowledgement
-	byte blockRXSize = Wire.requestFrom(addr_, (byte)1);
+	byte block_rx_size = Wire.requestFrom(addr_, (byte)1);
 	byte ackRX[1] = { 0 };   // Data received from slave
-	for (int i = 0; i < blockRXSize; i++) {
+	for (int i = 0; i < block_rx_size; i++) {
 		ackRX[i] = Wire.read();
 	}
 	if (ackRX[0] == ACKEXITT) {
@@ -275,36 +272,18 @@ void Timonel::RunApplication(void) {
 
 // Function DeleteFirmware
 void Timonel::DeleteFirmware(void) {
-	byte cmdTX[1] = { DELFLASH };
-	byte txSize = sizeof(cmdTX);
-	Serial.print("\n[Timonel] Delete Flash Memory >>> ");
-	//Serial.print("ESP8266 - Sending Opcode >>> ");
-	Serial.print(cmdTX[0]);
-	Serial.println("(DELFLASH)");
+	Serial.printf_P("\n\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
 	// Transmit command
-	byte transmitData[1] = { 0 };
-	for (int i = 0; i < txSize; i++) {
-		transmitData[i] = cmdTX[i];
-		Wire.beginTransmission(addr_);
-		Wire.write(transmitData[i]);
-		Wire.endTransmission();
-	}
+	Wire.beginTransmission(addr_);
+	Wire.write(DELFLASH);
+	Wire.endTransmission();
 	// Receive acknowledgement
-	byte blockRXSize = Wire.requestFrom(addr_, (byte)1);
-	byte ackRX[1] = { 0 };   // Data received from slave
-	for (int i = 0; i < blockRXSize; i++) {
-		ackRX[i] = Wire.read();
-	}
-	if (ackRX[0] == ACKDELFL) {
-		Serial.print("[Timonel] - Command ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" parsed OK <<< ");
-		Serial.println(ackRX[0]);
+	Wire.requestFrom(addr_, (byte)1);
+	byte ack_rx = Wire.read();   // Data received from slave
+	if (ack_rx == ACKDELFL) {
+		Serial.printf_P("[DeleteFirmware] Command %d parsed OK <<< %d\n\n\r", DELFLASH, ack_rx);
 	}
 	else {
-		Serial.print("[Timonel] - Error parsing ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" command! <<< ");
-		Serial.println(ackRX[0]);
+		Serial.printf_P("[DeleteFirmware] Error parsing %d command <<< %d\n\n\r", DELFLASH, ack_rx);
 	}
 }

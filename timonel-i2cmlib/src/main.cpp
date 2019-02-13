@@ -26,17 +26,22 @@ void setup() {
   Timonel tml(8, SDA, SCL); /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
   
   if(tml.CheckNewApp() == true) {
-    PrintStatus(tml);
-    ThreeStarDelay();
-    USE_SERIAL.printf_P("\n\n\rCalling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
-    tml.UploadFirmware(payload, sizeof(payload));
-    PrintStatus(tml);
-    ThreeStarDelay();    
-    USE_SERIAL.printf_P("\n\n\rDeleting application ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
-    tml.DeleteFirmware();
-    ThreeStarDelay();
-    tml.RunApplication();
-    ESP.restart();
+    delay(2000);
+    for (byte i = 1; i < 4; i++) {
+      USE_SERIAL.printf_P("\n\n\r%d %d %d %d %d %d %d\r\n==============\n\r", i, i, i, i, i, i, i);
+      PrintStatus(tml);
+      ThreeStarDelay();
+      USE_SERIAL.printf_P("\n\rCalling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+      tml.UploadFirmware(payload, sizeof(payload));
+      PrintStatus(tml);
+      ThreeStarDelay();    
+      USE_SERIAL.printf_P("\n\n\rDeleting application ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+      tml.DeleteFirmware();
+      ThreeStarDelay();
+      //tml.RunApplication();
+      //ESP.restart();
+    }
+    USE_SERIAL.printf_P("\n\n\rSetup routine finished!\n\r");
   }
   else {
     USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
