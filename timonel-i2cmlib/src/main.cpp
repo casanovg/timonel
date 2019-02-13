@@ -36,7 +36,7 @@ void setup() {
       ThreeStarDelay();    
       USE_SERIAL.printf_P("\n\n\r[Main] Deleting firmware ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
       tml.DeleteFirmware();
-      delay(500);
+      delay(1000);
       PrintStatus(tml);
       ThreeStarDelay(); 
     }
