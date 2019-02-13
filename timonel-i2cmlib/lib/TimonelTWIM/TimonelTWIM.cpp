@@ -236,43 +236,25 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 
 // Function RunApplication
 void Timonel::RunApplication(void) {
-	byte cmdTX[1] = { EXITTMNL };
-	byte txSize = sizeof(cmdTX);
-	Serial.print("\n[Timonel] Exit bootloader & run application >>> ");
-	//Serial.print("ESP8266 - Sending Opcode >>> ");
-	Serial.print(cmdTX[0]);
-	Serial.println("(EXITTMNL)");
+	Serial.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
 	// Transmit command
-	byte transmitData[1] = { 0 };
-	for (int i = 0; i < txSize; i++) {
-		transmitData[i] = cmdTX[i];
-		Wire.beginTransmission(addr_);
-		Wire.write(transmitData[i]);
-		Wire.endTransmission();
-	}
+	Wire.beginTransmission(addr_);
+	Wire.write(EXITTMNL);
+	Wire.endTransmission();
 	// Receive acknowledgement
-	byte block_rx_size = Wire.requestFrom(addr_, (byte)1);
-	byte ackRX[1] = { 0 };   // Data received from slave
-	for (int i = 0; i < block_rx_size; i++) {
-		ackRX[i] = Wire.read();
-	}
-	if (ackRX[0] == ACKEXITT) {
-		Serial.print("[Timonel] - Command ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" parsed OK <<< ");
-		Serial.println(ackRX[0]);
+	Wire.requestFrom(addr_, (byte)1);
+	byte ack_rx = Wire.read();   // Data received from slave
+	if (ack_rx == ACKEXITT) {
+		Serial.printf_P("[RunApplication] Command %d parsed OK <<< %d\n\n\r", EXITTMNL, ack_rx);
 	}
 	else {
-		Serial.print("[Timonel] - Error parsing ");
-		Serial.print(cmdTX[0]);
-		Serial.print(" command! <<< ");
-		Serial.println(ackRX[0]);
+		Serial.printf_P("[RunApplication] Error parsing %d command <<< %d\n\n\r", EXITTMNL, ack_rx);
 	}
 }
 
 // Function DeleteFirmware
 void Timonel::DeleteFirmware(void) {
-	Serial.printf_P("\n\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
+	Serial.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
 	// Transmit command
 	Wire.beginTransmission(addr_);
 	Wire.write(DELFLASH);

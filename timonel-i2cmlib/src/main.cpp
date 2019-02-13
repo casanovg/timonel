@@ -31,7 +31,7 @@ void setup() {
       USE_SERIAL.printf_P("\n\n\r%d %d %d %d %d %d %d\r\n==============\n\r", i, i, i, i, i, i, i);
       PrintStatus(tml);
       ThreeStarDelay();
-      USE_SERIAL.printf_P("\n\rCalling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+      USE_SERIAL.printf_P("\n\n\rCalling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
       tml.UploadFirmware(payload, sizeof(payload));
       PrintStatus(tml);
       ThreeStarDelay();    
@@ -57,7 +57,7 @@ void PrintStatus(Timonel timonel) {
   struct Timonel::id tml_id = timonel.GetID(); /* Get the instance id parameters received from the ATTiny85 */
   if((tml_id.signature == T_SIGNATURE) && ((tml_id.version_major != 0) || (tml_id.version_minor != 0))) {  
     byte version_major = tml_id.version_major;
-    USE_SERIAL.printf_P("\n\n\rTimonel v%d.%d", version_major, tml_id.version_minor);
+    USE_SERIAL.printf_P("\n\rTimonel v%d.%d", version_major, tml_id.version_minor);
 		switch (version_major) {
 			case 0: {
 				USE_SERIAL.printf_P(" Pre-release \n\r");
