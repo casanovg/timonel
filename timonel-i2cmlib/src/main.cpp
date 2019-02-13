@@ -29,12 +29,12 @@ void setup() {
     delay(2000);
     for (byte i = 1; i < 4; i++) {
       USE_SERIAL.printf_P("\n\n\r %d %d %d %d %d %d %d\r\n===============\n\r", i, i, i, i, i, i, i);
-      USE_SERIAL.printf_P("\n\n\r[Main] Calling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+      USE_SERIAL.printf_P("\n\n\r[Main] Calling the upload method ...\n\r");
       tml.UploadFirmware(payload, sizeof(payload));
       delay(500);
       PrintStatus(tml);
       ThreeStarDelay();    
-      USE_SERIAL.printf_P("\n\n\r[Main] Deleting firmware ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
+      USE_SERIAL.printf_P("\n\n\r[Main] Deleting firmware ...\n\r");
       tml.DeleteFirmware();
       delay(1000);
       PrintStatus(tml);
