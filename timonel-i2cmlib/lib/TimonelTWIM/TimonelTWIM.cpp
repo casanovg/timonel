@@ -38,50 +38,53 @@ Timonel::~Timonel(void) {
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryID(void) {
 	struct status status_;
-  // I2C TX
-  Wire.beginTransmission(addr_);
-  Wire.write(GETTMNLV);
-  Wire.endTransmission(addr_);
-  // I2X RX
-  block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
-  byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  for (int i = 0; i < block_rx_size_; i++) {
-    ack_rx[i] = Wire.read();
-  }
-  if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+	// I2C TX
+  	Wire.beginTransmission(addr_);
+  	Wire.write(GETTMNLV);
+  	Wire.endTransmission(addr_);
+  	// I2X RX
+  	block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
+  	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
+  	for (int i = 0; i < block_rx_size_; i++) {
+	    ack_rx[i] = Wire.read();
+  	}
+  	if((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+		if((id_.signature == 0) && (id_.version_major == 0) && (id_.version_minor == 0) && (id_.features_code == 0)) {
+			id_.signature = ack_rx[V_SIGNATURE];
+			id_.version_major = ack_rx[V_MAJOR];
+			id_.version_minor = ack_rx[V_MINOR];
+			id_.features_code = ack_rx[V_FEATURES];
+		}
 		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
 		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
 		status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
 		status_.trampoline_addr++;
 		status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
-		id_.signature = ack_rx[V_SIGNATURE];
-		id_.version_major = ack_rx[V_MAJOR];
-		id_.version_minor = ack_rx[V_MINOR];
-		id_.features_code = ack_rx[V_FEATURES];
-	}
-	// else {
-	// 	//USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: Firmware signature unknown!\n\r");
-	// 	return(ERR_02);
-	// }
-  else {
-    //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ack_rx[0]);
-    return(ERR_01);
-  }
-  return(OK);
+		}
+  	else {
+	    //USE_SERIAL.printf_P("\n\r[Timonel::GetTmlID] Error: parsing %d command! <<< %d\n\r", GETTMNLV, ack_rx[0]);
+	    return(ERR_01);
+  	}
+  	return(OK);
+}
+
+// Function to get all the id parameters of a Timonel instance
+Timonel::id Timonel::GetID(void) {
+	return id_;
 }
 
 Timonel::status Timonel::GetStatus(void) {
 	struct status status_;
-  // I2C TX
-  Wire.beginTransmission(addr_);
-  Wire.write(GETTMNLV);
-  Wire.endTransmission(addr_);
-  // I2X RX
-  block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
-  byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  for (int i = 0; i < block_rx_size_; i++) {
-    ack_rx[i] = Wire.read();
-  }
+  	// I2C TX
+  	Wire.beginTransmission(addr_);
+  	Wire.write(GETTMNLV);
+  	Wire.endTransmission(addr_);
+  	// I2X RX
+  	block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
+  	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
+  	for (int i = 0; i < block_rx_size_; i++) {
+	    ack_rx[i] = Wire.read();
+  	}
 	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
 		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
@@ -106,7 +109,7 @@ void Timonel::InitTiny(void) {
 
 // Function TwoStepInit
 void Timonel::TwoStepInit(word time) {
-  delay(time);
+	delay(time);
 	InitTiny();					/* Two-step Tiny85 initialization: STEP 1 */
 	//QueryTmlStatus(); /* Two-step Tiny85 initialization: STEP 2 */
 	//GetStatus();
@@ -157,11 +160,6 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 		}
 	}
 	return(comm_errors);
-}
-
-// Function to get all the id parameters of a Timonel instance
-Timonel::id Timonel::GetID(void) {
-	return id_;
 }
 
 // Function to determine if there is an ATTiny85 application update
