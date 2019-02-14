@@ -191,7 +191,7 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 		}
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
-				Serial.print(".");
+				Serial.printf_P(".");
 			}
 			wrt_errors += WritePageBuff(data_packet);	/* Send data to T85 through I2C */
 			packet = 0;
@@ -209,7 +209,7 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 		}
 		if (page_end++ == (FLASHPGSIZE - 1)) {			/* When a page end is detected ... */
 
-			Serial.print(page_count++);
+			Serial.printf_P("%d", page_count++);
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
 			delay(100);																/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
@@ -235,37 +235,31 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 }
 
 // Function RunApplication
-void Timonel::RunApplication(void) {
+byte Timonel::RunApplication(void) {
 	Serial.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
-	// Transmit command
-	Wire.beginTransmission(addr_);
-	Wire.write(EXITTMNL);
-	Wire.endTransmission();
-	// Receive acknowledgement
-	Wire.requestFrom(addr_, (byte)1);
-	byte ack_rx = Wire.read();   // Data received from slave
-	if (ack_rx == ACKEXITT) {
-		Serial.printf_P("[RunApplication] Command %d parsed OK <<< %d\n\n\r", EXITTMNL, ack_rx);
-	}
-	else {
-		Serial.printf_P("[RunApplication] Error parsing %d command <<< %d\n\n\r", EXITTMNL, ack_rx);
-	}
+	return(TWICmdSingle(EXITTMNL, ACKEXITT));
 }
 
 // Function DeleteFirmware
-void Timonel::DeleteFirmware(void) {
+byte Timonel::DeleteFirmware(void) {
 	Serial.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
+	return(TWICmdSingle(DELFLASH, ACKDELFL));
+}
+
+// Function TWICmdSingle
+byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge) {
 	// Transmit command
 	Wire.beginTransmission(addr_);
-	Wire.write(DELFLASH);
+	Wire.write(twi_command);				/* Transmit I2C command to slave */
 	Wire.endTransmission();
 	// Receive acknowledgement
 	Wire.requestFrom(addr_, (byte)1);
-	byte ack_rx = Wire.read();   // Data received from slave
-	if (ack_rx == ACKDELFL) {
-		Serial.printf_P("[DeleteFirmware] Command %d parsed OK <<< %d\n\n\r", DELFLASH, ack_rx);
+	if (Wire.read() == twi_acknowledge) {	/* Return I2C reply from slave */
+		Serial.printf_P("[TWICmdSingle] Command %d parsed OK <<< %d\n\n\r", twi_command, twi_acknowledge);
+		return(0);
 	}
 	else {
-		Serial.printf_P("[DeleteFirmware] Error parsing %d command <<< %d\n\n\r", DELFLASH, ack_rx);
+		Serial.printf_P("[TWICmdSingle] Error parsing %d command <<< %d\n\n\r", twi_command, twi_acknowledge);
+		return(1);
 	}
 }

@@ -39,8 +39,8 @@ public:
   struct status GetStatus(void);  
   bool CheckNewApp(void);
   byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0x0000);
-  void RunApplication(void);
-  void DeleteFirmware(void);
+  byte RunApplication(void);
+  byte DeleteFirmware(void);
 private:
   byte addr_;
   bool reusing_twi_connection_ = true;
@@ -51,6 +51,7 @@ private:
   void InitTiny(void);
   void TwoStepInit(word time);
   byte WritePageBuff(uint8_t dataArray[]);
+  byte TWICmdSingle(byte twi_cmd, byte twi_ack);
 };
 
 #endif /* _TIMONELTWIM_H_ */
@@ -58,13 +59,12 @@ private:
 /*
  * Features code settings
  * 
-  bool _led_ui_enabled = 0;
-  bool _auto_trampoline_calc = 0;
-  bool _app_use_trampoline_page = 0;
-  bool _allow_set_pageaddr_ = 0;
-  bool _two_step_init_enabled = 0;
-  bool _use_wdt_reset = 0;
-  bool _check_blank_flash = 0;
-  bool _allow_read_flash = 0;
- 
+ bool _led_ui_enabled = 0;
+ bool _auto_trampoline_calc = 0;
+ bool _app_use_trampoline_page = 0;
+ bool _allow_set_pageaddr_ = 0;
+ bool _two_step_init_enabled = 0;
+ bool _use_wdt_reset = 0;
+ bool _check_blank_flash = 0;
+ bool _allow_read_flash = 0;
  */
