@@ -31,7 +31,6 @@ void setup() {
       USE_SERIAL.printf_P("\n\n\r %d %d %d %d %d %d %d\r\n===============\n\r", i, i, i, i, i, i, i);
       PrintStatus(tml);
       delay(500);
-      USE_SERIAL.printf_P("\n\n\r[Main] Calling the upload method ...\n\r"); /* Upload new firmware version to ATTiny85 ... */
       USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
       tml.UploadFirmware(payload, sizeof(payload));
       delay(500);
