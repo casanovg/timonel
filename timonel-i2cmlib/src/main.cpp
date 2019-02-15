@@ -92,9 +92,9 @@ void PrintStatus(Timonel timonel) {
 
 // Function ThreeStarDelay
 void ThreeStarDelay(void) {
-  delay(3000);
+  delay(2000);
   for (byte i = 1; i < 4; i++) {
     USE_SERIAL.printf_P("*");
-    delay(2000);
+    delay(1000);
   }  
 }

@@ -51,8 +51,8 @@ private:
   void InitTiny(void);
   void TwoStepInit(word time);
   byte WritePageBuff(uint8_t data_array[]);
-  byte TWICmdSingle(byte twi_command, byte twi_acknowledge);
-  byte TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_array[]);
+  //byte TWICmdSingle(byte twi_command, byte twi_acknowledge);
+  byte TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_size = 0, byte reply_array[] = nullptr);
 };
 
 #endif /* _TIMONELTWIM_H_ */

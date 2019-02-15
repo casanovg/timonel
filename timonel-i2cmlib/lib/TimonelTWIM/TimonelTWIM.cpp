@@ -39,16 +39,20 @@ Timonel::~Timonel(void) {
 byte Timonel::QueryID(void) {
 	struct status status_;
 	// I2C TX
-  	Wire.beginTransmission(addr_);
-  	Wire.write(GETTMNLV);
-  	Wire.endTransmission(addr_);
-  	// I2X RX
-  	block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
+
+  	// Wire.beginTransmission(addr_);
+  	// Wire.write(GETTMNLV);
+  	// Wire.endTransmission(addr_);
+  	// // I2X RX
+  	// block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  	for (int i = 0; i < block_rx_size_; i++) {
-	    ack_rx[i] = Wire.read();
-  	}
-  	if((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+  	// for (int i = 0; i < block_rx_size_; i++) {
+	//     ack_rx[i] = Wire.read();
+  	// }
+  	
+	byte twi_error = TWICmdSingle(GETTMNLV, ACKTMNLV, V_CMD_LENGTH, ack_rx);
+	  
+	if((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		if((id_.signature == 0) && (id_.version_major == 0) && (id_.version_minor == 0) && (id_.features_code == 0)) {
 			id_.signature = ack_rx[V_SIGNATURE];
 			id_.version_major = ack_rx[V_MAJOR];
@@ -76,15 +80,18 @@ Timonel::id Timonel::GetID(void) {
 Timonel::status Timonel::GetStatus(void) {
 	struct status status_;
   	// I2C TX
-  	Wire.beginTransmission(addr_);
-  	Wire.write(GETTMNLV);
-  	Wire.endTransmission(addr_);
-  	// I2X RX
-  	block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
+  	// Wire.beginTransmission(addr_);
+  	// Wire.write(GETTMNLV);
+  	// Wire.endTransmission(addr_);
+  	// // I2X RX
+  	// block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  	for (int i = 0; i < block_rx_size_; i++) {
-	    ack_rx[i] = Wire.read();
-  	}
+  	// for (int i = 0; i < block_rx_size_; i++) {
+	//     ack_rx[i] = Wire.read();
+  	// }
+
+	byte twi_error = TWICmdSingle(GETTMNLV, ACKTMNLV, V_CMD_LENGTH, ack_rx);
+
 	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
 		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
@@ -244,40 +251,36 @@ byte Timonel::DeleteFirmware(void) {
 	return(TWICmdSingle(DELFLASH, ACKDELFL));
 }
 
-// Function TWICmdSingle (Overload A)
-byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge) {
+// Function TWICmdSingle
+  byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_size, byte reply_array[]) {
 	// Transmit command
 	Wire.beginTransmission(addr_);
 	Wire.write(twi_command);				/* Transmit I2C command to slave */
 	Wire.endTransmission();
 	// Receive reply
-	Wire.requestFrom(addr_, (byte)1);
-	if (Wire.read() == twi_acknowledge) {	/* Return I2C reply from slave */
-		Serial.printf_P("[TWICmdSingle] Command %d parsed OK <<< %d\n\n\r", twi_command, twi_acknowledge);
-		return(0);
+	//byte reply_length = Wire.requestFrom(addr_, reply_size, true);
+	if (reply_size == 0) {
+		Wire.requestFrom(addr_, ++reply_size, true);
+		if (Wire.read() == twi_acknowledge) {	/* Return I2C reply from slave */
+			Serial.printf_P("[TWICmdSingle] Command %d parsed OK <<< %d\n\n\r", twi_command, twi_acknowledge);
+			return(0);
+		}
+		else {
+			Serial.printf_P("[TWICmdSingle] Error parsing %d command <<< %d\n\n\r", twi_command, twi_acknowledge);
+			return(1);
+		}
 	}
 	else {
-		Serial.printf_P("[TWICmdSingle] Error parsing %d command <<< %d\n\n\r", twi_command, twi_acknowledge);
-		return(1);
+		byte reply_length = Wire.requestFrom(addr_, reply_size, true);
+  		for (int i = 0; i < reply_size; i++) {
+	    	reply_array[i] = Wire.read();
+  		}
+	 	if ((reply_array[0] == twi_acknowledge) && (reply_length == reply_size)) {
+			return(0);
+		}
+		else {
+			return(1);
+		}		  
 	}
 }
 
-// Function TWICmdSingle (Overload B)
-byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_array[]) {
-	byte arr_size = sizeof(reply_array);
-	// Transmit command
-  	Wire.beginTransmission(addr_);
-  	Wire.write(twi_command);
-  	Wire.endTransmission(addr_);
-	// Receive reply
-  	byte reply_lenght = Wire.requestFrom(addr_, arr_size, true);
-  	for (int i = 0; i < arr_size; i++) {
-	    reply_array[i] = Wire.read();
-  	}
-	if ((reply_array[0] == twi_acknowledge) && (reply_lenght == arr_size)) {
-		return(0);
-	}
-	else {
-		return(1);
-	}
-}
