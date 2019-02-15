@@ -39,7 +39,7 @@ Timonel::~Timonel(void) {
 byte Timonel::QueryID(void) {
 	struct status status_;
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-	TWICmdSingle(GETTMNLV, ACKTMNLV, ack_rx, V_CMD_LENGTH);
+	TWICmdXmit(GETTMNLV, ACKTMNLV, ack_rx, V_CMD_LENGTH);
 	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		if((id_.signature == 0) && (id_.version_major == 0) && (id_.version_minor == 0) && (id_.features_code == 0)) {
 			id_.signature = ack_rx[V_SIGNATURE];
@@ -69,7 +69,7 @@ Timonel::id Timonel::GetID(void) {
 Timonel::status Timonel::GetStatus(void) {
 	struct status status_;
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-	TWICmdSingle(GETTMNLV, ACKTMNLV, ack_rx, V_CMD_LENGTH);
+	TWICmdXmit(GETTMNLV, ACKTMNLV, ack_rx, V_CMD_LENGTH);
 	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
 		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
@@ -220,17 +220,17 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 // Function RunApplication
 byte Timonel::RunApplication(void) {
 	Serial.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
-	return(TWICmdSingle(EXITTMNL, ACKEXITT));
+	return(TWICmdXmit(EXITTMNL, ACKEXITT));
 }
 
 // Function DeleteFirmware
 byte Timonel::DeleteFirmware(void) {
 	Serial.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
-	return(TWICmdSingle(DELFLASH, ACKDELFL));
+	return(TWICmdXmit(DELFLASH, ACKDELFL));
 }
 
-// Function TWICmdSingle
-  byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_array[], byte reply_size) {
+// Function TWI command transmit
+  byte Timonel::TWICmdXmit(byte twi_command, byte twi_acknowledge, byte reply_array[], byte reply_size) {
 	// Transmit command
 	Wire.beginTransmission(addr_);
 	Wire.write(twi_command);				/* Transmit I2C command to slave */
