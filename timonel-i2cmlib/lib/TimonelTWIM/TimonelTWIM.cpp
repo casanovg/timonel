@@ -244,13 +244,13 @@ byte Timonel::DeleteFirmware(void) {
 	return(TWICmdSingle(DELFLASH, ACKDELFL));
 }
 
-// Function TWICmdSingle
+// Function TWICmdSingle (Overload A)
 byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge) {
 	// Transmit command
 	Wire.beginTransmission(addr_);
 	Wire.write(twi_command);				/* Transmit I2C command to slave */
 	Wire.endTransmission();
-	// Receive acknowledgement
+	// Receive reply
 	Wire.requestFrom(addr_, (byte)1);
 	if (Wire.read() == twi_acknowledge) {	/* Return I2C reply from slave */
 		Serial.printf_P("[TWICmdSingle] Command %d parsed OK <<< %d\n\n\r", twi_command, twi_acknowledge);
@@ -258,6 +258,26 @@ byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge) {
 	}
 	else {
 		Serial.printf_P("[TWICmdSingle] Error parsing %d command <<< %d\n\n\r", twi_command, twi_acknowledge);
+		return(1);
+	}
+}
+
+// Function TWICmdSingle (Overload B)
+byte Timonel::TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_array[]) {
+	byte arr_size = sizeof(reply_array);
+	// Transmit command
+  	Wire.beginTransmission(addr_);
+  	Wire.write(twi_command);
+  	Wire.endTransmission(addr_);
+	// Receive reply
+  	byte reply_lenght = Wire.requestFrom(addr_, arr_size, true);
+  	for (int i = 0; i < arr_size; i++) {
+	    reply_array[i] = Wire.read();
+  	}
+	if ((reply_array[0] == twi_acknowledge) && (reply_lenght == arr_size)) {
+		return(0);
+	}
+	else {
 		return(1);
 	}
 }

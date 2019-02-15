@@ -50,8 +50,9 @@ private:
   byte QueryID(void);
   void InitTiny(void);
   void TwoStepInit(word time);
-  byte WritePageBuff(uint8_t dataArray[]);
-  byte TWICmdSingle(byte twi_cmd, byte twi_ack);
+  byte WritePageBuff(uint8_t data_array[]);
+  byte TWICmdSingle(byte twi_command, byte twi_acknowledge);
+  byte TWICmdSingle(byte twi_command, byte twi_acknowledge, byte reply_array[]);
 };
 
 #endif /* _TIMONELTWIM_H_ */

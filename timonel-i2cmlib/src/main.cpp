@@ -30,15 +30,17 @@ void setup() {
     for (byte i = 1; i < 4; i++) {
       USE_SERIAL.printf_P("\n\n\r %d %d %d %d %d %d %d\r\n===============\n\r", i, i, i, i, i, i, i);
       PrintStatus(tml);
-      delay(500);
+      delay(250);
       USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
       tml.UploadFirmware(payload, sizeof(payload));
-      delay(500);
+      delay(250);
       PrintStatus(tml);
       ThreeStarDelay();    
       USE_SERIAL.printf_P("\n\n\r[Main] Deleting ATTiny85 firmware ...\n\r");
       tml.DeleteFirmware();
-      delay(1000);
+      delay(850);
+      tml.RunApplication();
+      delay(10);
       PrintStatus(tml);
       ThreeStarDelay(); 
     }
