@@ -38,21 +38,9 @@ Timonel::~Timonel(void) {
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryID(void) {
 	struct status status_;
-	// I2C TX
-
-  	// Wire.beginTransmission(addr_);
-  	// Wire.write(GETTMNLV);
-  	// Wire.endTransmission(addr_);
-  	// // I2X RX
-  	// block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  	// for (int i = 0; i < block_rx_size_; i++) {
-	//     ack_rx[i] = Wire.read();
-  	// }
-  	
 	byte twi_error = TWICmdSingle(GETTMNLV, ACKTMNLV, V_CMD_LENGTH, ack_rx);
-	  
-	if((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE) && (twi_error = 0)) {
 		if((id_.signature == 0) && (id_.version_major == 0) && (id_.version_minor == 0) && (id_.features_code == 0)) {
 			id_.signature = ack_rx[V_SIGNATURE];
 			id_.version_major = ack_rx[V_MAJOR];
@@ -77,22 +65,12 @@ Timonel::id Timonel::GetID(void) {
 	return id_;
 }
 
+// Function GetStatus
 Timonel::status Timonel::GetStatus(void) {
 	struct status status_;
-  	// I2C TX
-  	// Wire.beginTransmission(addr_);
-  	// Wire.write(GETTMNLV);
-  	// Wire.endTransmission(addr_);
-  	// // I2X RX
-  	// block_rx_size_ = Wire.requestFrom(addr_, V_CMD_LENGTH, true);
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
-  	// for (int i = 0; i < block_rx_size_; i++) {
-	//     ack_rx[i] = Wire.read();
-  	// }
-
 	byte twi_error = TWICmdSingle(GETTMNLV, ACKTMNLV, V_CMD_LENGTH, ack_rx);
-
-	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
+	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE) && (twi_error = 0)) {
 		status_.bootloader_start = (ack_rx[V_BOOT_ADDR_MSB] << 8) + ack_rx[V_BOOT_ADDR_LSB];
 		status_.application_start = (ack_rx[V_APPL_ADDR_LSB] << 8) + ack_rx[V_APPL_ADDR_MSB];
 		status_.trampoline_addr = (~(((ack_rx[V_APPL_ADDR_MSB] << 8) | ack_rx[V_APPL_ADDR_LSB]) & 0xFFF));
