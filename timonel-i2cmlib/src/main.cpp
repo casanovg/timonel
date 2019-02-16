@@ -29,7 +29,7 @@ void setup() {
     if(CheckApplUpdate() == true) {
         delay(2000);
         for (byte i = 1; i < 4; i++) {
-            USE_SERIAL.printf_P("\n\n\r %d %d %d %d %d %d %d\r\n===============\n\r", i, i, i, i, i, i, i);
+            USE_SERIAL.printf_P("\n\n\r  %d %d %d %d %d %d %d\r\n ***************\n\r", i, i, i, i, i, i, i);
             PrintStatus(tml);
             delay(250);
             USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
@@ -70,15 +70,15 @@ void PrintStatus(Timonel timonel) {
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
         switch (version_major) {
             case 0: {
-                USE_SERIAL.printf_P("  Pre-release \n\r");
+                USE_SERIAL.printf_P(" Pre-release \n\r");
                 break;
             }
             case 1: {
-                USE_SERIAL.printf_P("  \"Sandra\" \n\r");
+                USE_SERIAL.printf_P(" \"Sandra\" \n\r");
                 break;
             }
             default: {
-                USE_SERIAL.printf_P("  Unknown \n\r");
+                USE_SERIAL.printf_P(" Unknown \n\r");
                 break;
             }
         }
