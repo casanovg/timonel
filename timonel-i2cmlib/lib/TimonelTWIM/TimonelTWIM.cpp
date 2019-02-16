@@ -10,29 +10,29 @@
 
 #include "TimonelTWIM.h"
 
-// Constructor A (Use it when a TWI channel is already opened)
-Timonel::Timonel(byte twi_address) {
-  addr_ = twi_address;
-  TwoStepInit(0);
-  reusing_twi_connection_ = true;
-}
-
-// Constructor B (Use it to open the TWI channel)
+// Class constructor
 Timonel::Timonel(byte twi_address, byte sda, byte scl) {
-  Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
-  addr_ = twi_address;
-  TwoStepInit(0);
-  reusing_twi_connection_ = false;
+	if (!((sda == 0) && (scl == 0))) {
+		Serial.printf_P("\n\r[Constructor] Creating a new I2C connection\n\r");		
+		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
+		reusing_twi_connection_ = false;
+	}
+	else {
+		Serial.printf_P("\n\r[Constructor] Reusing I2C connection\n\r");
+		reusing_twi_connection_ = true;
+	}
+  	addr_ = twi_address;
+  	TwoStepInit(0);
 }
 
 // Class destructor
 Timonel::~Timonel(void) {
-  if(reusing_twi_connection_ == true) {
-    //USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
-  }
-  else {
-    //USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
-  }
+  	if (reusing_twi_connection_ == true) {
+	    // USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
+  	}
+  	else {
+		// USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
+  	}
 }
 
 // Function to check the status parameters of the bootloader running on the ATTiny85
@@ -102,7 +102,7 @@ void Timonel::TwoStepInit(word time) {
 }
 
 // Function WritePageBuff
-byte Timonel::WritePageBuff(uint8_t data_array[]) {
+byte Timonel::WritePageBuff(byte data_array[]) {
 	const byte tx_size = TXDATASIZE + 2;
 	byte cmd_tx[tx_size] = { 0 };
 	byte comm_errors = 0;					/* I2C communication error counter */
@@ -113,19 +113,8 @@ byte Timonel::WritePageBuff(uint8_t data_array[]) {
 		checksum += (byte)data_array[b - 1];
 	}
 	cmd_tx[tx_size - 1] = checksum;
-	byte transmit_data[tx_size] = { 0 };
-	for (int i = 0; i < tx_size; i++) {
-		transmit_data[i] = cmd_tx[i];
-		Wire.beginTransmission(addr_);
-		Wire.write(transmit_data[i]);
-		Wire.endTransmission();
-	}
-	// Receive acknowledgement
-	byte block_rx_size = Wire.requestFrom(addr_, (byte)2);
 	byte ack_rx[2] = { 0 };   // Data received from slave
-	for (int i = 0; i < block_rx_size; i++) {
-		ack_rx[i] = Wire.read();
-	}
+	TWICmdXmit(cmd_tx, tx_size, ACKWTPAG, ack_rx, 2);
 	if (ack_rx[0] == ACKWTPAG) {
 		if (ack_rx[1] == checksum) {
 		}
@@ -229,22 +218,30 @@ byte Timonel::DeleteFirmware(void) {
 	return(TWICmdXmit(DELFLASH, ACKDELFL));
 }
 
-// Function TWI command transmit
-  byte Timonel::TWICmdXmit(byte twi_command, byte twi_acknowledge, byte reply_array[], byte reply_size) {
-	// Transmit command
-	Wire.beginTransmission(addr_);
-	Wire.write(twi_command);				/* Transmit I2C command to slave */
-	Wire.endTransmission();
+// Function TWI command transmit (Overload A: transmit command single byte)
+byte Timonel::TWICmdXmit(byte twi_command, byte twi_acknowledge, byte reply_array[], byte reply_size) {
+	const byte sc_length = 1;
+	byte twi_cmd_array[sc_length] = { twi_command };
+	return(TWICmdXmit(twi_cmd_array, sc_length, twi_acknowledge, reply_array, reply_size));
+}
+
+// Function TWI command transmit (Overload B: transmit command multi byte)
+byte Timonel::TWICmdXmit(byte twi_cmd_array[], byte cmd_size, byte twi_acknowledge, byte reply_array[], byte reply_size) {
+	for (int i = 0; i < cmd_size; i++) {
+		Wire.beginTransmission(addr_);
+		Wire.write(twi_cmd_array[i]);
+		Wire.endTransmission();
+	}
 	// Receive reply
-	//byte reply_length = Wire.requestFrom(addr_, reply_size, true);
 	if (reply_size == 0) {
 		Wire.requestFrom(addr_, ++reply_size);
-		if (Wire.read() == twi_acknowledge) {	/* Return I2C reply from slave */
-			Serial.printf_P("[TWICmdSingle] Command %d parsed OK <<< %d\n\n\r", twi_command, twi_acknowledge);
+		byte reply = Wire.read();
+		if (reply == twi_acknowledge) {	/* Return I2C reply from slave */
+			Serial.printf_P("[TWICmdXmit] Command %d parsed OK <<< %d\n\n\r", twi_cmd_array[0], reply);
 			return(0);
 		}
 		else {
-			Serial.printf_P("[TWICmdSingle] Error parsing %d command <<< %d\n\n\r", twi_command, twi_acknowledge);
+			Serial.printf_P("[TWICmdXmit] Error parsing %d command <<< %d\n\n\r", twi_cmd_array[0], reply);
 			return(1);
 		}
 	}
@@ -254,9 +251,11 @@ byte Timonel::DeleteFirmware(void) {
 	    	reply_array[i] = Wire.read();
   		}
 	 	if ((reply_array[0] == twi_acknowledge) && (reply_length == reply_size)) {
+			//Serial.printf_P("[TWICmdXmit] Command %d parsed OK <<< %d\n\n\r", twi_cmd_array[0], reply_array[0]);
 			return(0);
 		}
 		else {
+			//Serial.printf_P("[TWICmdXmit] Error parsing %d command <<< %d\n\n\r", twi_cmd_array[0], reply_array[0]);
 			return(1);
 		}		  
 	}

@@ -19,8 +19,7 @@
 
 class Timonel {
 public:
-  Timonel(byte twi_address); /* Constructor A */
-  Timonel(byte twi_address, byte sda, byte scl); /* Constructor B */
+  Timonel(byte twi_address, byte sda = 0, byte scl = 0); /* Constructor */
   ~Timonel(void); /* Destructor */
   // Struct that holds a Timonel instance's id
   struct id {
@@ -46,11 +45,10 @@ private:
   bool reusing_twi_connection_ = true;
   byte block_rx_size_ = 0;
   struct Timonel::id id_;
-  //struct Timonel::status status_;
   byte QueryID(void);
   void InitTiny(void);
   void TwoStepInit(word time);
-  byte WritePageBuff(uint8_t data_array[]);
+  byte WritePageBuff(byte data_array[]);
   byte TWICmdXmit(byte twi_command, byte twi_acknowledge, byte reply_array[] = nullptr, byte reply_size = 0);
   byte TWICmdXmit(byte twi_cmd_array[], byte cmd_size, byte twi_acknowledge, byte reply_array[] = nullptr, byte reply_size = 0);
 };

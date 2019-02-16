@@ -21,10 +21,10 @@
 void PrintStatus(Timonel tml);
 void ThreeStarDelay(void);
 
+// Setup block
 void setup() {
-  USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
+  USE_SERIAL.begin(9600);   /* Initialize the serial port for debugging */
   Timonel tml(8, SDA, SCL); /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
-  
   if(tml.CheckNewApp() == true) {
     delay(2000);
     for (byte i = 1; i < 4; i++) {
@@ -51,6 +51,7 @@ void setup() {
   }
 }
 
+// Main loop
 void loop() {
   // put your main code here, to run repeatedly:
 }
