@@ -25,16 +25,6 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
   	TwoStepInit(0);
 }
 
-// Class destructor
-Timonel::~Timonel(void) {
-  	if (reusing_twi_connection_ == true) {
-	    // USE_SERIAL.printf_P("\n\r[Class Destructor] Reused I2C connection will remain active ...\n\r");
-  	}
-  	else {
-		// USE_SERIAL.printf_P("\n\r[Class Destructor] The I2C connection created by this object will be closed ...\n\r");
-  	}
-}
-
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryID(void) {
 	struct status status_;
@@ -60,12 +50,12 @@ byte Timonel::QueryID(void) {
   	return(OK);
 }
 
-// Function to get all the id parameters of a Timonel instance
+// Get the Timonel version, signature, and available features
 Timonel::id Timonel::GetID(void) {
 	return id_;
 }
 
-// Function GetStatus
+// Get the Timonel running status
 Timonel::status Timonel::GetStatus(void) {
 	struct status status_;
   	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
@@ -136,13 +126,8 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 	return(comm_errors);
 }
 
-// Function to determine if there is an ATTiny85 application update
-bool Timonel::CheckNewApp(void) {
-	return true;
-}
-
-// Function to upload firmware to the ATTiny85
-byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_address) {
+// Upload a user application to an ATTiny85 running Timonel
+byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
 	byte packet = 0;															/* Byte counter to be sent in a single I2C data packet */
 	byte padding = 0;															/* Amount of padding bytes to match the page size */
 	byte page_end = 0;														/* Byte counter to detect the end of flash mem page */
@@ -206,14 +191,14 @@ byte Timonel::UploadFirmware(const byte payload[], int payload_size, int start_a
 	return(wrt_errors);
 }
 
-// Function RunApplication
+// Ask Timonel to stop executing and run the user application
 byte Timonel::RunApplication(void) {
 	Serial.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
 	return(TWICmdXmit(EXITTMNL, ACKEXITT));
 }
 
-// Function DeleteFirmware
-byte Timonel::DeleteFirmware(void) {
+// Instruct Timonel to delete the user application
+byte Timonel::DeleteApplication(void) {
 	Serial.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
 	return(TWICmdXmit(DELFLASH, ACKDELFL));
 }

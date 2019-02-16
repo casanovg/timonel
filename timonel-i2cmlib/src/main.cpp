@@ -18,6 +18,7 @@
 #define SCL 2 /* SDA SCL pin */
 
 // Prototypes
+bool CheckApplUpdate(void);
 void PrintStatus(Timonel tml);
 void ThreeStarDelay(void);
 
@@ -25,24 +26,24 @@ void ThreeStarDelay(void);
 void setup() {
   USE_SERIAL.begin(9600);   /* Initialize the serial port for debugging */
   Timonel tml(8, SDA, SCL); /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
-  if(tml.CheckNewApp() == true) {
+  if(CheckApplUpdate() == true) {
     delay(2000);
     for (byte i = 1; i < 4; i++) {
       USE_SERIAL.printf_P("\n\n\r %d %d %d %d %d %d %d\r\n===============\n\r", i, i, i, i, i, i, i);
       PrintStatus(tml);
       delay(250);
       USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
-      tml.UploadFirmware(payload, sizeof(payload));
+      tml.UploadApplication(payload, sizeof(payload));
       delay(250);
       PrintStatus(tml);
       ThreeStarDelay();    
       USE_SERIAL.printf_P("\n\n\r[Main] Deleting ATTiny85 firmware ...\n\r");
-      tml.DeleteFirmware();
+      tml.DeleteApplication();
       delay(850);
       tml.RunApplication();
       delay(10);
       PrintStatus(tml);
-      ThreeStarDelay(); 
+      ThreeStarDelay();
     }
     USE_SERIAL.printf_P("\n\n\r[Main] Setup routine finished!\n\r");
   }
@@ -54,6 +55,11 @@ void setup() {
 // Main loop
 void loop() {
   // put your main code here, to run repeatedly:
+}
+
+// Determine if there is a user application update available
+bool CheckApplUpdate(void) {
+	return true;
 }
 
 // Print Timonel instance status

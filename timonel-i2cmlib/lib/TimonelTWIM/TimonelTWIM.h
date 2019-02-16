@@ -20,7 +20,7 @@
 class Timonel {
 public:
   Timonel(byte twi_address, byte sda = 0, byte scl = 0); /* Constructor */
-  ~Timonel(void); /* Destructor */
+  //~Timonel(void); /* Destructor */
   // Struct that holds a Timonel instance's id
   struct id {
     byte signature = 0;
@@ -36,10 +36,9 @@ public:
   };
   struct id GetID(void);
   struct status GetStatus(void);  
-  bool CheckNewApp(void);
-  byte UploadFirmware(const byte payload[], int payload_size, int start_address = 0x0000);
+  byte UploadApplication(const byte payload[], int payload_size, int start_address = 0x0000);
   byte RunApplication(void);
-  byte DeleteFirmware(void);
+  byte DeleteApplication(void);
 private:
   byte addr_;
   bool reusing_twi_connection_ = true;
