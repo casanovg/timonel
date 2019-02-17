@@ -25,6 +25,7 @@
 
 #define TXDATASIZE 8  		/* TX data size for WRITBUFF command */
 #define FLASHPGSIZE 64		/* Tiny85 flash page buffer size */
+#define MAXCKSUMERRORS 1  /* Dump flash max count of errors accepted */
 
 #define OK 0              /* No error */
 #define ERR_01 0x01       /* Error GetTmlID (0) 1: Error parsing GETTMNLV command */

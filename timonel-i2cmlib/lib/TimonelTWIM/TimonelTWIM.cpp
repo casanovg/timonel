@@ -11,7 +11,7 @@
 #include "TimonelTWIM.h"
 
 // Class constructor
-Timonel::Timonel(byte twi_address, byte sda, byte scl) {
+Timonel::Timonel(byte twi_address, byte sda, byte scl) : addr_(twi_address) {
 	if (!((sda == 0) && (scl == 0))) {
 		Serial.printf_P("\n\r[Constructor] Creating a new I2C connection\n\r");		
 		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
@@ -21,7 +21,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) {
 		Serial.printf_P("\n\r[Constructor] Reusing I2C connection\n\r");
 		reusing_twi_connection_ = true;
 	}
-  	addr_ = twi_address;
+  	//addr_ = twi_address;
   	TwoStepInit(0);
 }
 
@@ -180,6 +180,110 @@ byte Timonel::RunApplication(void) {
 byte Timonel::DeleteApplication(void) {
 	Serial.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
 	return(TWICmdXmit(DELFLASH, ACKDELFL));
+}
+
+// Function DumpFlashMem
+void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
+	byte cmdTX[5] = { READFLSH, 0, 0, 0, 0 };
+	byte txSize = 5;
+	uint8_t checksumErr = 0;
+	int v = 1;
+	cmdTX[3] = dataSize;
+	byte transmitData[1] = { 0 };
+	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory ...");
+	Serial.println("");
+
+	Serial.print("Addr ");
+	Serial.print(0, HEX);
+	Serial.print(":    ");
+
+	for (word addr = 0; addr < flashSize; addr += dataSize) {
+		//byte dataSize = 0;	// Requested T85 buffer data size
+		//byte dataIX = 0;		// Requested T85 buffer data start position
+		cmdTX[1] = ((addr & 0xFF00) >> 8);		/* Flash page address high byte */
+		cmdTX[2] = (addr & 0xFF);				/* Flash page address low byte */
+		cmdTX[4] = (byte)(cmdTX[0] + cmdTX[1] + cmdTX[2] + cmdTX[3]); /* READFLSH Checksum */
+		for (int i = 0; i < txSize; i++) {
+			transmitData[i] = cmdTX[i];
+			Wire.beginTransmission(addr_);
+			Wire.write(transmitData[i]);
+			Wire.endTransmission();
+		}
+		// Receive acknowledgement
+		byte blockRXSize = Wire.requestFrom(addr_, (byte)(dataSize + 2));
+		byte ackRX[dataSize + 2];   // Data received from slave
+		for (int i = 0; i < blockRXSize; i++) {
+			ackRX[i] = Wire.read();
+		}
+		if (ackRX[0] == ACKRDFSH) {
+			//Serial.print("ESP8266 - Command ");
+			//Serial.print(cmdTX[0]);
+			//Serial.print(" parsed OK <<< ");
+			//Serial.println(ackRX[0]);
+			uint8_t checksum = 0;
+
+			for (uint8_t i = 1; i < (dataSize + 1); i++) {
+				if (ackRX[i] < 16) {
+					//Serial.print("0x0");
+					Serial.print("0");
+				}
+				//else {
+				//	Serial.print("0x");
+				//}
+				Serial.print(ackRX[i], HEX);			/* Byte values */
+				//checksum += (ackRX[i]);
+				if (v == valuesPerLine) {
+					Serial.println("");
+					if ((addr + dataSize) < flashSize) {
+						Serial.print("Addr ");
+						Serial.print(addr + dataSize, HEX);
+						if ((addr + dataSize) < 0x1000) {
+							if ((addr + dataSize) < 0x100) {
+								Serial.print(":   ");
+							}
+							else {
+								Serial.print(":  ");
+							}
+						}
+						else {
+							Serial.print(": ");
+						}
+					}
+					v = 0;
+				}
+				else {
+					Serial.print(" ");
+				}
+				v++;
+				//Serial.println(" |");
+				checksum += (uint8_t)ackRX[i];
+			}
+			//if (checksum + 1 == ackRX[dataSize + 1]) {
+			if (checksum == ackRX[dataSize + 1]) {
+				//Serial.print("   >>> Checksum OK! <<<   ");
+				//Serial.println(checksum);
+			}
+			else {
+				Serial.print("\n\r   ### Checksum ERROR! ###   ");
+				Serial.println(checksum);
+				//Serial.print(checksum + 1);
+				//Serial.print(" <-- calculated, received --> ");
+				//Serial.println(ackRX[dataSize + 1]);
+				if (checksumErr++ == MAXCKSUMERRORS) {
+					Serial.println("[Timonel] - Too many Checksum ERRORS, aborting! ");
+					delay(1000);
+					exit(1);
+				}
+			}
+		}
+		else {
+			Serial.print("[Timonel] - DumpFlashMem Error parsing ");
+			Serial.print(cmdTX[0]);
+			Serial.print(" command! <<< ");
+			Serial.println(ackRX[0]);
+		}
+		delay(100);
+	}
 }
 
 // Function TWI command transmit (Overload A: transmit command single byte)
