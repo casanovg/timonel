@@ -189,6 +189,7 @@ void Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 	byte checksumErr = 0;
 	int v = 1;
 	cmdTX[3] = rx_data_size;
+
 	byte transmitData[1] = { 0 };
 	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory ...");
 	Serial.println("");
@@ -198,8 +199,8 @@ void Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 	Serial.print(":    ");
 
 	for (word addr = 0; addr < flash_size; addr += rx_data_size) {
-		//byte rx_data_size = 0;	// Requested T85 buffer data size
-		//byte dataIX = 0;		// Requested T85 buffer data start position
+		//byte rx_data_size = 0;	/* Requested T85 buffer data size */
+		//byte dataIX = 0;			/* Requested T85 buffer data start position */
 		cmdTX[1] = ((addr & 0xFF00) >> 8);		/* Flash page address high byte */
 		cmdTX[2] = (addr & 0xFF);				/* Flash page address low byte */
 		cmdTX[4] = (byte)(cmdTX[0] + cmdTX[1] + cmdTX[2] + cmdTX[3]); /* READFLSH Checksum */
@@ -221,7 +222,6 @@ void Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 			//Serial.print(" parsed OK <<< ");
 			//Serial.println(ackRX[0]);
 			byte checksum = 0;
-
 			for (byte i = 1; i < (rx_data_size + 1); i++) {
 				if (ackRX[i] < 16) {
 					//Serial.print("0x0");
@@ -269,6 +269,7 @@ void Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				//Serial.print(checksum + 1);
 				//Serial.print(" <-- calculated, received --> ");
 				//Serial.println(ackRX[rx_data_size + 1]);
+
 				if (checksumErr++ == MAXCKSUMERRORS) {
 					Serial.println("[Timonel] - Too many Checksum ERRORS, aborting! ");
 					delay(1000);
