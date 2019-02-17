@@ -183,12 +183,12 @@ byte Timonel::DeleteApplication(void) {
 }
 
 // Function DumpFlashMem
-void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
+void Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_line) {
 	byte cmdTX[5] = { READFLSH, 0, 0, 0, 0 };
 	byte txSize = 5;
-	uint8_t checksumErr = 0;
+	byte checksumErr = 0;
 	int v = 1;
-	cmdTX[3] = dataSize;
+	cmdTX[3] = rx_data_size;
 	byte transmitData[1] = { 0 };
 	Serial.println("\n\n\r[Timonel] - Dumping Flash Memory ...");
 	Serial.println("");
@@ -197,8 +197,8 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 	Serial.print(0, HEX);
 	Serial.print(":    ");
 
-	for (word addr = 0; addr < flashSize; addr += dataSize) {
-		//byte dataSize = 0;	// Requested T85 buffer data size
+	for (word addr = 0; addr < flash_size; addr += rx_data_size) {
+		//byte rx_data_size = 0;	// Requested T85 buffer data size
 		//byte dataIX = 0;		// Requested T85 buffer data start position
 		cmdTX[1] = ((addr & 0xFF00) >> 8);		/* Flash page address high byte */
 		cmdTX[2] = (addr & 0xFF);				/* Flash page address low byte */
@@ -210,8 +210,8 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 			Wire.endTransmission();
 		}
 		// Receive acknowledgement
-		byte blockRXSize = Wire.requestFrom(addr_, (byte)(dataSize + 2));
-		byte ackRX[dataSize + 2];   // Data received from slave
+		byte blockRXSize = Wire.requestFrom(addr_, (byte)(rx_data_size + 2));
+		byte ackRX[rx_data_size + 2];   // Data received from slave
 		for (int i = 0; i < blockRXSize; i++) {
 			ackRX[i] = Wire.read();
 		}
@@ -220,9 +220,9 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 			//Serial.print(cmdTX[0]);
 			//Serial.print(" parsed OK <<< ");
 			//Serial.println(ackRX[0]);
-			uint8_t checksum = 0;
+			byte checksum = 0;
 
-			for (uint8_t i = 1; i < (dataSize + 1); i++) {
+			for (byte i = 1; i < (rx_data_size + 1); i++) {
 				if (ackRX[i] < 16) {
 					//Serial.print("0x0");
 					Serial.print("0");
@@ -232,13 +232,13 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 				//}
 				Serial.print(ackRX[i], HEX);			/* Byte values */
 				//checksum += (ackRX[i]);
-				if (v == valuesPerLine) {
+				if (v == values_per_line) {
 					Serial.println("");
-					if ((addr + dataSize) < flashSize) {
+					if ((addr + rx_data_size) < flash_size) {
 						Serial.print("Addr ");
-						Serial.print(addr + dataSize, HEX);
-						if ((addr + dataSize) < 0x1000) {
-							if ((addr + dataSize) < 0x100) {
+						Serial.print(addr + rx_data_size, HEX);
+						if ((addr + rx_data_size) < 0x1000) {
+							if ((addr + rx_data_size) < 0x100) {
 								Serial.print(":   ");
 							}
 							else {
@@ -256,10 +256,10 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 				}
 				v++;
 				//Serial.println(" |");
-				checksum += (uint8_t)ackRX[i];
+				checksum += (byte)ackRX[i];
 			}
-			//if (checksum + 1 == ackRX[dataSize + 1]) {
-			if (checksum == ackRX[dataSize + 1]) {
+			//if (checksum + 1 == ackRX[rx_data_size + 1]) {
+			if (checksum == ackRX[rx_data_size + 1]) {
 				//Serial.print("   >>> Checksum OK! <<<   ");
 				//Serial.println(checksum);
 			}
@@ -268,7 +268,7 @@ void Timonel::DumpFlashMem(word flashSize, byte dataSize, byte valuesPerLine) {
 				Serial.println(checksum);
 				//Serial.print(checksum + 1);
 				//Serial.print(" <-- calculated, received --> ");
-				//Serial.println(ackRX[dataSize + 1]);
+				//Serial.println(ackRX[rx_data_size + 1]);
 				if (checksumErr++ == MAXCKSUMERRORS) {
 					Serial.println("[Timonel] - Too many Checksum ERRORS, aborting! ");
 					delay(1000);
