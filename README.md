@@ -21,6 +21,8 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
   Make sure to check "Add Python to PATH".
 8-Open a Windows command prompt (or GIT Bash terminal) and run "pip install esptool"
   to install the ESP8266 utilities.
-9-Install a mingw-w64 package (http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20180531.exe).
+9-Install MinGW-w64 (https://osdn.net/projects/mingw/releases), select at least
+  mingw32-base-bin and mingw32-gcc-g++-bin from the installation manager.
+
 
 
