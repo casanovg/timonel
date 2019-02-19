@@ -184,13 +184,14 @@ byte Timonel::DeleteApplication(void) {
 
 // Function DumpFlashMem
 byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_line) {
-	byte cmd_tx[5] = { READFLSH, 0, 0, 0, 0 };
-	byte tx_size = 5;
+	const byte tx_size = 5;
+	byte cmd_tx[tx_size] = { READFLSH, 0, 0, 0, 0 };
+	//byte tx_size = 5;
 	byte checksum_errors = 0;
 	int v = 1;
 	cmd_tx[3] = rx_data_size;
 
-	byte transmitData[1] = { 0 };
+	//byte transmitData[1] = { 0 };
 	USE_SERIAL.printf_P("\n\n\r[DumpFlashMem] - Dumping Flash Memory ...\n\n\r");
 	USE_SERIAL.printf_P("Addr %X :    ", 0);
 
@@ -201,35 +202,41 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 		cmd_tx[2] = (address & 0xFF);				/* Flash page address low byte */
 		cmd_tx[4] = (byte)(cmd_tx[0] + cmd_tx[1] + cmd_tx[2] + cmd_tx[3]); /* READFLSH Checksum */
 
-		for (int i = 0; i < tx_size; i++) {
-			transmitData[i] = cmd_tx[i];
-			Wire.beginTransmission(addr_);
-			Wire.write(transmitData[i]);
-			Wire.endTransmission();
-		}
+		byte ack_rx[rx_data_size + 2];
+
+		byte errors = TWICmdXmit(cmd_tx, tx_size, ACKRDFSH, ack_rx, rx_data_size + 2);
+
+		// for (int i = 0; i < tx_size; i++) {
+		// 	transmitData[i] = cmd_tx[i];
+		// 	Wire.beginTransmission(addr_);
+		// 	Wire.write(transmitData[i]);
+		// 	Wire.endTransmission();
+		// }
 
 		// Receive acknowledgement
-		byte blockRXSize = Wire.requestFrom(addr_, (byte)(rx_data_size + 2));
-		byte ackRX[rx_data_size + 2];   // Data received from slave
-		for (int i = 0; i < blockRXSize; i++) {
-			ackRX[i] = Wire.read();
-		}
-		if (ackRX[0] == ACKRDFSH) {
+		// byte block_rx_size = Wire.requestFrom(addr_, (byte)(rx_data_size + 2));
+		// byte ack_rx[rx_data_size + 2];   // Data received from slave
+		// for (int i = 0; i < block_rx_size; i++) {
+		// 	ack_rx[i] = Wire.read();
+		// }
+
+		//if (ack_rx[0] == ACKRDFSH) {
+		if (errors == 0) {
 			//USE_SERIAL.print("ESP8266 - Command ");
 			//USE_SERIAL.print(cmd_tx[0]);
 			//USE_SERIAL.print(" parsed OK <<< ");
-			//USE_SERIAL.println(ackRX[0]);
+			//USE_SERIAL.println(ack_rx[0]);
 			byte checksum = 0;
 			for (byte i = 1; i < (rx_data_size + 1); i++) {
-				if (ackRX[i] < 16) {
+				if (ack_rx[i] < 16) {
 					//USE_SERIAL.print("0x0");
 					USE_SERIAL.print("0");
 				}
 				//else {
 				//	USE_SERIAL.print("0x");
 				//}
-				USE_SERIAL.printf_P("%X", ackRX[i]);			/* Byte values */
-				//checksum += (ackRX[i]);
+				USE_SERIAL.printf_P("%X", ack_rx[i]);			/* Byte values */
+				//checksum += (ack_rx[i]);
 				if (v == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");
 					if ((address + rx_data_size) < flash_size) {
@@ -253,17 +260,17 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				}
 				v++;
 				//USE_SERIAL.printf_P(" |\n\r");
-				checksum += (byte)ackRX[i];
+				checksum += (byte)ack_rx[i];
 			}
-			//if (checksum + 1 == ackRX[rx_data_size + 1]) {
-			if (checksum == ackRX[rx_data_size + 1]) {
+			//if (checksum + 1 == ack_rx[rx_data_size + 1]) {
+			if (checksum == ack_rx[rx_data_size + 1]) {
 				//USE_SERIAL.printf_P("   >>> Checksum OK! <<<   ");
 				//USE_SERIAL.printf_P("%d\r\n", checksum);
 			}
 			else {
 				USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   %d\n\r", checksum);
 				//USE_SERIAL.printf_P("%d\n\r", checksum + 1);
-				//USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", ackRX[rx_data_size + 1]);
+				//USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", ack_rx[rx_data_size + 1]);
 
 				if (checksum_errors++ == MAXCKSUMERRORS) {
 					USE_SERIAL.printf_P("[DumpFlashMem] - Too many Checksum ERRORS, aborting! \n\r");
@@ -273,7 +280,7 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 			}
 		}
 		else {
-			USE_SERIAL.printf_P("[DumpFlashMem] - DumpFlashMem Error parsing %d command <<< %d\n\r", cmd_tx[0], ackRX[0]);
+			USE_SERIAL.printf_P("[DumpFlashMem] - DumpFlashMem Error parsing %d command <<< %d\n\r", cmd_tx[0], ack_rx[0]);
 			return(1);
 		}
 		delay(100);
