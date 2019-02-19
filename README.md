@@ -12,7 +12,7 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
 
 2-Replace WinAVR subdirectories with the newer AVR-GCC versions from (http://blog.zakkemble.net/avr-gcc-builds)
   (http://blog.zakkemble.net/download/avr-gcc-8.2.0-x64-mingw.zip) at the time of this writing.
-  Open a Window command box and run: "avr-gcc --version" to check that the newest version is in your path.
+  Open a Window command box and run: "avr-gcc --version" to check that the newest version is in your Windows path variable.
   
 3-Install Git for Windows (https://git-scm.com/download).
 
@@ -32,4 +32,4 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
 9-Install MinGW (https://osdn.net/projects/mingw/releases), select at least
   mingw32-base-bin and mingw32-gcc-g++-bin from the installation manager.
   
-10-Add the "C:\MinGW\bin" folder to the Windows Path variable.
+10-Add the "C:\MinGW\bin" folder to the Windows path variable.
