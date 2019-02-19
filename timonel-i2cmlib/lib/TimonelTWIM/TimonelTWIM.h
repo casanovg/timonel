@@ -34,7 +34,7 @@ public:
     byte UploadApplication(const byte payload[], int payload_size, int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
-    void DumpFlashMem(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
+    byte DumpFlashMem(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
 private:
     byte addr_;
     bool reusing_twi_connection_ = true;
