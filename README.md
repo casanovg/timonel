@@ -10,7 +10,7 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
 --------------------------------------------------------------------------
 1-Install WinAVR in "C:\WinAVR-20100110"
 
-2-Replace WinAVR subdirectories with the newer version from (http://blog.zakkemble.net/avr-gcc-builds)
+2-Replace WinAVR subdirectories with the newer AVR-GCC versions from (http://blog.zakkemble.net/avr-gcc-builds)
   (http://blog.zakkemble.net/download/avr-gcc-8.2.0-x64-mingw.zip) at the time of this writing.
   Open a Window command box and run: "avr-gcc --version" to check that the newest version is in your path.
   
