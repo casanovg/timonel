@@ -20,7 +20,7 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
 
 5-Install Platformio (From VS Code --> Extensions --> search: Platformio IDE.
 
-6-Install Notepad++ (https://notepad-plus-plus.org/download).
+6-Install Notepad++ to use it optionally as the default git editor instead of vim (https://notepad-plus-plus.org/download).
 
 7-Install Python 3.7.2 or newer (https://www.python.org/downloads/release).
   (https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64.exe) for Windows x64 systems.
