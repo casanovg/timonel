@@ -14,13 +14,13 @@ Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
   (http://blog.zakkemble.net/download/avr-gcc-8.2.0-x64-mingw.zip) at the time of this writing.
   Open a Window command box and run: "avr-gcc --version" to check that the newest version is in your Windows path variable.
   
-3-Install Git for Windows (https://git-scm.com/download).
+3-Install Notepad++ to use it optionally as the default git editor instead of vim (https://notepad-plus-plus.org/download).
 
 4-Install Visual Studio Code (https://code.visualstudio.com/download).
 
 5-Install Platformio (From VS Code --> Extensions --> search: Platformio IDE.
 
-6-Install Notepad++ to use it optionally as the default git editor instead of vim (https://notepad-plus-plus.org/download).
+6-Install Git for Windows (https://git-scm.com/download).
 
 7-Install Python 3.7.2 or newer (https://www.python.org/downloads/release).
   (https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64.exe) for Windows x64 systems.
