@@ -44,8 +44,8 @@ private:
     void InitTiny(void);
     void TwoStepInit(word time);
     byte WritePageBuff(byte data_array[]);
-    byte TWICmdXmit(byte twi_command, byte twi_acknowledge, byte reply_array[] = nullptr, byte reply_size = 0);
-    byte TWICmdXmit(byte twi_cmd_array[], byte cmd_size, byte twi_acknowledge, byte reply_array[] = nullptr, byte reply_size = 0);
+    byte TWICmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
+    byte TWICmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
 };
 
 #endif /* _TIMONELTWIM_H_ */

@@ -342,7 +342,7 @@ void RequestEvent(void) {
 #endif /* AUTO_TPL_CALC */
                 // Modify the reset vector to point to this bootloader
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (byte)((command[2]) + command[1]);      /* Reply checksum accumulator */
+                reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
                 pageIX += 2;
                 for (byte i = 3; i < (RXDATASIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
@@ -358,7 +358,7 @@ void RequestEvent(void) {
                 }
             }
             if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                statusRegister |= (1 << ST_DEL_FLASH);              /* Safety payload deletion ... */
+                statusRegister |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
