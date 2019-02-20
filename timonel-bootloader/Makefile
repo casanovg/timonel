@@ -88,9 +88,9 @@ $(TARGET).bin:	$(OBJECTS)
 
 $(TARGET).hex:	$(TARGET).bin
 	@echo
-	@echo -----------------------------------------------
+	@echo ===============================================
 	@echo = Building Timonel configuration: $(CONFIG) =
-	@echo -----------------------------------------------
+	@echo ===============================================
 	@rm -f $(TARGET).hex $(TARGET).eep.hex
 	@avr-objcopy -j .text -j .data -O ihex $(TARGET).bin $(TARGET).hex
 	@echo
