@@ -28,7 +28,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) : addr_(twi_address) {
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryStatus(void) {
 	//struct status status_;
-  	byte ack_rx[V_CMD_LENGTH] = { 0 };  /* Data received from I2C slave */
+  	byte ack_rx[V_CMD_LENGTH] = { 0 };  					/* Data received from I2C slave */
 	TWICmdXmit(GETTMNLV, ACKTMNLV, ack_rx, V_CMD_LENGTH);
 	if ((ack_rx[CMD_ACK_POS] == ACKTMNLV) && (ack_rx[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.signature = ack_rx[V_SIGNATURE];
@@ -66,15 +66,15 @@ void Timonel::InitTiny(void) {
 // Function TwoStepInit
 void Timonel::TwoStepInit(word time) {
 	delay(time);
-	InitTiny();					/* Two-step Tiny85 initialization: STEP 1 */
-	QueryStatus(); /* Two-step Tiny85 initialization: STEP 2 */
+	InitTiny();												/* Two-step Tiny85 initialization: STEP 1 */
+	QueryStatus(); 											/* Two-step Tiny85 initialization: STEP 2 */
 }
 
 // Function WritePageBuff
 byte Timonel::WritePageBuff(byte data_array[]) {
 	const byte tx_size = TXDATASIZE + 2;
 	byte cmd_tx[tx_size] = { 0 };
-	byte comm_errors = 0;					/* I2C communication error counter */
+	byte comm_errors = 0;									/* I2C communication error counter */
 	byte checksum = 0;
 	cmd_tx[0] = WRITPAGE;
 	for (int b = 1; b < tx_size - 1; b++) {
@@ -89,7 +89,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 		}
 		else {
 			USE_SERIAL.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", ack_rx[1]);
-			if (comm_errors++ > 0) {					/* Checksum error detected ... */
+			if (comm_errors++ > 0) {						/* Checksum error detected ... */
 				USE_SERIAL.printf_P("\n\r[WritePageBuff] Checksum Errors, Aborting ...\r\n");
 				exit(comm_errors);
 			}
@@ -97,7 +97,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 	}
 	else {
 		USE_SERIAL.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", cmd_tx[0], ack_rx[0]);
-		if (comm_errors++ > 0) {					/* Opcode error detected ... */
+		if (comm_errors++ > 0) {							/* Opcode error detected ... */
 			USE_SERIAL.printf_P("\n\r[WritePageBuff] Opcode Reply Errors, Aborting ...\n\r");
 			exit(comm_errors);
 		}
@@ -107,31 +107,31 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 
 // Upload a user application to an ATTiny85 running Timonel
 byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
-	byte packet = 0;															/* Byte counter to be sent in a single I2C data packet */
-	byte padding = 0;															/* Amount of padding bytes to match the page size */
-	byte page_end = 0;														/* Byte counter to detect the end of flash mem page */
+	byte packet = 0;										/* Byte counter to be sent in a single I2C data packet */
+	byte padding = 0;										/* Amount of padding bytes to match the page size */
+	byte page_end = 0;										/* Byte counter to detect the end of flash mem page */
 	byte page_count = 1;
 	byte wrt_errors = 0;
 	byte data_packet[TXDATASIZE] = { 0xFF };
-	if ((payload_size % FLASHPGSIZE) != 0) {			/* If the payload to be sent is smaller than flash page size, resize it to match */
+	if ((payload_size % FLASHPGSIZE) != 0) {				/* If the payload to be sent is smaller than flash page size, resize it to match */
 		padding = ((((int)(payload_size / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payload_size);
 		payload_size += padding;
 	}
 	USE_SERIAL.printf_P("\n[UploadFirmware] Writing payload to flash, starting at 0x%04X ...\n\n\r", start_address);
 	for (int i = 0; i < payload_size; i++) {
 		if (i < (payload_size - padding)) {
-			data_packet[packet] = payload[i];					/* If there are data to fill the page, use it ... */
+			data_packet[packet] = payload[i];				/* If there are data to fill the page, use it ... */
 		}
 		else {
-			data_packet[packet] = 0xff;								/* If there are no more data, complete the page with padding (0xff) */
+			data_packet[packet] = 0xff;						/* If there are no more data, complete the page with padding (0xff) */
 		}
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
 				USE_SERIAL.printf_P(".");
 			}
-			wrt_errors += WritePageBuff(data_packet);	/* Send data to T85 through I2C */
+			wrt_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
 			packet = 0;
-			delay(10);																/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
+			delay(10);										/* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
 		}
 		if (wrt_errors > 0) {
 			//DeleteFlash();
@@ -143,11 +143,11 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 #endif /* ESP8266 */
 			return(wrt_errors);
 		}
-		if (page_end++ == (FLASHPGSIZE - 1)) {			/* When a page end is detected ... */
+		if (page_end++ == (FLASHPGSIZE - 1)) {				/* When a page end is detected ... */
 
 			USE_SERIAL.printf_P("%d", page_count++);
 			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
-			delay(100);																/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+			delay(100);										/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
 			if (i < (payload_size - 1)) {
 				page_end = 0;
@@ -196,10 +196,10 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 	USE_SERIAL.printf_P("Addr %X :    ", 0);
 
 	for (word address = 0; address < flash_size; address += rx_data_size) {
-		//byte rx_data_size = 0;	/* Requested T85 buffer data size */
-		//byte dataIX = 0;			/* Requested T85 buffer data start position */
-		cmd_tx[1] = ((address & 0xFF00) >> 8);		/* Flash page address high byte */
-		cmd_tx[2] = (address & 0xFF);				/* Flash page address low byte */
+		//byte rx_data_size = 0;							/* Requested T85 buffer data size */
+		//byte dataIX = 0;									/* Requested T85 buffer data start position */
+		cmd_tx[1] = ((address & 0xFF00) >> 8);				/* Flash page address high byte */
+		cmd_tx[2] = (address & 0xFF);						/* Flash page address low byte */
 		cmd_tx[4] = (byte)(cmd_tx[0] + cmd_tx[1] + cmd_tx[2] + cmd_tx[3]); /* READFLSH Checksum */
 
 		byte ack_rx[rx_data_size + 2];
@@ -235,7 +235,7 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				//else {
 				//	USE_SERIAL.print("0x");
 				//}
-				USE_SERIAL.printf_P("%X", ack_rx[i]);			/* Byte values */
+				USE_SERIAL.printf_P("%X", ack_rx[i]);		/* Byte values */
 				//checksum += (ack_rx[i]);
 				if (v == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");
@@ -306,7 +306,7 @@ byte Timonel::TWICmdXmit(byte twi_cmd_array[], byte cmd_size, byte twi_acknowled
 	if (reply_size == 0) {
 		Wire.requestFrom(addr_, ++reply_size);
 		byte reply = Wire.read();
-		if (reply == twi_acknowledge) {	/* Return I2C reply from slave */
+		if (reply == twi_acknowledge) {						/* I2C reply from slave */
 			USE_SERIAL.printf_P("[TWICmdXmit] Command %d parsed OK <<< %d\n\n\r", twi_cmd_array[0], reply);
 			return(0);
 		}
