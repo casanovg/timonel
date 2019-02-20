@@ -28,8 +28,8 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) : addr_(twi_address) {
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryStatus(void) {
   	byte rx_reply[V_CMD_LENGTH] = { 0 };  					/* Status received from I2C slave */
-	TWICmdXmit(GETTMNLV, ACKTMNLV, rx_reply, V_CMD_LENGTH);
-	if ((rx_reply[CMD_ACK_POS] == ACKTMNLV) && (rx_reply[V_SIGNATURE] == T_SIGNATURE)) {
+	byte twi_cmd_err = TWICmdXmit(GETTMNLV, ACKTMNLV, rx_reply, V_CMD_LENGTH);
+	if ((twi_cmd_err == 0) && (rx_reply[CMD_ACK_POS] == ACKTMNLV) && (rx_reply[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.signature = rx_reply[V_SIGNATURE];
 		status_.version_major = rx_reply[V_MAJOR];
 		status_.version_minor = rx_reply[V_MINOR];
@@ -182,12 +182,12 @@ byte Timonel::DeleteApplication(void) {
 
 // Function DumpFlashMem
 byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_line) {
-	const byte tx_size = 5;
-	byte twi_cmd[tx_size] = { READFLSH, 0, 0, 0, 0 };
-	//byte tx_size = 5;
+	const byte cmd_size = 5;
+	byte twi_cmd_arr[cmd_size] = { READFLSH, 0, 0, 0, 0 };
+	//byte cmd_size = 5;
 	byte checksum_errors = 0;
 	int v = 1;
-	twi_cmd[3] = rx_data_size;
+	twi_cmd_arr[3] = rx_data_size;
 
 	//byte transmitData[1] = { 0 };
 	USE_SERIAL.printf_P("\n\n\r[DumpFlashMem] - Dumping Flash Memory ...\n\n\r");
@@ -196,13 +196,15 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 	for (word address = 0; address < flash_size; address += rx_data_size) {
 		//byte rx_data_size = 0;							/* Requested T85 buffer data size */
 		//byte dataIX = 0;									/* Requested T85 buffer data start position */
-		twi_cmd[1] = ((address & 0xFF00) >> 8);				/* Flash page address high byte */
-		twi_cmd[2] = (address & 0xFF);						/* Flash page address low byte */
-		twi_cmd[4] = (byte)(twi_cmd[0] + twi_cmd[1] + twi_cmd[2] + twi_cmd[3]); /* READFLSH Checksum */
+		twi_cmd_arr[1] = ((address & 0xFF00) >> 8);				/* Flash page address high byte */
+		twi_cmd_arr[2] = (address & 0xFF);						/* Flash page address low byte */
+		twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
 
-		byte rx_reply[rx_data_size + 2];
+		byte twi_reply_arr[rx_data_size + 2];
 
-		byte errors = TWICmdXmit(twi_cmd, tx_size, ACKRDFSH, rx_reply, rx_data_size + 2);
+		byte twi_cmd_err = TWICmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_data_size + 2);
+								 //byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size
+								 //byte twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size
 
 		// for (int i = 0; i < tx_size; i++) {
 		// 	transmitData[i] = twi_cmd[i];
@@ -219,21 +221,21 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 		// }
 
 		//if (rx_reply[0] == ACKRDFSH) {
-		if (errors == 0) {
+		if (twi_cmd_err == 0) {
 			//USE_SERIAL.print("ESP8266 - Command ");
 			//USE_SERIAL.print(twi_cmd[0]);
 			//USE_SERIAL.print(" parsed OK <<< ");
 			//USE_SERIAL.println(rx_reply[0]);
 			byte checksum = 0;
 			for (byte i = 1; i < (rx_data_size + 1); i++) {
-				if (rx_reply[i] < 16) {
+				if (twi_reply_arr[i] < 16) {
 					//USE_SERIAL.print("0x0");
 					USE_SERIAL.print("0");
 				}
 				//else {
 				//	USE_SERIAL.print("0x");
 				//}
-				USE_SERIAL.printf_P("%X", rx_reply[i]);		/* Byte values */
+				USE_SERIAL.printf_P("%X", twi_reply_arr[i]);		/* Byte values */
 				//checksum += (rx_reply[i]);
 				if (v == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");
@@ -258,10 +260,10 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				}
 				v++;
 				//USE_SERIAL.printf_P(" |\n\r");
-				checksum += (byte)rx_reply[i];
+				checksum += (byte)twi_reply_arr[i];
 			}
 			//if (checksum + 1 == rx_reply[rx_data_size + 1]) {
-			if (checksum == rx_reply[rx_data_size + 1]) {
+			if (checksum == twi_reply_arr[rx_data_size + 1]) {
 				//USE_SERIAL.printf_P("   >>> Checksum OK! <<<   ");
 				//USE_SERIAL.printf_P("%d\r\n", checksum);
 			}
@@ -273,12 +275,12 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				if (checksum_errors++ == MAXCKSUMERRORS) {
 					USE_SERIAL.printf_P("[DumpFlashMem] - Too many Checksum ERRORS, aborting! \n\r");
 					delay(1000);
-					exit(1);
+					exit(2);
 				}
 			}
 		}
 		else {
-			USE_SERIAL.printf_P("[DumpFlashMem] - DumpFlashMem Error parsing %d command <<< %d\n\r", twi_cmd[0], rx_reply[0]);
+			USE_SERIAL.printf_P("[DumpFlashMem] - DumpFlashMem Error parsing %d command <<< %d\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
 			return(1);
 		}
 		delay(100);
@@ -293,7 +295,7 @@ byte Timonel::TWICmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byt
 	return(TWICmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
 }
 
-// Function TWI command transmit (Overload B: transmit command multi byte)
+// Function TWI command transmit (Overload B: transmit command multibyte)
 byte Timonel::TWICmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
 	for (int i = 0; i < cmd_size; i++) {
 		Wire.beginTransmission(addr_);
@@ -319,12 +321,12 @@ byte Timonel::TWICmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
 	    	twi_reply_arr[i] = Wire.read();
   		}
 	 	if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
-			//USE_SERIAL.printf_P("[TWICmdXmit] Command %d parsed OK <<< %d\n\n\r", twi_cmd_array[0],twi_reply_arr[0]);
+			USE_SERIAL.printf_P("[TWICmdXmit] Multibyte command %d parsed OK <<< %d\n\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
 			return(0);
 		}
 		else {
-			//USE_SERIAL.printf_P("[TWICmdXmit] Error parsing %d command <<< %d\n\n\r", twi_cmd_array[0], twi_reply_arr[0]);
-			return(1);
+			USE_SERIAL.printf_P("[TWICmdXmit] Error parsing %d multibyte command <<< %d\n\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
+			return(2);
 		}		  
 	}
 }
