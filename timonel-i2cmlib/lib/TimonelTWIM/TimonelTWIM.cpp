@@ -71,17 +71,17 @@ void Timonel::TwoStepInit(word time) {
 
 // Function WritePageBuff
 byte Timonel::WritePageBuff(byte data_array[]) {
-	const byte tx_size = TXDATASIZE + 2;
-	byte twi_cmd[tx_size] = { 0 };
+	const byte cmd_size = TXDATASIZE + 2;
+	byte twi_cmd[cmd_size] = { 0 };
 	byte checksum = 0;
 	twi_cmd[0] = WRITPAGE;
-	for (int b = 1; b < tx_size - 1; b++) {
-		twi_cmd[b] = data_array[b - 1];
-		checksum += (byte)data_array[b - 1];				/* Data checksum accumulator (mod 256) */
+	for (int i = 1; i < cmd_size - 1; i++) {
+		twi_cmd[i] = data_array[i - 1];
+		checksum += (byte)data_array[i - 1];				/* Data checksum accumulator (mod 256) */
 	}
-	twi_cmd[tx_size - 1] = checksum;
+	twi_cmd[cmd_size - 1] = checksum;
 	byte rx_reply[2] = { 0 };
-	byte wrt_errors = TWICmdXmit(twi_cmd, tx_size, ACKWTPAG, rx_reply, 2);
+	byte wrt_errors = TWICmdXmit(twi_cmd, cmd_size, ACKWTPAG, rx_reply, 2);
 	if (rx_reply[0] == ACKWTPAG) {
 		if (rx_reply[1] == checksum) {
 		}
@@ -121,7 +121,7 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 			data_packet[packet] = payload[i];				/* If there are data to fill the page, use it ... */
 		}
 		else {
-			data_packet[packet] = 0xff;						/* If there are no more data, complete the page with padding (0xff) */
+			data_packet[packet] = 0xFF;						/* If there are no more data, complete the page with padding (0xff) */
 		}
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
@@ -196,8 +196,8 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 	for (word address = 0; address < flash_size; address += rx_data_size) {
 		//byte rx_data_size = 0;							/* Requested T85 buffer data size */
 		//byte dataIX = 0;									/* Requested T85 buffer data start position */
-		twi_cmd_arr[1] = ((address & 0xFF00) >> 8);				/* Flash page address high byte */
-		twi_cmd_arr[2] = (address & 0xFF);						/* Flash page address low byte */
+		twi_cmd_arr[1] = ((address & 0xFF00) >> 8);			/* Flash page address high byte */
+		twi_cmd_arr[2] = (address & 0xFF);					/* Flash page address low byte */
 		twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
 
 		byte twi_reply_arr[rx_data_size + 2];
@@ -235,7 +235,7 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 				//else {
 				//	USE_SERIAL.print("0x");
 				//}
-				USE_SERIAL.printf_P("%X", twi_reply_arr[i]);		/* Byte values */
+				USE_SERIAL.printf_P("%X", twi_reply_arr[i]);	/* Byte values */
 				//checksum += (rx_reply[i]);
 				if (v == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");

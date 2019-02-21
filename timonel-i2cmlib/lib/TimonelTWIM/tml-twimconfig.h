@@ -23,7 +23,7 @@
 #define V_APPL_ADDR_MSB 7   /* Ver cmd reply: Application address MSB position */
 #define V_APPL_ADDR_LSB 8   /* Ver cmd reply: Application address LSB position */
 
-#define TXDATASIZE 8  		  /* TX data size for WRITBUFF command */
+#define TXDATASIZE 8  		  /* Data block size for WRITBUFF command transmisions */
 #define FLASHPGSIZE 64		  /* Tiny85 flash page buffer size */
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
 
