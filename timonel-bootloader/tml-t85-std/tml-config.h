@@ -31,7 +31,7 @@
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
                                 /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
 
-#define AUTO_TPL_CALC   true    /* Automatic trampoline calculation & flash. If this is disabled,      */
+#define AUTO_TPL_CALC   false    /* Automatic trampoline calculation & flash. If this is disabled,      */
                                 /* the trampoline has to be calculated and written by the I2C master.  */
                                 /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
                                 
@@ -41,7 +41,7 @@
                                 /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
                                 /* duty to write the trampoline page is transferred to the I2C master. */
                                 
-#define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting      */
+#define CMD_STPGADDR    true   /* If this is disabled, applications can only be flashed starting      */
                                 /* from page 0, this is OK for most applications.                      */
                                 /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
@@ -53,7 +53,7 @@
 #define CHECK_EMPTY_FL  false   /* GETTMNLV will read the first 100 flash memory positions to check if */
                                 /* there is an application (or some other data) loaded.                */
 
-#define CMD_READFLASH   false   /* This option enables the READFLSH command. It can be useful for      */
+#define CMD_READFLASH   true   /* This option enables the READFLSH command. It can be useful for      */
                                 /* backing up the flash memory before flashing a new firmware.         */
                                    
 /*

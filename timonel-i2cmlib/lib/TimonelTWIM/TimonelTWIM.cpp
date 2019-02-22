@@ -321,7 +321,7 @@ byte Timonel::TWICmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
 	    	twi_reply_arr[i] = Wire.read();
   		}
 	 	if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
-			USE_SERIAL.printf_P("[TWICmdXmit] Multibyte command %d parsed OK <<< %d\n\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
+			//USE_SERIAL.printf_P("[TWICmdXmit] Multibyte command %d parsed OK <<< %d\n\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
 			return(0);
 		}
 		else {
