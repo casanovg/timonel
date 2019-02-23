@@ -28,7 +28,7 @@ Timonel::Timonel(byte twi_address, byte sda, byte scl) : addr_(twi_address) {
 // Function to check the status parameters of the bootloader running on the ATTiny85
 byte Timonel::QueryStatus(void) {
   	byte rx_reply[V_CMD_LENGTH] = { 0 };  					/* Status received from I2C slave */
-	byte twi_cmd_err = TWICmdXmit(GETTMNLV, ACKTMNLV, rx_reply, V_CMD_LENGTH);
+	byte twi_cmd_err = TwiCmdXmit(GETTMNLV, ACKTMNLV, rx_reply, V_CMD_LENGTH);
 	if ((twi_cmd_err == 0) && (rx_reply[CMD_ACK_POS] == ACKTMNLV) && (rx_reply[V_SIGNATURE] == T_SIGNATURE)) {
 		status_.signature = rx_reply[V_SIGNATURE];
 		status_.version_major = rx_reply[V_MAJOR];
@@ -81,7 +81,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 	}
 	twi_cmd[cmd_size - 1] = checksum;
 	byte rx_reply[2] = { 0 };
-	byte wrt_errors = TWICmdXmit(twi_cmd, cmd_size, ACKWTPAG, rx_reply, 2);
+	byte wrt_errors = TwiCmdXmit(twi_cmd, cmd_size, ACKWTPAG, rx_reply, 2);
 	if (rx_reply[0] == ACKWTPAG) {
 		if (rx_reply[1] == checksum) {
 		}
@@ -171,13 +171,13 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 // Ask Timonel to stop executing and run the user application
 byte Timonel::RunApplication(void) {
 	USE_SERIAL.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
-	return(TWICmdXmit(EXITTMNL, ACKEXITT));
+	return(TwiCmdXmit(EXITTMNL, ACKEXITT));
 }
 
 // Instruct Timonel to delete the user application
 byte Timonel::DeleteApplication(void) {
 	USE_SERIAL.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
-	return(TWICmdXmit(DELFLASH, ACKDELFL));
+	return(TwiCmdXmit(DELFLASH, ACKDELFL));
 }
 
 // Function DumpFlashMem
@@ -202,7 +202,7 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 
 		byte twi_reply_arr[rx_data_size + 2];
 
-		byte twi_cmd_err = TWICmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_data_size + 2);
+		byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_data_size + 2);
 								 //byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size
 								 //byte twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size
 
@@ -289,14 +289,14 @@ byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_l
 }
 
 // Function TWI command transmit (Overload A: transmit command single byte)
-byte Timonel::TWICmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+byte Timonel::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
 	const byte cmd_size = 1;
 	byte twi_cmd_arr[cmd_size] = { twi_cmd };
-	return(TWICmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
+	return(TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
 }
 
 // Function TWI command transmit (Overload B: transmit command multibyte)
-byte Timonel::TWICmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+byte Timonel::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
 	for (int i = 0; i < cmd_size; i++) {
 		Wire.beginTransmission(addr_);
 		Wire.write(twi_cmd_arr[i]);
