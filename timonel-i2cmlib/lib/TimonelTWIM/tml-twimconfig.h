@@ -35,4 +35,11 @@
 #define ERR_01 0x01         /* Error GetTmlID (0) 1: Error parsing GETTMNLV command */
 #define ERR_02 0x02         /* Error GetTmlID (0) 2: Firmware signature unknown */
 
+// Function SetPageAddress definitions
+// #define STPGADDR_CMD_SZ 4
+// #define STPGADDR_RPL_SZ 2 
+// #define WORD_MSB_MASK 0xFF00
+// #define WORD_LSB_MASK 0xFF
+// End of SetPageAddress definitions
+
 #endif /* _TML_TWIMCONFIG_H_ */

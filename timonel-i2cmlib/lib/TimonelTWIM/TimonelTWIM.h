@@ -34,16 +34,17 @@ public:
     byte UploadApplication(const byte payload[], int payload_size, int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
-    byte DumpFlashMem(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
+    byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
 private:
     byte addr_;
     bool reusing_twi_connection_ = true;
     byte block_rx_size_ = 0;
     struct status status_;
     byte QueryStatus(void);
-    void InitTiny(void);
-    void TwoStepInit(word time);
+    byte InitTiny(void);
+    byte TwoStepInit(word time);
     byte WritePageBuff(byte data_array[]);
+    byte SetPageAddress(word page_addr);
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
 };

@@ -183,7 +183,7 @@ void loop() {
                 //byte dataSize = 0;	// flash data size requested to ATtiny85
                 //byte dataIX = 0;	// Requested flash data start position
                 Timonel tml(TML_ADDR);
-                tml.DumpFlashMem(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);            
+                tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);            
                 //DumpFlashMem(MCUTOTALMEM, 8, 32);
                 new_byte = false;
                 break;
