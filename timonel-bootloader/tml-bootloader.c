@@ -340,7 +340,10 @@ void RequestEvent(void) {
                 appResetLSB = command[1];
                 appResetMSB = command[2];
 #endif /* AUTO_TPL_CALC */
-                // Modify the reset vector to point to this bootloader
+                // Modify the reset vector to point to this bootloader.
+                // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
+                // the reset vector modification MUST BE done by the I2C master's upload program.
+                // Otherwise, Timonel won't have the execution control after power on reset.
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
                 reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
                 pageIX += 2;

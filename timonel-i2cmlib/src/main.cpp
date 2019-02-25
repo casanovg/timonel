@@ -173,7 +173,7 @@ void loop() {
             // ********************************
             case 'w': case 'W': {
                 Timonel tml(TML_ADDR);
-                tml.UploadApplication(payload, sizeof(payload));
+                tml.UploadApplication(payload, sizeof(payload), 0x200);
                 break;
             }
             // ********************************
