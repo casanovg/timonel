@@ -54,25 +54,28 @@ Timonel::status Timonel::GetStatus(void) {
 }
 
 // Function InitTiny
-void Timonel::InitTiny(void) {
+byte Timonel::InitTiny(void) {
 	Wire.beginTransmission(addr_);
 	Wire.write(INITTINY);
 	Wire.endTransmission();
 	Wire.requestFrom(addr_, (byte)1);
 	//byte block_rx_size = 0;
+	return(0);
 }
 
 // Function TwoStepInit
-void Timonel::TwoStepInit(word time) {
+byte Timonel::TwoStepInit(word time) {
 	delay(time);
 	InitTiny();												/* Two-step Tiny85 initialization: STEP 1 */
-	QueryStatus(); 											/* Two-step Tiny85 initialization: STEP 2 */
+	return(QueryStatus()); 											/* Two-step Tiny85 initialization: STEP 2 */
 }
 
 // Function WritePageBuff
 byte Timonel::WritePageBuff(byte data_array[]) {
 	const byte cmd_size = TXDATASIZE + 2;
+	const byte reply_size = 2;
 	byte twi_cmd[cmd_size] = { 0 };
+	byte twi_reply_arr[reply_size] = { 0 };
 	byte checksum = 0;
 	twi_cmd[0] = WRITPAGE;
 	for (int i = 1; i < cmd_size - 1; i++) {
@@ -80,13 +83,10 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 		checksum += (byte)data_array[i - 1];				/* Data checksum accumulator (mod 256) */
 	}
 	twi_cmd[cmd_size - 1] = checksum;
-	byte rx_reply[2] = { 0 };
-	byte wrt_errors = TwiCmdXmit(twi_cmd, cmd_size, ACKWTPAG, rx_reply, 2);
-	if (rx_reply[0] == ACKWTPAG) {
-		if (rx_reply[1] == checksum) {
-		}
-		else {
-			USE_SERIAL.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", rx_reply[1]);
+	byte wrt_errors = TwiCmdXmit(twi_cmd, cmd_size, ACKWTPAG, twi_reply_arr, reply_size);
+	if (twi_reply_arr[0] == ACKWTPAG) {
+		if (twi_reply_arr[1] != checksum) {
+			USE_SERIAL.printf_P("[WritePageBuff] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", twi_reply_arr[1]);
 			if (wrt_errors++ > 0) {						/* Checksum error detected ... */
 				USE_SERIAL.printf_P("\n\r[WritePageBuff] Checksum Errors, Aborting ...\r\n");
 				exit(wrt_errors);
@@ -94,7 +94,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 		}
 	}
 	else {
-		USE_SERIAL.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", twi_cmd[0], rx_reply[0]);
+		USE_SERIAL.printf_P("[WritePageBuff] Error parsing %d command! <<< %d\r\n", twi_cmd[0], twi_reply_arr[0]);
 		if (wrt_errors++ > 0) {							/* Opcode error detected ... */
 			USE_SERIAL.printf_P("\n\r[WritePageBuff] Opcode Reply Errors, Aborting ...\n\r");
 			exit(wrt_errors);
@@ -143,9 +143,11 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		}
 		if (page_end++ == (FLASHPGSIZE - 1)) {				/* When a page end is detected ... */
 
-			USE_SERIAL.printf_P("%d", page_count++);
-			//DumpPageBuff(FLASHPGSIZE, TXDATASIZE, TXDATASIZE);
-			delay(100);										/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+			USE_SERIAL.printf_P("P%d", page_count++);
+
+			SetPageAddress(page_count * FLASHPGSIZE);
+
+			delay(1000);										/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
 
 			if (i < (payload_size - 1)) {
 				page_end = 0;
@@ -168,6 +170,33 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 	return(upl_errors);
 }
 
+// Function SetPageAddress
+byte Timonel::SetPageAddress(word page_addr) {
+	const byte cmd_size = 4;
+	const byte reply_size = 2;
+	byte twi_cmd_arr[cmd_size] = { STPGADDR, 0, 0, 0 };
+	byte twi_reply_arr[reply_size];
+	twi_cmd_arr[1] = ((page_addr & 0xFF00) >> 8);					/* Flash page address MSB */
+	twi_cmd_arr[2] = (page_addr & 0xFF);							/* Flash page address LSB */
+	twi_cmd_arr[3] = (byte)(twi_cmd_arr[1] + twi_cmd_arr[2]);		/* Checksum */
+	USE_SERIAL.printf_P("\n\n\r[SetPageAddress] Setting flash page address on Attiny85 >>> %d (STPGADDR)\n\r", twi_cmd_arr[0]);
+	byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, AKPGADDR, twi_reply_arr, reply_size);
+	if (twi_cmd_err == 0) {
+		//USE_SERIAL.printf_P("[SetPageAddress] Command %d parsed OK <<< %d\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
+		if (twi_reply_arr[1] == twi_cmd_arr[3]) {
+			//USE_SERIAL.printf_P("[SetPageAddress] Operands %d and %d parsed OK by slave <<< ATtiny85 Flash Page Address Check = %d\n\r", twi_cmd_arr[1], twi_cmd_arr[2], twi_reply_arr[1]);
+			USE_SERIAL.printf_P("[SetPageAddress] Address %04X made by %02X and %02X parsed OK by slave <<< ATtiny85 Check = %d\n\r", page_addr, twi_cmd_arr[1], twi_cmd_arr[2], twi_reply_arr[1]);
+		}
+		else {
+			USE_SERIAL.printf_P("[SetPageAddress] Operand %d parsed with {{{ERROR}}} <<< ATtiny85 Flash Page Address Check = %d\r\n", twi_cmd_arr[1], twi_reply_arr[1]);
+		}
+	}
+	else {
+		USE_SERIAL.printf_P("[SetPageAddress] Error parsing %d command! <<< %d\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
+	}
+	return(twi_cmd_err);
+}
+
 // Ask Timonel to stop executing and run the user application
 byte Timonel::RunApplication(void) {
 	USE_SERIAL.printf_P("\n\r[RunApplication] Exit bootloader & run application >>> %d\r\n", EXITTMNL);
@@ -181,81 +210,41 @@ byte Timonel::DeleteApplication(void) {
 }
 
 // Function DumpFlashMem
-byte Timonel::DumpFlashMem(word flash_size, byte rx_data_size, byte values_per_line) {
+byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_line) {
 	const byte cmd_size = 5;
 	byte twi_cmd_arr[cmd_size] = { READFLSH, 0, 0, 0, 0 };
-	//byte cmd_size = 5;
+	byte twi_reply_arr[rx_data_size + 2];
 	byte checksum_errors = 0;
 	int v = 1;
 	twi_cmd_arr[3] = rx_data_size;
-
-	//byte transmitData[1] = { 0 };
 	USE_SERIAL.printf_P("\n\n\r[DumpFlashMem] - Dumping Flash Memory ...\n\n\r");
-	USE_SERIAL.printf_P("Addr %X :    ", 0);
-
+	USE_SERIAL.printf_P("Addr %04X: ", 0);
 	for (word address = 0; address < flash_size; address += rx_data_size) {
-		//byte rx_data_size = 0;							/* Requested T85 buffer data size */
-		//byte dataIX = 0;									/* Requested T85 buffer data start position */
 		twi_cmd_arr[1] = ((address & 0xFF00) >> 8);			/* Flash page address high byte */
 		twi_cmd_arr[2] = (address & 0xFF);					/* Flash page address low byte */
 		twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
-
-		byte twi_reply_arr[rx_data_size + 2];
-
 		byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_data_size + 2);
-		
-		//if (rx_reply[0] == ACKRDFSH) {
 		if (twi_cmd_err == 0) {
-			//USE_SERIAL.print("ESP8266 - Command ");
-			//USE_SERIAL.print(twi_cmd[0]);
-			//USE_SERIAL.print(" parsed OK <<< ");
-			//USE_SERIAL.println(rx_reply[0]);
 			byte checksum = 0;
 			for (byte i = 1; i < (rx_data_size + 1); i++) {
-				if (twi_reply_arr[i] < 16) {
-					//USE_SERIAL.print("0x0");
-					USE_SERIAL.print("0");
-				}
-				//else {
-				//	USE_SERIAL.print("0x");
-				//}
-				USE_SERIAL.printf_P("%X", twi_reply_arr[i]);	/* Byte values */
-				//checksum += (rx_reply[i]);
+				USE_SERIAL.printf_P("%02X", twi_reply_arr[i]);							/* Memory values */
 				if (v == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");
 					if ((address + rx_data_size) < flash_size) {
-						USE_SERIAL.printf_P("Addr %X", address + rx_data_size);
-						if ((address + rx_data_size) < 0x1000) {
-							if ((address + rx_data_size) < 0x100) {
-								USE_SERIAL.printf_P(":   ");
-							}
-							else {
-								USE_SERIAL.printf_P(":  ");
-							}
-						}
-						else {
-							USE_SERIAL.printf_P(": ");
-						}
+						USE_SERIAL.printf_P("Addr %04X: ", address + rx_data_size);		/* Page address */
 					}
 					v = 0;
 				}
 				else {
-					USE_SERIAL.printf_P(" ");
+					USE_SERIAL.printf_P(" ");											/* Space between values */
 				}
 				v++;
-				//USE_SERIAL.printf_P(" |\n\r");
 				checksum += (byte)twi_reply_arr[i];
 			}
-			//if (checksum + 1 == rx_reply[rx_data_size + 1]) {
-			if (checksum == twi_reply_arr[rx_data_size + 1]) {
-				//USE_SERIAL.printf_P("   >>> Checksum OK! <<<   ");
-				//USE_SERIAL.printf_P("%d\r\n", checksum);
-			}
-			else {
+			if (checksum != twi_reply_arr[rx_data_size + 1]) {
 				USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   %d\n\r", checksum);
 				//USE_SERIAL.printf_P("%d\n\r", checksum + 1);
 				//USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", rx_reply[rx_data_size + 1]);
-
 				if (checksum_errors++ == MAXCKSUMERRORS) {
 					USE_SERIAL.printf_P("[DumpFlashMem] - Too many Checksum ERRORS, aborting! \n\r");
 					delay(1000);
