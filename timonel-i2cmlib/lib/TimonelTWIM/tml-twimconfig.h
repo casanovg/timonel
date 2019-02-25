@@ -24,7 +24,7 @@
 #define V_APPL_ADDR_LSB 8   /* Ver cmd reply: Application address LSB position */
 
 #define TXDATASIZE 8  		  /* Data block size for WRITBUFF command transmisions */
-#define FLASHPGSIZE 64		  /* Tiny85 flash page buffer size */
+#define PAGE_SIZE 64		  /* Tiny85 flash page buffer size */
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
 
 #define MCU_TOTAL_MEM 8192  /* Dumpflash: ATTiny flash memory size */

@@ -105,14 +105,19 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 
 // Upload a user application to an ATTiny85 running Timonel
 byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
+	
+	//status_.features_code = (status_.features_code & 0xF7);
+	//USE_SERIAL.printf_P("\n\rCurrent Features: %d\n\r", status_.features_code);
+	//USE_SERIAL.printf_P("\n\rAfter mask 0x08: %d\n\r", (status_.features_code & 0x08));
+
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
 	byte padding = 0;										/* Amount of padding bytes to match the page size */
 	byte page_end = 0;										/* Byte counter to detect the end of flash mem page */
 	byte page_count = 1;									/* Current page counter */
 	byte upl_errors = 0;									/* Upload error counter */
 	byte data_packet[TXDATASIZE] = { 0xFF };
-	if ((payload_size % FLASHPGSIZE) != 0) {				/* If the payload to be sent is smaller than flash page size, resize it to match */
-		padding = ((((int)(payload_size / FLASHPGSIZE) + 1) * FLASHPGSIZE) - payload_size);
+	if ((payload_size % PAGE_SIZE) != 0) {				/* If the payload to be sent is smaller than flash page size, resize it to match */
+		padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
 		payload_size += padding;
 	}
 	USE_SERIAL.printf_P("\n[UploadFirmware] Writing payload to flash, starting at 0x%04X ...\n\n\r", start_address);
@@ -141,19 +146,34 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 #endif /* ESP8266 */
 			return(upl_errors);
 		}
-		if (page_end++ == (FLASHPGSIZE - 1)) {				/* When a page end is detected ... */
+		if (page_end++ == (PAGE_SIZE - 1)) {					/* When a page end is detected ... */
 
-			USE_SERIAL.printf_P("P%d", page_count++);
+			USE_SERIAL.printf_P(" P%d ", page_count);
 
-			SetPageAddress(page_count * FLASHPGSIZE);
+			if ((status_.features_code & 0x08) != false) {		/* If the STPGADDR command is enabled in Timonel, */
+				delay(100);										/* add a 100ms delay to allow memory flashing and */
+				USE_SERIAL.printf_P("\n\r");					/* set the page address before sending new data.  */
+				SetPageAddress(page_count * PAGE_SIZE);
+			}
 
-			delay(1000);										/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+			delay(100);											/* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+			page_count++;
 
 			if (i < (payload_size - 1)) {
 				page_end = 0;
 			}
 		}
 	}
+
+	if (((status_.features_code & 0x02) == false) && (payload_size < (status_.bootloader_start - PAGE_SIZE)))  {		/* If the AUTO_TPL_CALC feature is not enabled in Timonel*/
+		//word trampoline_jump = CalculateTrampoline(status_.bootloader_start, (payload[0] << 8 | payload[1]));
+		//SetPageAddress(status_.bootloader_start - PAGE_SIZE);
+        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+        	//boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+        }
+        //boot_page_fill((TIMONEL_START - 2), tpl);
+	}
+
 	if (upl_errors == 0) {
 		USE_SERIAL.printf_P("\n\n\r[UploadFirmware] Application was successfully transferred to T85, please select 'run app' command to start it ...\n\r");
 	}
@@ -179,7 +199,7 @@ byte Timonel::SetPageAddress(word page_addr) {
 	twi_cmd_arr[1] = ((page_addr & 0xFF00) >> 8);					/* Flash page address MSB */
 	twi_cmd_arr[2] = (page_addr & 0xFF);							/* Flash page address LSB */
 	twi_cmd_arr[3] = (byte)(twi_cmd_arr[1] + twi_cmd_arr[2]);		/* Checksum */
-	USE_SERIAL.printf_P("\n\n\r[SetPageAddress] Setting flash page address on Attiny85 >>> %d (STPGADDR)\n\r", twi_cmd_arr[0]);
+	//USE_SERIAL.printf_P("\n\n\r[SetPageAddress] Setting flash page address on Attiny85 >>> %d (STPGADDR)\n\r", twi_cmd_arr[0]);
 	byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, AKPGADDR, twi_reply_arr, reply_size);
 	if (twi_cmd_err == 0) {
 		//USE_SERIAL.printf_P("[SetPageAddress] Command %d parsed OK <<< %d\n\r", twi_cmd_arr[0], twi_reply_arr[0]);
@@ -207,6 +227,10 @@ byte Timonel::RunApplication(void) {
 byte Timonel::DeleteApplication(void) {
 	USE_SERIAL.printf_P("\n\r[DeleteFirmware] Delete Flash Memory >>> %d\r\n", DELFLASH);
 	return(TwiCmdXmit(DELFLASH, ACKDELFL));
+}
+
+word Timonel::CalculateTrampoline(word bootloader_start, word application_start) {
+	return(((~((bootloader_start >> 1) - ((application_start + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 }
 
 // Function DumpFlashMem

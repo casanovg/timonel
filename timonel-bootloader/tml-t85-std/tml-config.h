@@ -43,6 +43,7 @@
                                 
 #define CMD_STPGADDR    true   /* If this is disabled, applications can only be flashed starting      */
                                 /* from page 0, this is OK for most applications.                      */
+                                /* If this is enabled, Timonel expects STPGADDR before each data page. */
                                 /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
 #define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
