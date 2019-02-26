@@ -121,33 +121,32 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		payload_size += padding;
 	}
 	
-	if ((start_address >= PAGE_SIZE) && ((status_.features_code & 0x08) != false)) {	/* If STPGADDR is enabled and start_address is not 0 */
-		//word trampoline_jump = CalculateTrampoline(status_.bootloader_start, (payload[0] << 8 | payload[1]));
-		//word timonel_start = (0xC000 + ((TIMONEL_START / 2) - 1));
-		SetPageAddress(0x0);
-		byte first_page[64] = { 0 };
-		//first_page[0] = (0xC0 + ((((status_.bootloader_start / 2) - 1) >> 8) & 0xFF));
-		//first_page[1] = (((status_.bootloader_start / 2) - 1) & 0xFF);
-		first_page[0] = 0xFF;
-		first_page[1] = 0xFF;
-		for (byte i = 2; i < PAGE_SIZE; i++) {
-			first_page[i] = 0xCC;
-		}
-		for (byte i = 0; i < PAGE_SIZE; i++) {
-			data_packet[packet] = first_page[i];
-			if (packet++ == (TXDATASIZE - 1)) {
-				for (int b = 0; b < TXDATASIZE; b++) {
-					USE_SERIAL.printf_P("o");
-				}
-				upl_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
-				packet = 0;
-				delay(10);	
-			}
-		}
-		USE_SERIAL.printf_P(" P0\n\n\r");
-		SetPageAddress(start_address);
-	}
-
+	// if ((start_address >= PAGE_SIZE) && ((status_.features_code & 0x08) != false)) {	/* If STPGADDR is enabled and start_address is not 0 */
+	// 	//word trampoline_jump = CalculateTrampoline(status_.bootloader_start, (payload[0] << 8 | payload[1]));
+	// 	//word timonel_start = (0xC000 + ((TIMONEL_START / 2) - 1));
+	// 	SetPageAddress(0x0);
+	// 	byte first_page[64] = { 0 };
+	// 	//first_page[0] = (0xC0 + ((((status_.bootloader_start / 2) - 1) >> 8) & 0xFF));
+	// 	//first_page[1] = (((status_.bootloader_start / 2) - 1) & 0xFF);
+	// 	first_page[0] = 0xFF;
+	// 	first_page[1] = 0xCC;
+	// 	for (byte i = 2; i < PAGE_SIZE; i++) {
+	// 		first_page[i] = 0xAA;
+	// 	}
+	// 	for (byte i = 0; i < PAGE_SIZE; i++) {
+	// 		data_packet[packet] = first_page[i];
+	// 		if (packet++ == (TXDATASIZE - 1)) {
+	// 			for (int b = 0; b < TXDATASIZE; b++) {
+	// 				USE_SERIAL.printf_P("^");
+	// 			}
+	// 			upl_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
+	// 			packet = 0;
+	// 			delay(10);	
+	// 		}
+	// 	}
+	// 	USE_SERIAL.printf_P(" P0\n\n\r");
+	// 	SetPageAddress(start_address);
+	// }
 
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
 	for (int i = 0; i < payload_size; i++) {
