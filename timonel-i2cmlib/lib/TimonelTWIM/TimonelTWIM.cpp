@@ -131,13 +131,13 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 	// 	first_page[0] = 0xFF;
 	// 	first_page[1] = 0xCC;
 	// 	for (byte i = 2; i < PAGE_SIZE; i++) {
-	// 		first_page[i] = 0xAA;
+	// 		first_page[i] = 0x00;
 	// 	}
-	// 	for (byte i = 0; i < PAGE_SIZE; i++) {
-	// 		data_packet[packet] = first_page[i];
+	// 	for (byte w = 0; w < PAGE_SIZE; w++) {
+	// 		data_packet[packet] = first_page[w];
 	// 		if (packet++ == (TXDATASIZE - 1)) {
 	// 			for (int b = 0; b < TXDATASIZE; b++) {
-	// 				USE_SERIAL.printf_P("^");
+	// 				USE_SERIAL.printf_P("v");
 	// 			}
 	// 			upl_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
 	// 			packet = 0;

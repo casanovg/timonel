@@ -27,7 +27,7 @@
    ====== from the I2C master by using the GETTMNLV command ...
 */
 
-#define ENABLE_LED_UI   true   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
+#define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
                                 /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
                                 /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
 
