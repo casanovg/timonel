@@ -121,32 +121,11 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		payload_size += padding;
 	}
 	
-	// if ((start_address >= PAGE_SIZE) && ((status_.features_code & 0x08) != false)) {	/* If STPGADDR is enabled and start_address is not 0 */
-	// 	//word trampoline_jump = CalculateTrampoline(status_.bootloader_start, (payload[0] << 8 | payload[1]));
-	// 	//word timonel_start = (0xC000 + ((TIMONEL_START / 2) - 1));
-	// 	SetPageAddress(0x0);
-	// 	byte first_page[64] = { 0 };
-	// 	//first_page[0] = (0xC0 + ((((status_.bootloader_start / 2) - 1) >> 8) & 0xFF));
-	// 	//first_page[1] = (((status_.bootloader_start / 2) - 1) & 0xFF);
-	// 	first_page[0] = 0xFF;
-	// 	first_page[1] = 0xCC;
-	// 	for (byte i = 2; i < PAGE_SIZE; i++) {
-	// 		first_page[i] = 0x00;
-	// 	}
-	// 	for (byte w = 0; w < PAGE_SIZE; w++) {
-	// 		data_packet[packet] = first_page[w];
-	// 		if (packet++ == (TXDATASIZE - 1)) {
-	// 			for (int b = 0; b < TXDATASIZE; b++) {
-	// 				USE_SERIAL.printf_P("v");
-	// 			}
-	// 			upl_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
-	// 			packet = 0;
-	// 			delay(10);	
-	// 		}
-	// 	}
-	// 	USE_SERIAL.printf_P(" P0\n\n\r");
-	// 	SetPageAddress(start_address);
-	// }
+	if ((start_address >= PAGE_SIZE) && ((status_.features_code & 0x08) != false)) {	/* If STPGADDR is enabled and start_address is not 0 */
+		FillSpecialPage(1);
+		SetPageAddress(start_address);
+		delay(100);
+	}
 
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
 	for (int i = 0; i < payload_size; i++) {
@@ -234,6 +213,70 @@ byte Timonel::SetPageAddress(word page_addr) {
 		USE_SERIAL.printf_P("[%s] Error parsing %d command! <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
 	}
 	return(twi_cmd_err);
+}
+
+// Function FillSpecialPage
+byte Timonel::FillSpecialPage(byte page_type) {
+
+	word address = 0x0000;
+	byte special_page[64] = { 0xFF };
+	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
+	byte data_packet[TXDATASIZE] = { 0xFF };	
+
+
+	switch (page_type) {
+		case 1: {	/* Reset Vector Page (0) */
+			special_page[0] = (0xC0 + ((((status_.bootloader_start / 2) - 1) >> 8) & 0xFF));
+			special_page[1] = (((status_.bootloader_start / 2) - 1) & 0xFF);
+		break;
+		}
+		case 2: {	/* Trampoline Page */
+			address = status_.bootloader_start - PAGE_SIZE;
+			special_page[PAGE_SIZE - 2] = 0;
+			special_page[PAGE_SIZE - 1] = 0;
+			//----byte lsb = payload[0];
+			//----byte msb = payload[1];
+			// #define TIMONEL_START 0x1A40
+			// #define LSB 0x0E
+			// #define MSB	0xC0
+			// 	Serial.print("\nTIMONEL START = 0x");
+			// 	Serial.println(TIMONEL_START, HEX);
+			// 	Serial.print("LSB = 0x");
+			// 	Serial.print(LSB, HEX);
+			// 	Serial.print(" ||| MSB = 0x");
+			// 	Serial.println(MSB, HEX);
+			// 	word jumpOffset = ((MSB << 8) | LSB);
+			// 	Serial.print("QQ = 0x");
+			// 	Serial.println(jumpOffset, HEX);
+			// 	jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+			// 	Serial.print("JUMP ADDRESS = 0x");
+			// 	Serial.println(jumpOffset, HEX);		
+			// ---
+		break;
+			// ---
+		}
+		default: {
+			// ---
+		break;	
+		}
+	}
+
+	byte twi_errors = SetPageAddress(address);
+	delay(100);
+	for (byte i = 0; i < PAGE_SIZE; i++) {
+		data_packet[packet] = special_page[i];
+		if (packet++ == (TXDATASIZE - 1)) {
+			for (int b = 0; b < TXDATASIZE; b++) {
+				USE_SERIAL.printf_P("s");
+			}
+			twi_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
+			packet = 0;
+			delay(10);	
+		}
+	}
+	USE_SERIAL.printf_P(" P0\n\n\r");
+	delay(100);
+	
 }
 
 // Ask Timonel to stop executing and run the user application
