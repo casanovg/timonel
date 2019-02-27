@@ -45,7 +45,7 @@ private:
     byte TwoStepInit(word time);
     byte WritePageBuff(byte data_array[]);
     byte SetPageAddress(word page_addr);
-    byte FillSpecialPage(byte page_type);
+    byte FillSpecialPage(byte page_type, byte app_reset_msb = 0, byte app_reset_lsb = 0);
     word CalculateTrampoline(word bootloader_start, word application_start);
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);

@@ -121,10 +121,17 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		payload_size += padding;
 	}
 	
-	if ((start_address >= PAGE_SIZE) && ((status_.features_code & 0x08) != false)) {	/* If STPGADDR is enabled and start_address is not 0 */
-		FillSpecialPage(1);
-		SetPageAddress(start_address);
-		delay(100);
+	if ((status_.features_code & 0x08) != false) {			/* If CMD_STPGADDR is enabled */
+		if (start_address >= PAGE_SIZE) {					/* If application start address is not 0 */
+			FillSpecialPage(1);
+			SetPageAddress(start_address);					/* Calculate and fill reset page */
+			delay(100);
+		}
+		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
+			FillSpecialPage(2, payload[0], payload[1]);
+			SetPageAddress(start_address);					/* Calculate and fill trampoline page */
+			delay(100);
+		}
 	}
 
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
@@ -216,13 +223,12 @@ byte Timonel::SetPageAddress(word page_addr) {
 }
 
 // Function FillSpecialPage
-byte Timonel::FillSpecialPage(byte page_type) {
+byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset_lsb) {
 
 	word address = 0x0000;
 	byte special_page[64] = { 0xFF };
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
 	byte data_packet[TXDATASIZE] = { 0xFF };	
-
 
 	switch (page_type) {
 		case 1: {	/* Reset Vector Page (0) */
@@ -232,12 +238,11 @@ byte Timonel::FillSpecialPage(byte page_type) {
 		}
 		case 2: {	/* Trampoline Page */
 			address = status_.bootloader_start - PAGE_SIZE;
-			special_page[PAGE_SIZE - 2] = 0;
-			special_page[PAGE_SIZE - 1] = 0;
+			word tpl = (((~((status_.bootloader_start >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+			special_page[PAGE_SIZE - 2] = (byte)((tpl >> 8) & 0xFF);
+			special_page[PAGE_SIZE - 1] = (byte)(tpl & 0xFF);
 			//----byte lsb = payload[0];
 			//----byte msb = payload[1];
-
-			//word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 
 			// #define TIMONEL_START 0x1A40
 			// #define LSB 0x0E

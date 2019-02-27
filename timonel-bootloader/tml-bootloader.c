@@ -21,7 +21,7 @@
 #include "nb-i2c-cmd.h"
 
 /* I2C Address 08 to 35: Timonel bootloader
-   I2C Address 36 to 64: Application firmware
+   I2C Address 36 to 63: Application firmware
    Each I2C node must have a unique bootloader address that corresponds
    to a defined application address, as shown in this table:
           -----------------------------------------------------------------------------------
