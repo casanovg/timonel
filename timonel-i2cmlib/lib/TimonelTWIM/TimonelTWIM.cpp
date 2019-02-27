@@ -236,6 +236,9 @@ byte Timonel::FillSpecialPage(byte page_type) {
 			special_page[PAGE_SIZE - 1] = 0;
 			//----byte lsb = payload[0];
 			//----byte msb = payload[1];
+
+			//word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+
 			// #define TIMONEL_START 0x1A40
 			// #define LSB 0x0E
 			// #define MSB	0xC0
