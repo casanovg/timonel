@@ -237,7 +237,7 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 		}
 		case 2: {	/* Trampoline Page (Timonel start - 64)*/
 			//address = 0xE00; //status_.bootloader_start - PAGE_SIZE;
-			address = status_.bootloader_start - (PAGE_SIZE * 2);
+			address = status_.bootloader_start - (PAGE_SIZE);
 			word tpl = (((~((status_.bootloader_start >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 			special_page[PAGE_SIZE - 1] = (byte)((tpl >> 8) & 0xFF);
 			special_page[PAGE_SIZE - 2] = (byte)(tpl & 0xFF);
