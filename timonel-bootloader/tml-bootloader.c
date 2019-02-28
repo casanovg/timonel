@@ -182,7 +182,7 @@ int main() {
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
                 // ========================================================================
-#if (APP_USE_TPL_PG || CMD_STPGADDR)
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
