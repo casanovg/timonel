@@ -128,7 +128,7 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 			delay(100);
 		}
 		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
-			FillSpecialPage(2, payload[0], payload[1]);
+			FillSpecialPage(2, payload[1], payload[0]);
 			SetPageAddress(start_address);					/* Calculate and fill trampoline page */
 			delay(100);
 		}
@@ -224,51 +224,30 @@ byte Timonel::SetPageAddress(word page_addr) {
 
 // Function FillSpecialPage
 byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset_lsb) {
-
 	word address = 0x0000;
-	byte special_page[64] = { 0xFF };
+	byte special_page[64] = { 0x0 };
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
-	byte data_packet[TXDATASIZE] = { 0xFF };	
-
+	byte data_packet[TXDATASIZE] = { 0x0 };
+	// Function mode: 1=reset vector page, 2=trampoline page
 	switch (page_type) {
 		case 1: {	/* Reset Vector Page (0) */
 			special_page[0] = (0xC0 + ((((status_.bootloader_start / 2) - 1) >> 8) & 0xFF));
 			special_page[1] = (((status_.bootloader_start / 2) - 1) & 0xFF);
 		break;
 		}
-		case 2: {	/* Trampoline Page */
-			address = status_.bootloader_start - PAGE_SIZE;
+		case 2: {	/* Trampoline Page (Timonel start - 64)*/
+			//address = 0xE00; //status_.bootloader_start - PAGE_SIZE;
+			address = status_.bootloader_start - (PAGE_SIZE * 2);
 			word tpl = (((~((status_.bootloader_start >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-			special_page[PAGE_SIZE - 2] = (byte)((tpl >> 8) & 0xFF);
-			special_page[PAGE_SIZE - 1] = (byte)(tpl & 0xFF);
-			//----byte lsb = payload[0];
-			//----byte msb = payload[1];
-
-			// #define TIMONEL_START 0x1A40
-			// #define LSB 0x0E
-			// #define MSB	0xC0
-			// 	Serial.print("\nTIMONEL START = 0x");
-			// 	Serial.println(TIMONEL_START, HEX);
-			// 	Serial.print("LSB = 0x");
-			// 	Serial.print(LSB, HEX);
-			// 	Serial.print(" ||| MSB = 0x");
-			// 	Serial.println(MSB, HEX);
-			// 	word jumpOffset = ((MSB << 8) | LSB);
-			// 	Serial.print("QQ = 0x");
-			// 	Serial.println(jumpOffset, HEX);
-			// 	jumpOffset = (((~((TIMONEL_START >> 1) - (++jumpOffset & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-			// 	Serial.print("JUMP ADDRESS = 0x");
-			// 	Serial.println(jumpOffset, HEX);		
-			// ---
-		break;
-			// ---
+			special_page[PAGE_SIZE - 1] = (byte)((tpl >> 8) & 0xFF);
+			special_page[PAGE_SIZE - 2] = (byte)(tpl & 0xFF);
+			break;
 		}
 		default: {
 			// ---
-		break;	
+			break;	
 		}
 	}
-
 	byte twi_errors = SetPageAddress(address);
 	delay(100);
 	for (byte i = 0; i < PAGE_SIZE; i++) {
@@ -282,9 +261,8 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 			delay(10);	
 		}
 	}
-	USE_SERIAL.printf_P(" P0\n\n\r");
+	USE_SERIAL.printf_P(" {Special Page %d}\n\n\r", page_type);
 	delay(100);
-	
 }
 
 // Ask Timonel to stop executing and run the user application
