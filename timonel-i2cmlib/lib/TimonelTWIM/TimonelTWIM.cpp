@@ -122,19 +122,29 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 	}
 	
 	if ((status_.features_code & 0x08) != false) {			/* If CMD_STPGADDR is enabled */
+		
+		//TODO: Try to run this code once (i.e. check page_count = 1)
 		if (start_address >= PAGE_SIZE) {					/* If application start address is not 0 */
 			FillSpecialPage(1);
 			SetPageAddress(start_address);					/* Calculate and fill reset page */
 			delay(100);
 		}
+
 		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
-			FillSpecialPage(2, payload[1], payload[0]);
-			SetPageAddress(start_address);					/* Calculate and fill trampoline page */
+			if ((page_count * PAGE_SIZE) == (status_.bootloader_start - PAGE_SIZE)) {
+
+			}
+			else {
+				// TODO: Try to run this code once ...
+				FillSpecialPage(2, payload[1], payload[0]);
+				SetPageAddress(start_address);					/* Calculate and fill trampoline page */
+			}
 			delay(100);
 		}
 	}
 
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
+
 	for (int i = 0; i < payload_size; i++) {
 		if (i < (payload_size - padding)) {
 			data_packet[packet] = payload[i];				/* If there are data to fill the page, use it ... */
@@ -164,9 +174,9 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 
 			USE_SERIAL.printf_P(" P%d ", page_count);
 
-			if ((status_.features_code & 0x08) != false) {		/* If the STPGADDR command is enabled in Timonel, */
-				delay(100);										/* add a 100ms delay to allow memory flashing and */
-				USE_SERIAL.printf_P("\n\r");					/* set the page address before sending new data.  */
+			if ((status_.features_code & 0x08) != false) {		/* If CMD_STPGADDR is enabled in Timonel, add a   */
+				delay(100);										/* 100 ms delay to allow memory flashing and set  */
+				USE_SERIAL.printf_P("\n\r");					/* the next page address before sending new data. */
 				SetPageAddress(start_address + (page_count * PAGE_SIZE));
 			}
 
@@ -238,7 +248,8 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 		case 2: {	/* Trampoline Page (Timonel start - 64)*/
 			//address = 0xE00; //status_.bootloader_start - PAGE_SIZE;
 			address = status_.bootloader_start - (PAGE_SIZE);
-			word tpl = (((~((status_.bootloader_start >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+			//word tpl = (((~((status_.bootloader_start >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+			word tpl = CalculateTrampoline(status_.bootloader_start, ((app_reset_msb << 8) | app_reset_lsb));
 			special_page[PAGE_SIZE - 1] = (byte)((tpl >> 8) & 0xFF);
 			special_page[PAGE_SIZE - 2] = (byte)(tpl & 0xFF);
 			break;
