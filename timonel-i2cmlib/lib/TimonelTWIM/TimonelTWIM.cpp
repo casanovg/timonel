@@ -106,41 +106,52 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 // Upload a user application to an ATTiny85 running Timonel
 byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
 	
-	//status_.features_code = (status_.features_code & 0xF7);
-	//USE_SERIAL.printf_P("\n\rCurrent Features: %d\n\r", status_.features_code);
-	//USE_SERIAL.printf_P("\n\rAfter mask 0x08: %d\n\r", (status_.features_code & 0x08));
-
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
 	byte padding = 0;										/* Amount of padding bytes to match the page size */
 	byte page_end = 0;										/* Byte counter to detect the end of flash mem page */
 	byte page_count = 1;									/* Current page counter */
 	byte upl_errors = 0;									/* Upload error counter */
-	byte data_packet[TXDATASIZE] = { 0xFF };
-	if ((payload_size % PAGE_SIZE) != 0) {				/* If the payload to be sent is smaller than flash page size, resize it to match */
-		padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
-		payload_size += padding;
-	}
+	byte data_packet[TXDATASIZE] = { 0xFF };				/* TWI data packet array */
+	bool app_use_tpl = false;								/* Application use trampoline page flag */
 	
 	if ((status_.features_code & 0x08) != false) {			/* If CMD_STPGADDR is enabled */
 		
-		//TODO: Try to run this code once (i.e. check page_count = 1)
 		if (start_address >= PAGE_SIZE) {					/* If application start address is not 0 */
+			USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
 			FillSpecialPage(1);
 			SetPageAddress(start_address);					/* Calculate and fill reset page */
 			delay(100);
 		}
 
 		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
-			if ((page_count * PAGE_SIZE) == (status_.bootloader_start - PAGE_SIZE)) {
-
+			if (payload_size <= status_.bootloader_start - PAGE_SIZE) {	/* if the application doesn't use the trampoline page */
+				USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't use trampoline page ...\n\n\r", __func__);
+				FillSpecialPage(2, payload[1], payload[0]);	/* Calculate and fill trampoline page */
+				SetPageAddress(start_address);
 			}
 			else {
-				// TODO: Try to run this code once ...
-				FillSpecialPage(2, payload[1], payload[0]);
-				SetPageAddress(start_address);					/* Calculate and fill trampoline page */
+				if (payload_size <= status_.bootloader_start) { /* if the application DO use the trampoline page, set a flag */
+					USE_SERIAL.printf_P("\n\n\r[%s] Application uses trampoline page ...\n\n\r", __func__);
+					// SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO 
+					// SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO 
+					app_use_tpl = true;
+				}
+				else { /* if the application overlaps the bootloader */
+					USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't fit in flash memory ...\n\r", __func__);
+					USE_SERIAL.printf_P("[%s] Bootloafer start: %d\n\r", __func__, status_.bootloader_start);
+					USE_SERIAL.printf_P("[%s] Application size: %d\n\r", __func__, payload_size);
+					USE_SERIAL.printf_P("[%s] ----------------------\n\r", __func__);
+					USE_SERIAL.printf_P("[%s]         Overflow: %d\n\r", __func__, payload_size - status_.bootloader_start);
+					return(2);
+				}
 			}
 			delay(100);
 		}
+	}
+
+	if ((payload_size % PAGE_SIZE) != 0) { /* If the payload doesn't use an exact number of pages, resize it by adding padding data */
+		padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
+		payload_size += padding;
 	}
 
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
@@ -152,6 +163,24 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		else {
 			data_packet[packet] = 0xFF;						/* If there are no more data, complete the page with padding (0xff) */
 		}
+
+		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
+		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
+		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
+		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
+		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO
+		if (app_use_tpl == true) { /* If the flag for the app's use of the trampoline page is set, modify the last two bytes */
+			word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
+			if (i == (payload_size - 2)) {
+				data_packet[packet] = (byte)(tpl & 0xFF);
+				USE_SERIAL.printf_P("\n\r[%s] KATSULO %d ...\n\n\r", __func__, i);
+			}
+			if (i == (payload_size - 1)) {
+				data_packet[packet] = (byte)((tpl >> 8) & 0xFF);
+				USE_SERIAL.printf_P("\n\r[%s] KOKOA %d ...\n\n\r", __func__, i);
+			}
+		}
+
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int b = 0; b < TXDATASIZE; b++) {
 				USE_SERIAL.printf_P(".");
@@ -214,16 +243,16 @@ byte Timonel::SetPageAddress(word page_addr) {
 	twi_cmd_arr[1] = ((page_addr & 0xFF00) >> 8);					/* Flash page address MSB */
 	twi_cmd_arr[2] = (page_addr & 0xFF);							/* Flash page address LSB */
 	twi_cmd_arr[3] = (byte)(twi_cmd_arr[1] + twi_cmd_arr[2]);		/* Checksum */
-	//USE_SERIAL.printf_P("\n\n\r[%s] Setting flash page address on Attiny85 >>> %d (STPGADDR)\n\r", __func__, twi_cmd_arr[0]);
+	//USE_SERIAL.printf_P("\n\n\r[%s] Setting flash page address on ATTiny85 >>> %d (STPGADDR)\n\r", __func__, twi_cmd_arr[0]);
 	byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, AKPGADDR, twi_reply_arr, reply_size);
 	if (twi_cmd_err == 0) {
 		//USE_SERIAL.printf_P("[%s] Command %d parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
 		if (twi_reply_arr[1] == twi_cmd_arr[3]) {
 			//USE_SERIAL.printf_P("[%s] Operands %d and %d parsed OK by slave <<< ATtiny85 Flash Page Address Check = %d\n\r", __func__, twi_cmd_arr[1], twi_cmd_arr[2], twi_reply_arr[1]);
-			USE_SERIAL.printf_P("[%s] Address %04X (%02X) (%02X) parsed OK by ATtiny85 <<< Check = %d\n\r", __func__, page_addr, twi_cmd_arr[1], twi_cmd_arr[2], twi_reply_arr[1]);
+			USE_SERIAL.printf_P("[%s] Address %04X (%02X) (%02X) parsed OK by ATTiny85 <<< Check = %d\n\r", __func__, page_addr, twi_cmd_arr[1], twi_cmd_arr[2], twi_reply_arr[1]);
 		}
 		else {
-			USE_SERIAL.printf_P("[%s] Operand %d parsed with {{{ERROR}}} <<< ATtiny85 Check = %d\r\n", __func__, twi_cmd_arr[1], twi_reply_arr[1]);
+			USE_SERIAL.printf_P("[%s] Operand %d parsed with {{{ERROR}}} <<< ATTiny85 Check = %d\r\n", __func__, twi_cmd_arr[1], twi_reply_arr[1]);
 		}
 	}
 	else {
@@ -235,9 +264,19 @@ byte Timonel::SetPageAddress(word page_addr) {
 // Function FillSpecialPage
 byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset_lsb) {
 	word address = 0x0000;
-	byte special_page[64] = { 0x0 };
+	//byte special_page[64] = { 0xFF };
+	byte special_page[64] = {
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	};
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
-	byte data_packet[TXDATASIZE] = { 0x0 };
+	byte data_packet[TXDATASIZE] = { 0xFF };
 	// Function mode: 1=reset vector page, 2=trampoline page
 	switch (page_type) {
 		case 1: {	/* Reset Vector Page (0) */
@@ -265,7 +304,7 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 		data_packet[packet] = special_page[i];
 		if (packet++ == (TXDATASIZE - 1)) {
 			for (int b = 0; b < TXDATASIZE; b++) {
-				USE_SERIAL.printf_P("s");
+				USE_SERIAL.printf_P("|");
 			}
 			twi_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
 			packet = 0;
