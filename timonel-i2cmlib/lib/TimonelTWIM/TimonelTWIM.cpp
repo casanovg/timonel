@@ -182,7 +182,7 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		}
 
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
-			for (int b = 0; b < TXDATASIZE; b++) {
+			for (int j = 0; j < TXDATASIZE; j++) {
 				USE_SERIAL.printf_P(".");
 			}
 			upl_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
@@ -303,7 +303,7 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 	for (byte i = 0; i < PAGE_SIZE; i++) {
 		data_packet[packet] = special_page[i];
 		if (packet++ == (TXDATASIZE - 1)) {
-			for (int b = 0; b < TXDATASIZE; b++) {
+			for (int j = 0; j < TXDATASIZE; j++) {
 				USE_SERIAL.printf_P("|");
 			}
 			twi_errors += WritePageBuff(data_packet);		/* Send data to T85 through I2C */
@@ -311,7 +311,7 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
 			delay(10);	
 		}
 	}
-	USE_SERIAL.printf_P(" {Special Page %d}\n\n\r", page_type);
+	USE_SERIAL.printf_P(" [Special page type %d]\n\n\r", page_type);
 	delay(100);
 }
 
@@ -334,6 +334,10 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
 
 // Function DumpFlashMem
 byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_line) {
+	if ((status_.features_code & 0x80) == false) {
+		USE_SERIAL.printf_P("\n\r[%s] Function not implemented in current Timonel setup ...\r\n", __func__, DELFLASH);
+		return(3);
+	}
 	const byte cmd_size = 5;
 	byte twi_cmd_arr[cmd_size] = { READFLSH, 0, 0, 0, 0 };
 	byte twi_reply_arr[rx_data_size + 2];
@@ -371,7 +375,7 @@ byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_lin
 				if (checksum_errors++ == MAXCKSUMERRORS) {
 					USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS, aborting! \n\r", __func__);
 					delay(1000);
-					exit(2);
+					return(2);
 				}
 			}
 		}

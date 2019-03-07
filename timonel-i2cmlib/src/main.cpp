@@ -173,7 +173,7 @@ void loop() {
             // ********************************
             case 'w': case 'W': {
                 Timonel tml(TML_ADDR);
-                tml.UploadApplication(payload, sizeof(payload), 0x0000);
+                tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
                 break;
             }
             // ********************************
@@ -321,7 +321,15 @@ void ShowMenu(void) {
 		USE_SERIAL.printf_P("\n\rApplication command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
 	}
 	else {
-		USE_SERIAL.printf_P("\n\rTimonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash, 'm' mem dump): ");
+        Timonel tml(TML_ADDR);
+        Timonel::status sts = tml.GetStatus();
+        USE_SERIAL.printf_P("\n\rTimonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
+        if ((sts.features_code & 0x80) == false) {
+            USE_SERIAL.printf_P("): ");
+        }
+        else {
+            USE_SERIAL.printf_P(", 'm' mem dump): ");
+        }
 	}
 }
 
