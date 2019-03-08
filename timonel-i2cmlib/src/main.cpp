@@ -10,6 +10,7 @@
 */
 #include <Arduino.h>
 #include <Memory>
+#include "NBTinyX5.h"
 #include "TimonelTWIM.h"
 #include "payload.h"
 
@@ -53,6 +54,8 @@ void setup() {
     ShowHeader();
     PrintStatus(tml);
     ShowMenu();
+    // NBTinyX5 nb(TML_ADDR);
+    // nb.ScanTWI();
 }
 
 // Main loop

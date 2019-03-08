@@ -10,7 +10,6 @@
 #ifndef _TML_TWIMCONFIG_H_
 #define _TML_TWIMCONFIG_H_
 
-#define USE_SERIAL Serial
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
 #define V_CMD_LENGTH 9      /* Timonel version reply lenght */
 #define T_SIGNATURE 84      /* Timonel signature (expected "T") */

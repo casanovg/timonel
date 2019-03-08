@@ -11,18 +11,8 @@
 #include "TimonelTWIM.h"
 
 // Class constructor
-Timonel::Timonel(byte twi_address, byte sda, byte scl) : addr_(twi_address) {
-	if (!((sda == 0) && (scl == 0))) {
-		USE_SERIAL.printf_P("\n\r[%s] Creating a new I2C connection\n\r", __func__);		
-		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
-		reusing_twi_connection_ = false;
-	}
-	else {
-		USE_SERIAL.printf_P("\n\r[%s] Reusing I2C connection\n\r", __func__);
-		reusing_twi_connection_ = true;
-	}
-  	//addr_ = twi_address;
-  	TwoStepInit(0);
+Timonel::Timonel(byte twi_address, byte sda, byte scl): NBTinyX5(twi_address, sda, scl) {
+	TwoStepInit(0);
 }
 
 // Function to check the status parameters of the bootloader running on the ATTiny85
@@ -104,14 +94,13 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 }
 
 // Upload a user application to an ATTiny85 running Timonel
-byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
+byte Timonel::UploadApplication(byte payload[], int payload_size, int start_address) {
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
 	byte padding = 0;										/* Amount of padding bytes to match the page size */
 	byte page_end = 0;										/* Byte counter to detect the end of flash mem page */
 	byte page_count = 1;									/* Current page counter */
 	byte upl_errors = 0;									/* Upload error counter */
-	byte data_packet[TXDATASIZE] = { 0xFF };				/* TWI data packet array */
-	bool app_use_tpl = false;								/* Application use trampoline page flag */
+	byte data_packet[TXDATASIZE] = { 0xFF };				/* TWI data packet array */								/* Application use trampoline page flag */
 	if ((status_.features_code & 0x08) != false) {			/* If CMD_STPGADDR is enabled */
 		if (start_address >= PAGE_SIZE) {					/* If application start address is not 0 */
 			USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
@@ -120,17 +109,20 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 			delay(100);
 		}
 		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
-			if (payload_size <= status_.bootloader_start - PAGE_SIZE) {	/* if the application doesn't use the trampoline page */
+			if (payload_size <= status_.bootloader_start - PAGE_SIZE) {	/* if the application does NOT use the trampoline page */
 				USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't use trampoline page ...\n\n\r", __func__);
 				FillSpecialPage(2, payload[1], payload[0]);	/* Calculate and fill trampoline page */
 				SetPageAddress(start_address);
 			}
 			else {
-				if (payload_size <= status_.bootloader_start) { /* if the application DO use the trampoline page, set a flag */
+				if (payload_size <= status_.bootloader_start) { /* if the application does use the trampoline page, set a flag */
 					USE_SERIAL.printf_P("\n\n\r[%s] Application uses trampoline page ...\n\n\r", __func__);
 					// SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO 
 					// SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO 
-					app_use_tpl = true;
+					//app_use_tpl = true;
+					word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
+					payload[payload_size - 2] = (byte)(tpl & 0xFF);
+					payload[payload_size - 1] = (byte)((tpl >> 8) & 0xFF);
 				}
 				else { /* if the application overlaps the bootloader */
 					USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't fit in flash memory ...\n\r", __func__);
@@ -158,15 +150,15 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		}
 		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
 		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO
-		if (app_use_tpl == true) { /* If the flag for the app's use of the trampoline page is set, modify the last two bytes */
-			word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
-			if (i == (payload_size - 2)) {
-				data_packet[packet] = (byte)(tpl & 0xFF);
-			}
-			if (i == (payload_size - 1)) {
-				data_packet[packet] = (byte)((tpl >> 8) & 0xFF);
-			}
-		}
+		// if (app_use_tpl == true) { /* If the flag for the app's use of the trampoline page is set, modify the last two bytes */
+		// 	word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
+		// 	if (i == (payload_size - 2)) {
+		// 		data_packet[packet] = (byte)(tpl & 0xFF);
+		// 	}
+		// 	if (i == (payload_size - 1)) {
+		// 		data_packet[packet] = (byte)((tpl >> 8) & 0xFF);
+		// 	}
+		// }
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int j = 0; j < TXDATASIZE; j++) {
 				USE_SERIAL.printf_P(".");
@@ -371,47 +363,4 @@ byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_lin
 		delay(100);
 	}
 	return(0);
-}
-
-// Function TWI command transmit (Overload A: transmit single byte command)
-byte Timonel::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-	const byte cmd_size = 1;
-	byte twi_cmd_arr[cmd_size] = { twi_cmd };
-	return(TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
-}
-
-// Function TWI command transmit (Overload B: transmit multibyte command)
-byte Timonel::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-	for (int i = 0; i < cmd_size; i++) {
-		Wire.beginTransmission(addr_);
-		Wire.write(twi_cmd_arr[i]);
-		Wire.endTransmission();
-	}
-	// Receive reply
-	if (reply_size == 0) {
-		Wire.requestFrom(addr_, ++reply_size);
-		byte reply = Wire.read();
-		if (reply == twi_reply) {						/* I2C reply from slave */
-			USE_SERIAL.printf_P("[%s] Command %d parsed OK <<< %d\n\n\r", __func__, twi_cmd_arr[0], reply);
-			return(0);
-		}
-		else {
-			USE_SERIAL.printf_P("[%s] Error parsing %d command <<< %d\n\n\r", __func__, twi_cmd_arr[0], reply);
-			return(1);
-		}
-	}
-	else {
-		byte reply_length = Wire.requestFrom(addr_, reply_size);
-  		for (int i = 0; i < reply_size; i++) {
-	    	twi_reply_arr[i] = Wire.read();
-  		}
-	 	if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
-			//USE_SERIAL.printf_P("[%s] Multibyte command %d parsed OK <<< %d\n\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
-			return(0);
-		}
-		else {
-			USE_SERIAL.printf_P("[%s] Error parsing %d multibyte command <<< %d\n\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
-			return(2);
-		}		  
-	}
 }

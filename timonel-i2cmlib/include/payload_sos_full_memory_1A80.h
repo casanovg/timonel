@@ -11,9 +11,9 @@
  * Payload Start Address: 0x0 
  * Payload End Address  : 0x1FFF 
  */
-const byte payldType = 0;    /* Full Memory Test Application Payload */
+//const byte payldType = 0;    /* Full Memory Test Application Payload */
 
-const byte payload[6720] = {
+byte payload[6720] = {
 	/* Page 001 */
 	0x0e, 0xc0, 0x28, 0xc0, 0x27, 0xc0, 0x26, 0xc0,
 	0x25, 0xc0, 0x24, 0xc0, 0x23, 0xc0, 0x22, 0xc0,

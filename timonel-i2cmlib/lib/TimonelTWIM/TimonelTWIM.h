@@ -16,8 +16,11 @@
 #include "stdbool.h"
 #include "tml-twimconfig.h"
 #include "nb-i2c-cmd.h"
+#include "../NBTinyX5/NBTinyX5.h"
 
-class Timonel {
+#define USE_SERIAL Serial
+
+class Timonel: public NBTinyX5 {
 public:
     Timonel(byte twi_address, byte sda = 0, byte scl = 0);
     // Struct that holds a Timonel instance's status 
@@ -31,13 +34,11 @@ public:
         word trampoline_addr = 0x0000;
     };
     struct status GetStatus(void);  
-    byte UploadApplication(const byte payload[], int payload_size, int start_address = 0x0000);
+    byte UploadApplication(byte payload[], int payload_size, int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
 private:
-    byte addr_;
-    bool reusing_twi_connection_ = true;
     byte block_rx_size_ = 0;
     struct status status_;
     byte QueryStatus(void);
@@ -47,8 +48,6 @@ private:
     byte SetPageAddress(word page_addr);
     byte FillSpecialPage(byte page_type, byte app_reset_msb = 0, byte app_reset_lsb = 0);
     word CalculateTrampoline(word bootloader_start, word application_start);
-    byte TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
-    byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
 };
 
 #endif /* _TIMONELTWIM_H_ */
