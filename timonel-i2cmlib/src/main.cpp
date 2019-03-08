@@ -42,11 +42,12 @@ char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set' */
 
+Timonel tml(TML_ADDR);
+
 // Setup block
 void setup() {
     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
     Wire.begin(SDA, SCL);
-    Timonel tml(TML_ADDR);
     tml.GetStatus();
     ClrScr();
     ShowHeader();
@@ -105,7 +106,6 @@ void loop() {
             // ********************************
             case 'v': case 'V': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
-                Timonel tml(TML_ADDR);
                 tml.GetStatus();
                 PrintStatus(tml);
                 break;
@@ -115,7 +115,6 @@ void loop() {
             // ********************************
             case 'r': case 'R': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Run Application ...\r\n");
-                Timonel tml(TML_ADDR);
                 tml.RunApplication();
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
                 app_mode = true;
@@ -132,7 +131,6 @@ void loop() {
             // ********************************
             case 'e': case 'E': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
-                Timonel tml(TML_ADDR);
                 tml.DeleteApplication();
                 delay(750);
                 tml.GetStatus();
@@ -146,11 +144,16 @@ void loop() {
             case 'b': case 'B': {
                 //byte resetFirstByte = 0;
                 //byte resetSecondByte = 0;
-                USE_SERIAL.printf_P("Please enter the flash memory page base address: ");
+                Timonel::status sts = tml.GetStatus();
+                if ((sts.features_code & 0x08) == false) {
+                    USE_SERIAL.printf_P("\n\rSet address command not supported by current Timonel features ...\n\r");
+                    break;
+                }
+                USE_SERIAL.printf_P("\n\rPlease enter the flash memory page base address: ");
                 while (new_word == false) {
                     flash_page_addr = ReadWord();
                 }
-                if (timonel_start > MCU_TOTAL_MEM) {
+                if (sts.bootloader_start > MCU_TOTAL_MEM) {
                     USE_SERIAL.printf_P("\n\n\rWarning: Timonel bootloader start address unknown, please run 'version' command to find it !\n\r");
                     //new_word = false;
                     break;
@@ -162,7 +165,7 @@ void loop() {
                 }
                 if (new_word == true) {
                     USE_SERIAL.printf_P("\r\nFlash memory page base address: %d\r\n", flash_page_addr);
-                    USE_SERIAL.printf_P("Address high byte: %d (<< 8) + Address low byte: %d", (flash_page_addr & 0xFF00) >> 8, \
+                    USE_SERIAL.printf_P("Address high byte: %d (<< 8) + Address low byte: %d\n\r", (flash_page_addr & 0xFF00) >> 8, \
                                                                                                 flash_page_addr & 0xFF);
                     new_word = false;
                 }
@@ -172,7 +175,6 @@ void loop() {
             // * Timonel ::: WRITPAGE Command *
             // ********************************
             case 'w': case 'W': {
-                Timonel tml(TML_ADDR);
                 tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
                 break;
             }
@@ -182,7 +184,6 @@ void loop() {
             case 'm': case 'M': {
                 //byte dataSize = 0;	// flash data size requested to ATtiny85
                 //byte dataIX = 0;	// Requested flash data start position
-                Timonel tml(TML_ADDR);
                 tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);            
                 //DumpFlashMem(MCUTOTALMEM, 8, 32);
                 new_byte = false;
@@ -227,6 +228,8 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
+    Timonel::status sts = tml.GetStatus();
+    word last_page = (sts.bootloader_start - PAGE_SIZE);
 	const byte data_length = 16;
 	char serial_data[data_length];	// an array to store the received data  
 	static byte ix = 0;
@@ -235,7 +238,7 @@ word ReadWord(void) {
 		rc = USE_SERIAL.read();
 		if (rc != endMarker) {
 			serial_data[ix] = rc;
-			USE_SERIAL.printf_P("%d", serial_data[ix]);
+			USE_SERIAL.printf_P("%c", serial_data[ix]);
 			ix++;
 			if (ix >= data_length) {
 				ix = data_length - 1;
@@ -247,27 +250,27 @@ word ReadWord(void) {
 			new_word = true;
 		}
 	}
-	if ((atoi(serial_data) < 0 || atoi(serial_data) > MCU_TOTAL_MEM) && new_word == true) {
+	if ((atoi(serial_data) < 0 || atoi(serial_data) > last_page) && new_word == true) {
 		for (int i = 0; i < data_length; i++) {
 			serial_data[i] = 0;
 		}
 		USE_SERIAL.printf_P("\n\r");
-		USE_SERIAL.printf_P("WARNING! Word memory positions must be between 0 and %d -> Changing to %d\n\r", MCU_TOTAL_MEM, (word)atoi(serial_data));
+		USE_SERIAL.printf_P("WARNING! Word memory positions must be between 0 and %d -> Changing to %d", last_page, (word)atoi(serial_data));
 	}
 	return((word)atoi(serial_data));
 }
 
 // Function Clear Screen
 void ClrScr() {
-	USE_SERIAL.write(27);       // ESC command
-	USE_SERIAL.printf_P("[2J");    // clear screen command
-	USE_SERIAL.write(27);       // ESC command
-	USE_SERIAL.printf_P("[H");     // cursor to home command
+	USE_SERIAL.write(27);           // ESC command
+	USE_SERIAL.printf_P("[2J");     // clear screen command
+	USE_SERIAL.write(27);           // ESC command
+	USE_SERIAL.printf_P("[H");      // cursor to home command
 }
 
 // Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    struct Timonel::status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    Timonel::status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
     if((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {  
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
@@ -286,7 +289,7 @@ void PrintStatus(Timonel timonel) {
             }
         }
         USE_SERIAL.printf_P(" ====================================\n\r");
-        struct Timonel::status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        Timonel::status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -321,18 +324,17 @@ void ShowMenu(void) {
 		USE_SERIAL.printf_P("\n\rApplication command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
 	}
 	else {
-        Timonel tml(TML_ADDR);
         Timonel::status sts = tml.GetStatus();
         USE_SERIAL.printf_P("\n\rTimonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
-        if ((sts.features_code & 0x80) == false) {
-            USE_SERIAL.printf_P("): ");
+        if ((sts.features_code & 0x08) == 0x08) {
+            USE_SERIAL.printf_P(", 'b' set addr");
         }
-        else {
-            USE_SERIAL.printf_P(", 'm' mem dump): ");
+        if ((sts.features_code & 0x80) == 0x80) {
+            USE_SERIAL.printf_P(", 'm' mem dump");
         }
+        USE_SERIAL.printf_P("): ");
 	}
 }
-
 
 // Setup block
 // void setup() {

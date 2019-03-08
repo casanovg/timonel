@@ -105,7 +105,6 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 
 // Upload a user application to an ATTiny85 running Timonel
 byte Timonel::UploadApplication(const byte payload[], int payload_size, int start_address) {
-	
 	byte packet = 0;										/* Byte amount to be sent in a single I2C data packet */
 	byte padding = 0;										/* Amount of padding bytes to match the page size */
 	byte page_end = 0;										/* Byte counter to detect the end of flash mem page */
@@ -113,16 +112,13 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 	byte upl_errors = 0;									/* Upload error counter */
 	byte data_packet[TXDATASIZE] = { 0xFF };				/* TWI data packet array */
 	bool app_use_tpl = false;								/* Application use trampoline page flag */
-	
 	if ((status_.features_code & 0x08) != false) {			/* If CMD_STPGADDR is enabled */
-		
 		if (start_address >= PAGE_SIZE) {					/* If application start address is not 0 */
 			USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
 			FillSpecialPage(1);
 			SetPageAddress(start_address);					/* Calculate and fill reset page */
 			delay(100);
 		}
-
 		if ((status_.features_code & 0x02) == false) {		/* if AUTO_TPL_CALC is disabled */
 			if (payload_size <= status_.bootloader_start - PAGE_SIZE) {	/* if the application doesn't use the trampoline page */
 				USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't use trampoline page ...\n\n\r", __func__);
@@ -148,14 +144,11 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 			delay(100);
 		}
 	}
-
 	if ((payload_size % PAGE_SIZE) != 0) { /* If the payload doesn't use an exact number of pages, resize it by adding padding data */
 		padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
 		payload_size += padding;
 	}
-
 	USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
-
 	for (int i = 0; i < payload_size; i++) {
 		if (i < (payload_size - padding)) {
 			data_packet[packet] = payload[i];				/* If there are data to fill the page, use it ... */
@@ -163,24 +156,17 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 		else {
 			data_packet[packet] = 0xFF;						/* If there are no more data, complete the page with padding (0xff) */
 		}
-
-		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
-		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
-		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
 		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO 
 		// BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO
 		if (app_use_tpl == true) { /* If the flag for the app's use of the trampoline page is set, modify the last two bytes */
 			word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
 			if (i == (payload_size - 2)) {
 				data_packet[packet] = (byte)(tpl & 0xFF);
-				USE_SERIAL.printf_P("\n\r[%s] KATSULO %d ...\n\n\r", __func__, i);
 			}
 			if (i == (payload_size - 1)) {
 				data_packet[packet] = (byte)((tpl >> 8) & 0xFF);
-				USE_SERIAL.printf_P("\n\r[%s] KOKOA %d ...\n\n\r", __func__, i);
 			}
 		}
-
 		if (packet++ == (TXDATASIZE - 1)) {					/* When a data packet is completed to be sent ... */
 			for (int j = 0; j < TXDATASIZE; j++) {
 				USE_SERIAL.printf_P(".");
@@ -217,7 +203,6 @@ byte Timonel::UploadApplication(const byte payload[], int payload_size, int star
 			}
 		}
 	}
-
 	if (upl_errors == 0) {
 		USE_SERIAL.printf_P("\n\r[%s] Application was successfully transferred to T85, please select 'run app' command to start it ...\n\r", __func__);
 	}
@@ -335,14 +320,14 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
 // Function DumpFlashMem
 byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_line) {
 	if ((status_.features_code & 0x80) == false) {
-		USE_SERIAL.printf_P("\n\r[%s] Function not implemented in current Timonel setup ...\r\n", __func__, DELFLASH);
+		USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);
 		return(3);
 	}
 	const byte cmd_size = 5;
 	byte twi_cmd_arr[cmd_size] = { READFLSH, 0, 0, 0, 0 };
 	byte twi_reply_arr[rx_data_size + 2];
 	byte checksum_errors = 0;
-	int v = 1;
+	int j = 1;
 	twi_cmd_arr[3] = rx_data_size;
 	USE_SERIAL.printf_P("\n\r[%s] Dumping Flash Memory ...\n\n\r", __func__);
 	USE_SERIAL.printf_P("Addr %04X: ", 0);
@@ -355,17 +340,17 @@ byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_lin
 			byte checksum = 0;
 			for (byte i = 1; i < (rx_data_size + 1); i++) {
 				USE_SERIAL.printf_P("%02X", twi_reply_arr[i]);							/* Memory values */
-				if (v == values_per_line) {
+				if (j == values_per_line) {
 					USE_SERIAL.printf_P("\n\r");
 					if ((address + rx_data_size) < flash_size) {
 						USE_SERIAL.printf_P("Addr %04X: ", address + rx_data_size);		/* Page address */
 					}
-					v = 0;
+					j = 0;
 				}
 				else {
 					USE_SERIAL.printf_P(" ");											/* Space between values */
 				}
-				v++;
+				j++;
 				checksum += (byte)twi_reply_arr[i];
 			}
 			if (checksum != twi_reply_arr[rx_data_size + 1]) {
