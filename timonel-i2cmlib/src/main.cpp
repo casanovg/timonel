@@ -11,8 +11,8 @@
 #include <Arduino.h>
 #include <Memory>
 #include "NBTinyX5.h"
-#include "TimonelTWIM.h"
-#include "payload.h"
+#include "TimonelTwiM.h"
+#include "../include/Payloads/payload.h"
 
 #define USE_SERIAL Serial
 #define TML_ADDR 8          /* Bootloader I2C address*/
@@ -54,10 +54,24 @@ void setup() {
     ShowHeader();
     PrintStatus(tml);
     ShowMenu();
-    // NBTinyX5 nb(TML_ADDR);
-    // nb.ScanTWI();
+    // TwiBus twi;
+    // --- bool *p_app_mode = &app_mode;
+    // --- byte address = twi.ScanBus(p_app_mode);
+    // struct TwiBus::device device_arr[27];
+    // twi.ScanBus(device_arr);
+    // for (byte i = 0; i < 27; i++) {
+    //     USE_SERIAL.printf_P("...................................\n\r");
+    //     USE_SERIAL.printf_P("TWI Addr: %d\n\r", device_arr[i].addr);
+    //     if (device_arr[i].firmware == "Timonel") {
+    //         //USE_SERIAL.printf_P("Firmware: %s\n\r", device_arr[i].firmware);U
+    //         USE_SERIAL.printf_P("Firmware: Timonel\n\r");
+    //     }
+    //     USE_SERIAL.printf_P(" Ver Maj: %d\n\r", device_arr[i].version_major);
+    //     USE_SERIAL.printf_P(" Ver Min: %d\n\r", device_arr[i].version_minor);
+    // }
+    // USE_SERIAL.printf_P("...................................\n\r");
 }
-
+// 
 // Main loop
 void loop() {
 	if (new_key == true) {

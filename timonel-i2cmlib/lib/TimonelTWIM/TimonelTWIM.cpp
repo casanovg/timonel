@@ -1,5 +1,5 @@
 /*
-  TimonelTWIM.cpp
+  TimonelTwiM.cpp
   ===============
   Library code for uploading firmware to an Atmel ATTiny85
   microcontroller that runs the Timonel I2C bootloader.
@@ -8,10 +8,10 @@
   ---------------------------
 */
 
-#include "TimonelTWIM.h"
+#include "TimonelTwiM.h"
 
 // Class constructor
-Timonel::Timonel(byte twi_address, byte sda, byte scl): NBTinyX5(twi_address, sda, scl) {
+Timonel::Timonel(byte twi_address, byte sda, byte scl): NbTinyX5(twi_address, sda, scl) {
 	TwoStepInit(0);
 }
 
@@ -41,16 +41,6 @@ byte Timonel::QueryStatus(void) {
 Timonel::status Timonel::GetStatus(void) {
 	QueryStatus();
 	return(status_);
-}
-
-// Function InitTiny
-byte Timonel::InitTiny(void) {
-	Wire.beginTransmission(addr_);
-	Wire.write(INITTINY);
-	Wire.endTransmission();
-	Wire.requestFrom(addr_, (byte)1);
-	//byte block_rx_size = 0;
-	return(0);
 }
 
 // Function TwoStepInit

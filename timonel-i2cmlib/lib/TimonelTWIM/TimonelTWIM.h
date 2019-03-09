@@ -1,5 +1,5 @@
 /*
-  TimonelTWIM.h
+  TimonelTwiM.h
   =============
   Library header for uploading firmware to an Atmel ATTiny85
   microcontroller that runs the Timonel I2C bootloader.
@@ -14,13 +14,12 @@
 #include "Arduino.h"
 #include "Wire.h"
 #include "stdbool.h"
-#include "tml-twimconfig.h"
-#include "nb-i2c-cmd.h"
+#include "libconfig.h"
+#include "../../include/nb-i2c-cmd.h"
 #include "../NBTinyX5/NBTinyX5.h"
 
-#define USE_SERIAL Serial
-
-class Timonel: public NBTinyX5 {
+// Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
+class Timonel: public NbTinyX5 {
 public:
     Timonel(byte twi_address, byte sda = 0, byte scl = 0);
     // Struct that holds a Timonel instance's status 
@@ -42,7 +41,6 @@ private:
     byte block_rx_size_ = 0;
     struct status status_;
     byte QueryStatus(void);
-    byte InitTiny(void);
     byte TwoStepInit(word time);
     byte WritePageBuff(byte data_array[]);
     byte SetPageAddress(word page_addr);
