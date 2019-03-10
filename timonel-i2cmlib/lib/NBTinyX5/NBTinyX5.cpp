@@ -14,12 +14,12 @@
 // Class constructor
 NbTinyX5::NbTinyX5(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
 	if (!((sda == 0) && (scl == 0))) 	{
-		USE_SERIAL.printf_P("\n\r[%s] Creating a new I2C connection\n\r", __func__);
+		USE_SERIAL.printf_P("[%s] Creating a new I2C connection\n\r", __func__);
 		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
 		reusing_twi_connection_ = false;
 	}
 	else 	{
-		USE_SERIAL.printf_P("\n\r[%s] Reusing I2C connection\n\r", __func__);
+		USE_SERIAL.printf_P("[%s] Reusing I2C connection\n\r", __func__);
     reusing_twi_connection_ = true;
 	}
 }
@@ -80,12 +80,12 @@ byte NbTinyX5::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byt
 // Class constructor
 TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
 	if (!((sda == 0) && (scl == 0))) {
-		USE_SERIAL.printf_P("\n\r[%s] Creating a new I2C connection\n\r", __func__);
+		USE_SERIAL.printf_P("[%s] Creating a new I2C connection\n\r", __func__);
 		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
 		reusing_twi_connection_ = false;
 	}
 	else {
-		USE_SERIAL.printf_P("\n\r[%s] Reusing I2C connection\n\r", __func__);
+		USE_SERIAL.printf_P("[%s] Reusing I2C connection\n\r", __func__);
 		reusing_twi_connection_ = true;
 	}
 }
@@ -94,25 +94,25 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
 byte TwiBus::ScanBus(bool *p_app_mode) {
 	// Address 08 to 35: Timonel bootloader
 	// Address 36 to 63: Application firmware	
-	USE_SERIAL.println("Scanning TWI bus, looking for the first device (lowest address) ...");
+	USE_SERIAL.println("\n\rScanning TWI bus, looking for the first device (lowest address) ...\n\r");
 	#define MIN_TWI_ADDR 8
 	#define MAX_TWI_ADDR 63
-	byte scanned_addr = MIN_TWI_ADDR;
-	while (scanned_addr < MAX_TWI_ADDR) {
-		Wire.beginTransmission(scanned_addr);
+	byte twi_addr = MIN_TWI_ADDR;
+	while (twi_addr < MAX_TWI_ADDR) {
+		Wire.beginTransmission(twi_addr);
 		if (Wire.endTransmission() == 0) {
-			if (scanned_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
-				USE_SERIAL.printf_P("Timonel Bootloader found at address: %d (0x%X)", scanned_addr, scanned_addr);
+			if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
+				USE_SERIAL.printf_P("Timonel bootloader found at address: %d (0x%X)\n\r", twi_addr, twi_addr);
 				*p_app_mode = false;
 			}
 			else {
-				USE_SERIAL.printf_P("Application Firmware found at address: %d (0x%X)", scanned_addr, scanned_addr);
+				USE_SERIAL.printf_P("Application firmware found at address: %d (0x%X)\n\r", twi_addr, twi_addr);
 				*p_app_mode = true;
 			}
-			return (scanned_addr);
+			return (twi_addr);
 		}
-		delay(100);
-		scanned_addr++;
+		delay(5);
+		twi_addr++;
 	}
 }
 
@@ -124,35 +124,41 @@ byte TwiBus::ScanBus(struct device device_arr[], byte arr_size, byte start_twi_a
 	// to a defined application address, as shown in this table:
 	// T: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
 	// A: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
-	USE_SERIAL.println("Scanning TWI bus, searching all the connected devices ...");
+	USE_SERIAL.println("\n\rScanning TWI bus, searching all the connected devices, please wait ...\n\r");
 	#define MIN_TWI_ADDR 8
 	#define MAX_TWI_ADDR 63
-	byte scanned_addr = 8;
-	while (scanned_addr <= MAX_TWI_ADDR) {
-		Wire.beginTransmission(scanned_addr);
+	byte twi_addr = MIN_TWI_ADDR;
+	while (twi_addr <= MAX_TWI_ADDR) {
+		Wire.beginTransmission(twi_addr);
 		if (Wire.endTransmission() == 0) {
-			if (scanned_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
-				Timonel tml(scanned_addr);
+			if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
+				Timonel tml(twi_addr);
 				struct Timonel::status sts = tml.GetStatus();
-				device_arr[scanned_addr - start_twi_addr].addr = scanned_addr;
+				device_arr[twi_addr - start_twi_addr].addr = twi_addr;
 				if (sts.signature == 84) {
-					device_arr[scanned_addr - start_twi_addr].firmware = "Timonel";
+					device_arr[twi_addr - start_twi_addr].firmware = "Timonel";
 				}
 				else {
-					device_arr[scanned_addr - start_twi_addr].firmware = "Unknown";
+					device_arr[twi_addr - start_twi_addr].firmware = "Unknown";
 				}
-				device_arr[scanned_addr - start_twi_addr].version_major = sts.version_major;
-				device_arr[scanned_addr - start_twi_addr].version_minor = sts.version_minor;
+				device_arr[twi_addr - start_twi_addr].version_major = sts.version_major;
+				device_arr[twi_addr - start_twi_addr].version_minor = sts.version_minor;
 			}
 			else {
-				device_arr[scanned_addr - start_twi_addr].addr = scanned_addr;
-				device_arr[scanned_addr - start_twi_addr].firmware = "Application";
-				device_arr[scanned_addr - start_twi_addr].version_major = 0;
-				device_arr[scanned_addr - start_twi_addr].version_minor = 1;
+				device_arr[twi_addr - start_twi_addr].addr = twi_addr;
+				device_arr[twi_addr - start_twi_addr].firmware = "Application";
+				device_arr[twi_addr - start_twi_addr].version_major = 0;
+				device_arr[twi_addr - start_twi_addr].version_minor = 0;
 			}
-		}
-		delay(100);
-		scanned_addr++;
+		} 
+		// else {
+		// 	device_arr[twi_addr - start_twi_addr].addr = 0;
+		// 	device_arr[twi_addr - start_twi_addr].firmware = "No device";
+		// 	device_arr[twi_addr - start_twi_addr].version_major = 0;
+		// 	device_arr[twi_addr - start_twi_addr].version_minor = 0;
+		// }
+		delay(5);
+		twi_addr++;
 	}
 	return(0);
 }

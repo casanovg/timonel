@@ -24,6 +24,7 @@
 void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
+void ListTwiDevices(byte sda, byte scl);
 void PrintStatus(Timonel tml);
 void ThreeStarDelay(void);
 void ReadChar(void);
@@ -47,23 +48,13 @@ word timonel_start = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set' *
 
 // Setup block
 void setup() {
+    #define MAX_TWI_DEVS 28
     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
     ClrScr();
-    TwiBus twi(SDA, SCL);
+    ListTwiDevices(SDA, SCL);
     // --- bool *p_app_mode = &app_mode;
     // --- byte address = twi.ScanBus(p_app_mode);
-    struct TwiBus::device device_arr[28];
-    twi.ScanBus(device_arr, sizeof(device_arr));
-    for (byte i = 0; i < 27; i++) {
-        USE_SERIAL.printf_P("...................................\n\r");
-        USE_SERIAL.printf_P("Pos: %d | ", i);
-        USE_SERIAL.printf_P("TWI Addr: %d | ", device_arr[i].addr);
-        USE_SERIAL.printf_P("Firmware: %s | ", device_arr[i].firmware.c_str());
-        USE_SERIAL.printf_P("Version %d.%d\n\r", device_arr[i].version_major, device_arr[i].version_minor);
-    }
-    USE_SERIAL.printf_P("...................................\n\r");
-
     Timonel tml(TML_ADDR);
     tml.GetStatus();
     //ClrScr();
@@ -355,6 +346,27 @@ void ShowMenu(void) {
         }
         USE_SERIAL.printf_P("): ");
 	}
+}
+
+// Function ListTwidevices
+void ListTwiDevices(byte sda, byte scl) {
+    TwiBus twi(sda, scl);
+    struct TwiBus::device device_arr[MAX_TWI_DEVS];
+    twi.ScanBus(device_arr, MAX_TWI_DEVS);
+    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
+        USE_SERIAL.printf_P("...........................................................\n\r");
+        USE_SERIAL.printf_P("Pos: %02d | ", i + 1);
+        if (device_arr[i].firmware != "") {
+            USE_SERIAL.printf_P("TWI Addr: %02d | ", device_arr[i].addr);
+            USE_SERIAL.printf_P("Firmware: %s | ", device_arr[i].firmware.c_str());
+            USE_SERIAL.printf_P("Version %d.%d\n\r", device_arr[i].version_major, device_arr[i].version_minor);
+        }
+        else {
+            USE_SERIAL.printf_P("No device found\n\r");
+        }
+        delay(10);
+    }
+    USE_SERIAL.printf_P("...........................................................\n\n\r");    
 }
 
 // Setup block
