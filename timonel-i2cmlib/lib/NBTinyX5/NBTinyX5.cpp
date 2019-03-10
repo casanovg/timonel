@@ -90,69 +90,68 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
 	}
 }
 
-// Function ScanTWI (Overload A: Return the address and mode of the first TWI device found on the bus)
+// Function ScanTWI (Overload A: Returns the address and mode of the first TWI device found on the bus)
 byte TwiBus::ScanBus(bool *p_app_mode) {
-	//
 	// Address 08 to 35: Timonel bootloader
-	// Address 36 to 63: Application firmware
-	// Each I2C slave must have a unique bootloader address that corresponds
-	// to a defined application address, as shown in this table:
-	// T: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
-	// A: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
-	//
-	USE_SERIAL.println("Scanning I2C bus ...");
-	byte scanned_addr = 8;
-	while (scanned_addr < 120) {
+	// Address 36 to 63: Application firmware	
+	USE_SERIAL.println("Scanning TWI bus, looking for the first device (lowest address) ...");
+	#define MIN_TWI_ADDR 8
+	#define MAX_TWI_ADDR 63
+	byte scanned_addr = MIN_TWI_ADDR;
+	while (scanned_addr < MAX_TWI_ADDR) {
 		Wire.beginTransmission(scanned_addr);
 		if (Wire.endTransmission() == 0) {
-			if (scanned_addr < 36) {
+			if (scanned_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
 				USE_SERIAL.printf_P("Timonel Bootloader found at address: %d (0x%X)", scanned_addr, scanned_addr);
 				*p_app_mode = false;
 			}
 			else {
-				USE_SERIAL.printf_P("Test App Firmware found at address: %d (0x%X)", scanned_addr, scanned_addr);
+				USE_SERIAL.printf_P("Application Firmware found at address: %d (0x%X)", scanned_addr, scanned_addr);
 				*p_app_mode = true;
 			}
 			return (scanned_addr);
 		}
-		delay(500);
+		delay(100);
 		scanned_addr++;
 	}
 }
 
-// Function ScanTWI (Overload B: Fill an array with the address, firmware and version of all devices found on the bus)
-byte TwiBus::ScanBus(struct device device_arr[]) {
-	//
+// Function ScanTWI (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
+byte TwiBus::ScanBus(struct device device_arr[], byte arr_size, byte start_twi_addr) {
 	// Address 08 to 35: Timonel bootloader
 	// Address 36 to 63: Application firmware
 	// Each I2C slave must have a unique bootloader address that corresponds
 	// to a defined application address, as shown in this table:
 	// T: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
 	// A: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
-	//
-	USE_SERIAL.println("Scanning I2C bus ...");
+	USE_SERIAL.println("Scanning TWI bus, searching all the connected devices ...");
+	#define MIN_TWI_ADDR 8
+	#define MAX_TWI_ADDR 63
 	byte scanned_addr = 8;
-	while (scanned_addr < 64) {
+	while (scanned_addr <= MAX_TWI_ADDR) {
 		Wire.beginTransmission(scanned_addr);
 		if (Wire.endTransmission() == 0) {
-			if (scanned_addr < 36) {
+			if (scanned_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
 				Timonel tml(scanned_addr);
 				struct Timonel::status sts = tml.GetStatus();
-				device_arr[scanned_addr - 8].addr = scanned_addr;
+				device_arr[scanned_addr - start_twi_addr].addr = scanned_addr;
 				if (sts.signature == 84) {
-					device_arr[scanned_addr - 8].firmware = "Timonel";
+					device_arr[scanned_addr - start_twi_addr].firmware = "Timonel";
 				}
-				device_arr[scanned_addr - 8].version_major = sts.version_major;
-				device_arr[scanned_addr - 8].version_minor = sts.version_minor;
+				else {
+					device_arr[scanned_addr - start_twi_addr].firmware = "Unknown";
+				}
+				device_arr[scanned_addr - start_twi_addr].version_major = sts.version_major;
+				device_arr[scanned_addr - start_twi_addr].version_minor = sts.version_minor;
 			}
 			else {
-				device_arr[scanned_addr - 8].addr = scanned_addr;
-				device_arr[scanned_addr - 8].firmware = "Application";
-				device_arr[scanned_addr - 8].version_major = 0;
-				device_arr[scanned_addr - 8].version_minor = 1;
+				device_arr[scanned_addr - start_twi_addr].addr = scanned_addr;
+				device_arr[scanned_addr - start_twi_addr].firmware = "Application";
+				device_arr[scanned_addr - start_twi_addr].version_major = 0;
+				device_arr[scanned_addr - start_twi_addr].version_minor = 1;
 			}
 		}
-		delay(500);
+		delay(100);
 		scanned_addr++;
 	}
 	return(0);

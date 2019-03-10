@@ -43,34 +43,38 @@ char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set' */
 
-Timonel tml(TML_ADDR);
+//Timonel tml(TML_ADDR);
 
 // Setup block
 void setup() {
     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
-    Wire.begin(SDA, SCL);
-    tml.GetStatus();
+    //Wire.begin(SDA, SCL);
     ClrScr();
+    TwiBus twi(SDA, SCL);
+    // --- bool *p_app_mode = &app_mode;
+    // --- byte address = twi.ScanBus(p_app_mode);
+    struct TwiBus::device device_arr[28];
+    twi.ScanBus(device_arr, sizeof(device_arr));
+    for (byte i = 0; i < 27; i++) {
+        USE_SERIAL.printf_P("...................................\n\r");
+        USE_SERIAL.printf_P("Pos: %d | ", i);
+        USE_SERIAL.printf_P("TWI Addr: %d | ", device_arr[i].addr);
+        USE_SERIAL.printf_P("Firmware: %s | ", device_arr[i].firmware.c_str());
+        USE_SERIAL.printf_P("Version %d.%d\n\r", device_arr[i].version_major, device_arr[i].version_minor);
+    }
+    USE_SERIAL.printf_P("...................................\n\r");
+
+    Timonel tml(TML_ADDR);
+    tml.GetStatus();
+    //ClrScr();
     ShowHeader();
     PrintStatus(tml);
     ShowMenu();
-    // TwiBus twi;
-    // --- bool *p_app_mode = &app_mode;
-    // --- byte address = twi.ScanBus(p_app_mode);
-    // struct TwiBus::device device_arr[27];
-    // twi.ScanBus(device_arr);
-    // for (byte i = 0; i < 27; i++) {
-    //     USE_SERIAL.printf_P("...................................\n\r");
-    //     USE_SERIAL.printf_P("TWI Addr: %d\n\r", device_arr[i].addr);
-    //     if (device_arr[i].firmware == "Timonel") {
-    //         //USE_SERIAL.printf_P("Firmware: %s\n\r", device_arr[i].firmware);U
-    //         USE_SERIAL.printf_P("Firmware: Timonel\n\r");
-    //     }
-    //     USE_SERIAL.printf_P(" Ver Maj: %d\n\r", device_arr[i].version_major);
-    //     USE_SERIAL.printf_P(" Ver Min: %d\n\r", device_arr[i].version_minor);
-    // }
-    // USE_SERIAL.printf_P("...................................\n\r");
+
 }
+
+Timonel tml(TML_ADDR);
+
 // 
 // Main loop
 void loop() {
@@ -330,8 +334,8 @@ void ThreeStarDelay(void) {
 
 // Function ShowHeader
 void ShowHeader(void) {
-    ClrScr();
-    delay(500);
+    //ClrScr();
+    delay(250);
 	USE_SERIAL.printf_P("\n\r\rTimonel Bootloader and Application I2C Commander Test (v1.2 i2cmlib)\n\r");
 }
 

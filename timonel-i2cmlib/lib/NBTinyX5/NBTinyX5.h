@@ -36,13 +36,14 @@ class TwiBus {
 public:
 struct device {
     byte addr = 0;
+    //char firmware[10] = { '\0' };
     String firmware = "";
     byte version_major = 0;
     byte version_minor = 0;
 };
     TwiBus(byte sda = 0, byte scl = 0);
     byte ScanBus(bool *p_app_mode = nullptr); /* Returns the TWI address of the first device found */
-    byte ScanBus(struct device device_arr[]);    /*Returns an array with all TWI devices found (address, firmware, version) */
+    byte ScanBus(struct device device_arr[] = nullptr, byte arr_size = 28, byte start_twi_addr = 8);    /*Returns an array with all TWI devices found (address, firmware, version) */
 private:
     byte sda_ = 0, scl_ = 0;
     bool reusing_twi_connection_ = true; 
