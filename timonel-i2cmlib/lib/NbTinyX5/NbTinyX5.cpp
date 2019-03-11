@@ -36,7 +36,7 @@ NbTinyX5::~NbTinyX5() {
     in_use.erase(addr_);
 }
 
-// Function to set this object's TWI address (only once, if it wasn't set in the constructor)
+// Function to set this object's TWI address (Allowed only once, if it wasn't set in the constructor)
 byte NbTinyX5::SetTwiAddress(byte twi_address) {
     if (addr_ == 0) {
         addr_ = twi_address;

@@ -83,14 +83,14 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 
 // Upload a user application to an ATTiny85 running Timonel
 byte Timonel::UploadApplication(byte payload[], int payload_size, int start_address) {
-    byte packet = 0;                                                   /* Byte amount to be sent in a single I2C data packet */
-    byte padding = 0;                                                  /* Amount of padding bytes to match the page size */
-    byte page_end = 0;                                                 /* Byte counter to detect the end of flash mem page */
-    byte page_count = 1;                                               /* Current page counter */
-    byte upl_errors = 0;                                               /* Upload error counter */
-    byte data_packet[TXDATASIZE] = {0xFF}; /* TWI data packet array */ /* Application use trampoline page flag */
-    if ((status_.features_code & 0x08) != false) {                     /* If CMD_STPGADDR is enabled */
-        if (start_address >= PAGE_SIZE) {                              /* If application start address is not 0 */
+    byte packet = 0;                               /* Byte amount to be sent in a single I2C data packet */
+    byte padding = 0;                              /* Amount of padding bytes to match the page size */
+    byte page_end = 0;                             /* Byte counter to detect the end of flash mem page */
+    byte page_count = 1;                           /* Current page counter */
+    byte upl_errors = 0;                           /* Upload error counter */
+    byte data_packet[TXDATASIZE] = {0xFF};         /* TWI data packet array */
+    if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled */
+        if (start_address >= PAGE_SIZE) {          /* If application start address is not 0 */
             USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
             FillSpecialPage(1);
             SetPageAddress(start_address); /* Calculate and fill reset page */
@@ -104,9 +104,6 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
             } else {
                 if (payload_size <= status_.bootloader_start) { /* if the application does use the trampoline page, set a flag */
                     USE_SERIAL.printf_P("\n\n\r[%s] Application uses trampoline page ...\n\n\r", __func__);
-                    // SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO
-                    // SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO SET BONGO
-                    //app_use_tpl = true;
                     word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
                     payload[payload_size - 2] = (byte)(tpl & 0xFF);
                     payload[payload_size - 1] = (byte)((tpl >> 8) & 0xFF);
@@ -129,21 +126,10 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
     USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
     for (int i = 0; i < payload_size; i++) {
         if (i < (payload_size - padding)) {
-            data_packet[packet] = payload[i]; /* If there are data to fill the page, use it ... */
+            data_packet[packet] = payload[i]; /* If there are data to fill the page, use them ... */
         } else {
             data_packet[packet] = 0xFF; /* If there are no more data, complete the page with padding (0xff) */
         }
-        // BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO
-        // BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO BONGO
-        // if (app_use_tpl == true) { /* If the flag for the app's use of the trampoline page is set, modify the last two bytes */
-        //  word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
-        //  if (i == (payload_size - 2)) {
-        //      data_packet[packet] = (byte)(tpl & 0xFF);
-        //  }
-        //  if (i == (payload_size - 1)) {
-        //      data_packet[packet] = (byte)((tpl >> 8) & 0xFF);
-        //  }
-        // }
         if (packet++ == (TXDATASIZE - 1)) { /* When a data packet is completed to be sent ... */
             for (int j = 0; j < TXDATASIZE; j++) {
                 USE_SERIAL.printf_P(".");
@@ -166,9 +152,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
 
             USE_SERIAL.printf_P(" P%d ", page_count);
 
-            if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a   */
-                delay(100);                                /* 100 ms delay to allow memory flashing and set  */
-                USE_SERIAL.printf_P("\n\r");               /* the next page address before sending new data. */
+            if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a 100  */
+                delay(100);                                /* ms delay to allow memory flashing and setting the */
+                USE_SERIAL.printf_P("\n\r");               /* next page address before sending new data.        */
                 SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
 

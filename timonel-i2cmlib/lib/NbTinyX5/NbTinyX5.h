@@ -51,8 +51,8 @@ class TwiBus {
         byte version_minor = 0;
     };
     TwiBus(byte sda = 0, byte scl = 0);
-    byte ScanBus(bool *p_app_mode = nullptr);                                                               /* Returns the TWI address of the first device found */
-    byte ScanBus(struct device_info dev_info_arr[] = nullptr, byte arr_size = 28, byte start_twi_addr = 8); /*Returns an array with all TWI devices found (address, firmware, version) */
+    byte ScanBus(bool *p_app_mode = nullptr);
+    byte ScanBus(struct device_info dev_info_arr[] = nullptr, byte arr_size = 28, byte start_twi_addr = 8);
     //byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size);
    private:
     byte sda_ = 0, scl_ = 0;

@@ -37,7 +37,7 @@ class Timonel : public NbTinyX5 {
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
-    //byte SetTwiAddress(byte twi_address);
+
    private:
     byte block_rx_size_ = 0;
     struct status status_;

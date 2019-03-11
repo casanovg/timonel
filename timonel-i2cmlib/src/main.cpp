@@ -18,7 +18,7 @@
 #define TML_ADDR 8  /* Bootloader I2C address*/
 #define APP_ADDR 36 /* Application I2C address*/
 #define SDA 0       /* I2C SDA pin */
-#define SCL 2       /* SDA SCL pin */
+#define SCL 2       /* I2C SCL pin */
 #define MAX_TWI_DEVS 28
 
 // Prototypes
