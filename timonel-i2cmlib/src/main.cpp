@@ -44,7 +44,7 @@ bool new_word = false;
 bool app_mode = false;
 char key = '\0';
 word flash_page_addr = 0x0;
-word timonel_start = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set' */
+word timonel_start = 0xFFFF;        /* Timonel start address, 0xFFFF means 'not set' */
 
 Timonel tml(TML_ADDR, SDA, SCL);
 
@@ -78,10 +78,10 @@ void setup() {
 // 
 // Main loop
 void loop() {
-	if (new_key == true) {
-		new_key = false;
-		USE_SERIAL.printf_P("\n\r");
-		switch (key) {
+    if (new_key == true) {
+        new_key = false;
+        USE_SERIAL.printf_P("\n\r");
+        switch (key) {
             // *********************************
             // * Test App ||| STDPB1_1 Command *
             // *********************************
@@ -104,24 +104,24 @@ void loop() {
                 USE_SERIAL.printf_P("\n  .\n\r . .\n\r. . .\n\n\r");
                 delay(2000);
 #if ESP8266
-			    ESP.restart();
+                ESP.restart();
 #else
-			    resetFunc();
+                resetFunc();
 #endif /* ESP8266 */
-			    break;
-		    }
+                break;
+            }
             // ******************
             // * Restart Master *
             // ******************
             case 'z': case 'Z': {
                 USE_SERIAL.printf_P("\nResetting ESP8266 ...\n\r\n.\n.\n.\n");
 #if ESP8266
-			    ESP.restart();
+                ESP.restart();
 #else
-			    resetFunc();
+                resetFunc();
 #endif /* ESP8266 */
-			    break;
-		    }
+                break;
+            }
             // ********************************
             // * Timonel ::: GETTMNLV Command *
             // ********************************
@@ -141,11 +141,11 @@ void loop() {
                 app_mode = true;
                 delay(2000);
 #if ESP8266
-			    ESP.restart();
+                ESP.restart();
 #else
-			    resetFunc();
+                resetFunc();
 #endif /* ESP8266 */
-			    break;
+                break;
             }
             // ********************************
             // * Timonel ::: DELFLASH Command *
@@ -203,8 +203,8 @@ void loop() {
             // * Timonel ::: READFLSH Command *
             // ********************************
             case 'm': case 'M': {
-                //byte dataSize = 0;	// flash data size requested to ATtiny85
-                //byte dataIX = 0;	// Requested flash data start position
+                //byte dataSize = 0;    // flash data size requested to ATtiny85
+                //byte dataIX = 0;  // Requested flash data start position
                 tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);            
                 //DumpFlashMem(MCUTOTALMEM, 8, 32);
                 new_byte = false;
@@ -225,68 +225,68 @@ void loop() {
                 USE_SERIAL.printf_P("[Main] Command '%d' unknown ...\n\r", key);
                 break;
             }
-		    USE_SERIAL.printf_P("\n\r");
+            USE_SERIAL.printf_P("\n\r");
             USE_SERIAL.printf_P("Menusero\n\r");
         }
         ShowMenu();
-	}
-	ReadChar();
+    }
+    ReadChar();
 }
 
 // Determine if there is a user application update available
 bool CheckApplUpdate(void) {
-	  return true;
+      return true;
 }
 
 
 // Function ReadChar
 void ReadChar() {
-	if (USE_SERIAL.available() > 0) {
-		key = USE_SERIAL.read();
-		new_key = true;
-	}
+    if (USE_SERIAL.available() > 0) {
+        key = USE_SERIAL.read();
+        new_key = true;
+    }
 }
 
 // Function ReadWord
 word ReadWord(void) {
     Timonel::status sts = tml.GetStatus();
     word last_page = (sts.bootloader_start - PAGE_SIZE);
-	const byte data_length = 16;
-	char serial_data[data_length];	// an array to store the received data  
-	static byte ix = 0;
-	char rc, endMarker = 0xD;		//standard is: char endMarker = '\n'
-	while (USE_SERIAL.available() > 0 && new_word == false) {
-		rc = USE_SERIAL.read();
-		if (rc != endMarker) {
-			serial_data[ix] = rc;
-			USE_SERIAL.printf_P("%c", serial_data[ix]);
-			ix++;
-			if (ix >= data_length) {
-				ix = data_length - 1;
-			}
-		}
-		else {
-			serial_data[ix] = '\0';	// terminate the string
-			ix = 0;
-			new_word = true;
-		}
-	}
-	if ((atoi(serial_data) < 0 || atoi(serial_data) > last_page) && new_word == true) {
-		for (int i = 0; i < data_length; i++) {
-			serial_data[i] = 0;
-		}
-		USE_SERIAL.printf_P("\n\r");
-		USE_SERIAL.printf_P("WARNING! Word memory positions must be between 0 and %d -> Changing to %d", last_page, (word)atoi(serial_data));
-	}
-	return((word)atoi(serial_data));
+    const byte data_length = 16;
+    char serial_data[data_length];  // an array to store the received data  
+    static byte ix = 0;
+    char rc, endMarker = 0xD;       //standard is: char endMarker = '\n'
+    while (USE_SERIAL.available() > 0 && new_word == false) {
+        rc = USE_SERIAL.read();
+        if (rc != endMarker) {
+            serial_data[ix] = rc;
+            USE_SERIAL.printf_P("%c", serial_data[ix]);
+            ix++;
+            if (ix >= data_length) {
+                ix = data_length - 1;
+            }
+        }
+        else {
+            serial_data[ix] = '\0'; // terminate the string
+            ix = 0;
+            new_word = true;
+        }
+    }
+    if ((atoi(serial_data) < 0 || atoi(serial_data) > last_page) && new_word == true) {
+        for (int i = 0; i < data_length; i++) {
+            serial_data[i] = 0;
+        }
+        USE_SERIAL.printf_P("\n\r");
+        USE_SERIAL.printf_P("WARNING! Word memory positions must be between 0 and %d -> Changing to %d", last_page, (word)atoi(serial_data));
+    }
+    return((word)atoi(serial_data));
 }
 
 // Function Clear Screen
 void ClrScr() {
-	USE_SERIAL.write(27);           // ESC command
-	USE_SERIAL.printf_P("[2J");     // clear screen command
-	USE_SERIAL.write(27);           // ESC command
-	USE_SERIAL.printf_P("[H");      // cursor to home command
+    USE_SERIAL.write(27);           // ESC command
+    USE_SERIAL.printf_P("[2J");     // clear screen command
+    USE_SERIAL.write(27);           // ESC command
+    USE_SERIAL.printf_P("[H");      // cursor to home command
 }
 
 // Print Timonel instance status
@@ -336,15 +336,15 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-	USE_SERIAL.printf_P("\n\rTimonel Bootloader and Application I2C Commander Test (v1.2 i2cmlib)\n\n\r");
+    USE_SERIAL.printf_P("\n\rTimonel Bootloader and Application I2C Commander Test (v1.2 i2cmlib)\n\n\r");
 }
 
 // Function ShowMenu
 void ShowMenu(void) {
-	if (app_mode == true) {
-		USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
-	}
-	else {
+    if (app_mode == true) {
+        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
+    }
+    else {
         Timonel::status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
@@ -354,7 +354,7 @@ void ShowMenu(void) {
             USE_SERIAL.printf_P(", 'm' mem dump");
         }
         USE_SERIAL.printf_P("): ");
-	}
+    }
 }
 
 // Function ListTwidevices
