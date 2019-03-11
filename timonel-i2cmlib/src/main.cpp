@@ -46,7 +46,7 @@ char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF;		/* Timonel start address, 0xFFFF means 'not set' */
 
-//Timonel tml(TML_ADDR, SDA, SCL);
+Timonel tml(TML_ADDR, SDA, SCL);
 
 // Setup block
 void setup() {
