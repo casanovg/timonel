@@ -53,12 +53,13 @@ void setup() {
     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
     ClrScr();
-    ListTwiDevices();
+    // ******* ListTwiDevices();
     // --- bool *p_app_mode = &app_mode;
     // --- byte address = twi.ScanBus(p_app_mode);
     //ClrScr();
     ShowHeader();
-    //Timonel tml(TML_ADDR, SDA, SCL);
+    Timonel tml2(TML_ADDR + 1, SDA, SCL);
+    Timonel tml3(TML_ADDR + 2, SDA, SCL);
     tml.GetStatus();
     PrintStatus(tml);
     ShowMenu();

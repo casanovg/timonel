@@ -16,13 +16,17 @@
 #include "stdbool.h"
 #include "../../include/nb-i2c-cmd.h"
 //#include "../TimonelTwiM/TimonelTwiM.h"
+#include <unordered_set>
 
 #define USE_SERIAL Serial
+
+static std::unordered_set<byte> in_use;
 
 // Class NbTinyX5: Represents a generic ATTiny85/45/25 microcontroller
 class NbTinyX5 {
 public:
     NbTinyX5(byte twi_address = 0, byte sda = 0, byte scl = 0);
+    ~NbTinyX5();
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte SetTwiAddress(byte twi_address);
@@ -30,7 +34,9 @@ protected:
     byte addr_ = 0, sda_ = 0, scl_ = 0;
     bool reusing_twi_connection_ = true;
     byte InitTiny(void);
-private:    
+    //std::unordered_set<byte> in_use;
+    //byte addr_pool_[28] = { 0 };
+private:
 };
 
 // Class TwiBus: Represents a Two Wire Interfase (I2C) bus
