@@ -12,15 +12,28 @@
 #include "../TimonelTwiM/TimonelTwiM.h"
 
 // Class constructor
-NbTinyX5::NbTinyX5(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
-	if (!((sda == 0) && (scl == 0))) 	{
+NbTinyX5::NbTinyX5(byte twi_address, byte sda, byte scl): addr_(twi_address), sda_(sda), scl_(scl) {
+	if (!((sda_ == 0) && (scl_ == 0))) 	{
 		USE_SERIAL.printf_P("[%s] Creating a new I2C connection\n\r", __func__);
-		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
+		Wire.begin(sda_, scl_); /* Init I2C sda_:GPIO0, scl_:GPIO2 (ESP-01) / sda_:D3, scl_:D4 (NodeMCU) */
 		reusing_twi_connection_ = false;
 	}
 	else 	{
 		USE_SERIAL.printf_P("[%s] Reusing I2C connection\n\r", __func__);
     reusing_twi_connection_ = true;
+	}
+}
+
+// Function to set this object's TWI address (only once, if it wasn't set in the constructor)
+byte NbTinyX5::SetTwiAddress(byte twi_address) {
+	if (addr_ == 0) {
+		addr_ = twi_address;
+		USE_SERIAL.printf_P("[%s] TWI address correctly set to %d\r\n", __func__, addr_);
+		return(0);
+	}
+	else {
+		USE_SERIAL.printf_P("[%s] TWI address already defined, using %d\r\n", __func__, addr_);
+		return(1);
 	}
 }
 
@@ -78,7 +91,7 @@ byte NbTinyX5::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byt
 }
 
 // Class constructor
-TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
+TwiBus::TwiBus(byte sda, byte scl): sda_(sda), scl_(scl) {
 	if (!((sda == 0) && (scl == 0))) {
 		USE_SERIAL.printf_P("[%s] Creating a new I2C connection\n\r", __func__);
 		Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
@@ -117,7 +130,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
 }
 
 // Function ScanTWI (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
-byte TwiBus::ScanBus(struct device device_arr[], byte arr_size, byte start_twi_addr) {
+byte TwiBus::ScanBus(struct device_info dev_info_arr[], byte arr_size, byte start_twi_addr) {
 	// Address 08 to 35: Timonel bootloader
 	// Address 36 to 63: Application firmware
 	// Each I2C slave must have a unique bootloader address that corresponds
@@ -134,28 +147,28 @@ byte TwiBus::ScanBus(struct device device_arr[], byte arr_size, byte start_twi_a
 			if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR))  {
 				Timonel tml(twi_addr);
 				struct Timonel::status sts = tml.GetStatus();
-				device_arr[twi_addr - start_twi_addr].addr = twi_addr;
+				dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
 				if (sts.signature == 84) {
-					device_arr[twi_addr - start_twi_addr].firmware = "Timonel";
+					dev_info_arr[twi_addr - start_twi_addr].firmware = "Timonel";
 				}
 				else {
-					device_arr[twi_addr - start_twi_addr].firmware = "Unknown";
+					dev_info_arr[twi_addr - start_twi_addr].firmware = "Unknown";
 				}
-				device_arr[twi_addr - start_twi_addr].version_major = sts.version_major;
-				device_arr[twi_addr - start_twi_addr].version_minor = sts.version_minor;
+				dev_info_arr[twi_addr - start_twi_addr].version_major = sts.version_major;
+				dev_info_arr[twi_addr - start_twi_addr].version_minor = sts.version_minor;
 			}
 			else {
-				device_arr[twi_addr - start_twi_addr].addr = twi_addr;
-				device_arr[twi_addr - start_twi_addr].firmware = "Application";
-				device_arr[twi_addr - start_twi_addr].version_major = 0;
-				device_arr[twi_addr - start_twi_addr].version_minor = 0;
+				dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
+				dev_info_arr[twi_addr - start_twi_addr].firmware = "Application";
+				dev_info_arr[twi_addr - start_twi_addr].version_major = 0;
+				dev_info_arr[twi_addr - start_twi_addr].version_minor = 0;
 			}
 		} 
 		// else {
-		// 	device_arr[twi_addr - start_twi_addr].addr = 0;
-		// 	device_arr[twi_addr - start_twi_addr].firmware = "No device";
-		// 	device_arr[twi_addr - start_twi_addr].version_major = 0;
-		// 	device_arr[twi_addr - start_twi_addr].version_minor = 0;
+		// 	dev_info_arr[twi_addr - start_twi_addr].addr = 0;
+		// 	dev_info_arr[twi_addr - start_twi_addr].firmware = "No device";
+		// 	dev_info_arr[twi_addr - start_twi_addr].version_major = 0;
+		// 	dev_info_arr[twi_addr - start_twi_addr].version_minor = 0;
 		// }
 		delay(5);
 		twi_addr++;

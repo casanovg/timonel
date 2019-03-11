@@ -21,7 +21,7 @@
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
 class Timonel: public NbTinyX5 {
 public:
-    Timonel(byte twi_address, byte sda = 0, byte scl = 0);
+    Timonel(byte twi_address = 0, byte sda = 0, byte scl = 0);
     // Struct that holds a Timonel instance's status 
     struct status {
         byte signature = 0;
@@ -37,6 +37,7 @@ public:
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
+    //byte SetTwiAddress(byte twi_address);
 private:
     byte block_rx_size_ = 0;
     struct status status_;
