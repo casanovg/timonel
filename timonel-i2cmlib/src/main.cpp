@@ -10,15 +10,15 @@
 */
 #include <Arduino.h>
 #include <Memory>
+#include "../include/Payloads/payload.h"
 #include "NBTinyX5.h"
 #include "TimonelTwiM.h"
-#include "../include/Payloads/payload.h"
 
 #define USE_SERIAL Serial
-#define TML_ADDR 8          /* Bootloader I2C address*/
-#define APP_ADDR 36         /* Application I2C address*/
-#define SDA 0               /* I2C SDA pin */
-#define SCL 2               /* SDA SCL pin */
+#define TML_ADDR 8  /* Bootloader I2C address*/
+#define APP_ADDR 36 /* Application I2C address*/
+#define SDA 0       /* I2C SDA pin */
+#define SCL 2       /* SDA SCL pin */
 #define MAX_TWI_DEVS 28
 
 // Prototypes
@@ -26,7 +26,7 @@ void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
 void ListTwiDevices(byte sda = 0, byte scl = 0);
-byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0); 
+byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0);
 void PrintStatus(Timonel tml);
 void ThreeStarDelay(void);
 void ReadChar(void);
@@ -44,13 +44,13 @@ bool new_word = false;
 bool app_mode = false;
 char key = '\0';
 word flash_page_addr = 0x0;
-word timonel_start = 0xFFFF;        /* Timonel start address, 0xFFFF means 'not set' */
+word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
 
 Timonel tml(TML_ADDR, SDA, SCL);
 
 // Setup block
 void setup() {
-    USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
+    USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
     ClrScr();
     // ******* ListTwiDevices();
@@ -58,8 +58,18 @@ void setup() {
     // --- byte address = twi.ScanBus(p_app_mode);
     //ClrScr();
     ShowHeader();
-    Timonel tml2(TML_ADDR + 1, SDA, SCL);
-    Timonel tml3(TML_ADDR + 2, SDA, SCL);
+    if (1 == 1) {
+        byte dir = TML_ADDR + 1;
+        USE_SERIAL.printf_P("Creando %02d ...\n\r", dir);
+        Timonel tml2(dir, SDA, SCL);
+        USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
+    }
+    if (1 == 1) {
+        byte dir = TML_ADDR + 1;
+        USE_SERIAL.printf_P("\n\rCreando %02d ...\n\r", dir);
+        Timonel tml2(dir, SDA, SCL);
+        USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
+    }
     tml.GetStatus();
     PrintStatus(tml);
     ShowMenu();
@@ -75,7 +85,7 @@ void setup() {
 
 //Timonel tml(TML_ADDR);
 
-// 
+//
 // Main loop
 void loop() {
     if (new_key == true) {
@@ -85,21 +95,24 @@ void loop() {
             // *********************************
             // * Test App ||| STDPB1_1 Command *
             // *********************************
-            case 'a': case 'A': {
+            case 'a':
+            case 'A': {
                 //SetPB1On();
                 break;
             }
             // *********************************
             // * Test App ||| STDPB1_0 Command *
             // *********************************
-            case 's': case 'S': {
+            case 's':
+            case 'S': {
                 //SetPB1Off();
                 break;
             }
             // *********************************
             // * Test App ||| RESETINY Command *
             // *********************************
-            case 'x': case 'X': {
+            case 'x':
+            case 'X': {
                 //ResetTiny();
                 USE_SERIAL.printf_P("\n  .\n\r . .\n\r. . .\n\n\r");
                 delay(2000);
@@ -113,7 +126,8 @@ void loop() {
             // ******************
             // * Restart Master *
             // ******************
-            case 'z': case 'Z': {
+            case 'z':
+            case 'Z': {
                 USE_SERIAL.printf_P("\nResetting ESP8266 ...\n\r\n.\n.\n.\n");
 #if ESP8266
                 ESP.restart();
@@ -125,7 +139,8 @@ void loop() {
             // ********************************
             // * Timonel ::: GETTMNLV Command *
             // ********************************
-            case 'v': case 'V': {
+            case 'v':
+            case 'V': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
                 tml.GetStatus();
                 PrintStatus(tml);
@@ -134,7 +149,8 @@ void loop() {
             // ********************************
             // * Timonel ::: EXITTMNL Command *
             // ********************************
-            case 'r': case 'R': {
+            case 'r':
+            case 'R': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Run Application ...\r\n");
                 tml.RunApplication();
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
@@ -150,7 +166,8 @@ void loop() {
             // ********************************
             // * Timonel ::: DELFLASH Command *
             // ********************************
-            case 'e': case 'E': {
+            case 'e':
+            case 'E': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
                 tml.DeleteApplication();
                 delay(750);
@@ -162,7 +179,8 @@ void loop() {
             // ********************************
             // * Timonel ::: STPGADDR Command *
             // ********************************
-            case 'b': case 'B': {
+            case 'b':
+            case 'B': {
                 //byte resetFirstByte = 0;
                 //byte resetSecondByte = 0;
                 Timonel::status sts = tml.GetStatus();
@@ -186,8 +204,8 @@ void loop() {
                 }
                 if (new_word == true) {
                     USE_SERIAL.printf_P("\r\nFlash memory page base address: %d\r\n", flash_page_addr);
-                    USE_SERIAL.printf_P("Address high byte: %d (<< 8) + Address low byte: %d\n\r", (flash_page_addr & 0xFF00) >> 8, \
-                                                                                                flash_page_addr & 0xFF);
+                    USE_SERIAL.printf_P("Address high byte: %d (<< 8) + Address low byte: %d\n\r", (flash_page_addr & 0xFF00) >> 8,
+                                        flash_page_addr & 0xFF);
                     new_word = false;
                 }
                 break;
@@ -195,17 +213,19 @@ void loop() {
             // ********************************
             // * Timonel ::: WRITPAGE Command *
             // ********************************
-            case 'w': case 'W': {
+            case 'w':
+            case 'W': {
                 tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
                 break;
             }
             // ********************************
             // * Timonel ::: READFLSH Command *
             // ********************************
-            case 'm': case 'M': {
+            case 'm':
+            case 'M': {
                 //byte dataSize = 0;    // flash data size requested to ATtiny85
                 //byte dataIX = 0;  // Requested flash data start position
-                tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);            
+                tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);
                 //DumpFlashMem(MCUTOTALMEM, 8, 32);
                 new_byte = false;
                 break;
@@ -225,8 +245,8 @@ void loop() {
                 USE_SERIAL.printf_P("[Main] Command '%d' unknown ...\n\r", key);
                 break;
             }
-            USE_SERIAL.printf_P("\n\r");
-            USE_SERIAL.printf_P("Menusero\n\r");
+                USE_SERIAL.printf_P("\n\r");
+                USE_SERIAL.printf_P("Menusero\n\r");
         }
         ShowMenu();
     }
@@ -235,9 +255,8 @@ void loop() {
 
 // Determine if there is a user application update available
 bool CheckApplUpdate(void) {
-      return true;
+    return true;
 }
-
 
 // Function ReadChar
 void ReadChar() {
@@ -252,9 +271,9 @@ word ReadWord(void) {
     Timonel::status sts = tml.GetStatus();
     word last_page = (sts.bootloader_start - PAGE_SIZE);
     const byte data_length = 16;
-    char serial_data[data_length];  // an array to store the received data  
+    char serial_data[data_length];  // an array to store the received data
     static byte ix = 0;
-    char rc, endMarker = 0xD;       //standard is: char endMarker = '\n'
+    char rc, endMarker = 0xD;  //standard is: char endMarker = '\n'
     while (USE_SERIAL.available() > 0 && new_word == false) {
         rc = USE_SERIAL.read();
         if (rc != endMarker) {
@@ -264,9 +283,8 @@ word ReadWord(void) {
             if (ix >= data_length) {
                 ix = data_length - 1;
             }
-        }
-        else {
-            serial_data[ix] = '\0'; // terminate the string
+        } else {
+            serial_data[ix] = '\0';  // terminate the string
             ix = 0;
             new_word = true;
         }
@@ -278,21 +296,21 @@ word ReadWord(void) {
         USE_SERIAL.printf_P("\n\r");
         USE_SERIAL.printf_P("WARNING! Word memory positions must be between 0 and %d -> Changing to %d", last_page, (word)atoi(serial_data));
     }
-    return((word)atoi(serial_data));
+    return ((word)atoi(serial_data));
 }
 
 // Function Clear Screen
 void ClrScr() {
-    USE_SERIAL.write(27);           // ESC command
-    USE_SERIAL.printf_P("[2J");     // clear screen command
-    USE_SERIAL.write(27);           // ESC command
-    USE_SERIAL.printf_P("[H");      // cursor to home command
+    USE_SERIAL.write(27);        // ESC command
+    USE_SERIAL.printf_P("[2J");  // clear screen command
+    USE_SERIAL.write(27);        // ESC command
+    USE_SERIAL.printf_P("[H");   // cursor to home command
 }
 
 // Print Timonel instance status
 void PrintStatus(Timonel timonel) {
     Timonel::status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
-    if((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {  
+    if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
         switch (version_major) {
@@ -315,8 +333,7 @@ void PrintStatus(Timonel timonel) {
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
             USE_SERIAL.printf_P("  Application start: 0x%X (0x%X)\n\r", app_start, tml_status.trampoline_addr);
-        }
-        else {
+        } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
         USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
@@ -329,7 +346,7 @@ void ThreeStarDelay(void) {
     for (byte i = 0; i < 3; i++) {
         USE_SERIAL.printf_P("*");
         delay(1000);
-    }  
+    }
 }
 
 // Function ShowHeader
@@ -343,8 +360,7 @@ void ShowHeader(void) {
 void ShowMenu(void) {
     if (app_mode == true) {
         USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
-    }
-    else {
+    } else {
         Timonel::status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
@@ -369,13 +385,12 @@ void ListTwiDevices(byte sda, byte scl) {
             USE_SERIAL.printf_P("TWI Addr: %02d | ", dev_info_arr[i].addr);
             USE_SERIAL.printf_P("Firmware: %s | ", dev_info_arr[i].firmware.c_str());
             USE_SERIAL.printf_P("Version %d.%d\n\r", dev_info_arr[i].version_major, dev_info_arr[i].version_minor);
-        }
-        else {
+        } else {
             USE_SERIAL.printf_P("No device found\n\r");
         }
         delay(10);
     }
-    USE_SERIAL.printf_P("...........................................................\n\n\r");    
+    USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
@@ -384,9 +399,9 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     struct TwiBus::device_info dev_info_arr[MAX_TWI_DEVS];
     twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
     for (byte i = 0; i < MAX_TWI_DEVS; i++) {
-        if ((dev_info_arr[i].firmware != "Timonel") && (timonels < tml_arr_size))  {
+        if ((dev_info_arr[i].firmware != "Timonel") && (timonels < tml_arr_size)) {
             USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\r");
-            USE_SERIAL.printf_P("Pos: %02d | ", timonels);            
+            USE_SERIAL.printf_P("Pos: %02d | ", timonels);
             byte tml_addr = dev_info_arr[i].addr;
             USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
             tml_arr[timonels].SetTwiAddress(tml_addr);
@@ -414,7 +429,7 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
 //             tml.UploadApplication(payload, sizeof(payload));
 //             delay(250);
 //             PrintStatus(tml);
-//             ThreeStarDelay();    
+//             ThreeStarDelay();
 //             USE_SERIAL.printf_P("\n\n\r[Main] Deleting ATTiny85 firmware ...\n\r");
 //             tml.DeleteApplication();
 //             delay(850);

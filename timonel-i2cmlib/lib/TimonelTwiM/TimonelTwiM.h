@@ -11,34 +11,34 @@
 #ifndef _TIMONELTWIM_H_
 #define _TIMONELTWIM_H_
 
-#include "Arduino.h"
-#include "Wire.h"
-#include "stdbool.h"
-#include "libconfig.h"
 #include "../../include/nb-i2c-cmd.h"
 #include "../NBTinyX5/NBTinyX5.h"
+#include "Arduino.h"
+#include "Wire.h"
+#include "libconfig.h"
+#include "stdbool.h"
 
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
-class Timonel: public NbTinyX5 {
-public:
+class Timonel : public NbTinyX5 {
+   public:
     Timonel(byte twi_address = 0, byte sda = 0, byte scl = 0);
-    // Struct that holds a Timonel instance's status 
+    // Struct that holds a Timonel instance's status
     struct status {
         byte signature = 0;
         byte version_major = 0;
         byte version_minor = 0;
-        byte features_code = 0;  
+        byte features_code = 0;
         word bootloader_start = 0x0000;
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
     };
-    struct status GetStatus(void);  
+    struct status GetStatus(void);
     byte UploadApplication(byte payload[], int payload_size, int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
     //byte SetTwiAddress(byte twi_address);
-private:
+   private:
     byte block_rx_size_ = 0;
     struct status status_;
     byte QueryStatus(void);
