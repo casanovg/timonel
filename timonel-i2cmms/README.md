@@ -5,7 +5,7 @@ This is a demo of the Timonel TWI Master libraries for Arduino. It shows how to 
 
 NbTinyX5 library
 ----------------
-Provides the functionality to communicate with an ATTiny85 that implements the NB protocol through an TWI bus.
+Provides the functionality to communicate with an ATTiny85 that implements the NB protocol through a TWI bus.
 
 TimonelTwiM library
 -------------------

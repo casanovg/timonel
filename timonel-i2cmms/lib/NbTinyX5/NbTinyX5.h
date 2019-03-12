@@ -20,6 +20,7 @@
 //#include <exception>
 
 #define USE_SERIAL Serial
+#define MAX_TWI_DEVS 28
 
 static std::unordered_set<byte> in_use;
 
@@ -52,7 +53,7 @@ class TwiBus {
     };
     TwiBus(byte sda = 0, byte scl = 0);
     byte ScanBus(bool *p_app_mode = nullptr);
-    byte ScanBus(struct device_info dev_info_arr[] = nullptr, byte arr_size = 28, byte start_twi_addr = 8);
+    byte ScanBus(struct device_info dev_info_arr[] = nullptr, byte arr_size = MAX_TWI_DEVS, byte start_twi_addr = 8);
     //byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size);
    private:
     byte sda_ = 0, scl_ = 0;

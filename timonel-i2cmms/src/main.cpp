@@ -3,20 +3,35 @@
   ========
   Timonel library test program
   ----------------------------
-  Style: https://google.github.io/styleguide/cppguide.html#Naming
+  This demo shows how to control several ATTiny85 running Timonel from an ESP8266.
+  It uses a serial consele configured at 9600 N 8 1 for feedback.
   ---------------------------
   2019-03-11 Gustavo Casanova
   ---------------------------
 */
+
+/*
+ Working routine:
+ ----------------
+   1) Scans the TWI bus in search of all devices running Timonel.
+   2) Creates an array of Timonel objects, one per device.
+   3) List firmware version of each device.
+   4) Use payload-A to modify the Timonel running on each device to FC 168.
+   5) Starts the main loop, which allows to use serial commands.
+   6) If the reset command is entered, steps 1 to 3 are repeated but this time:
+   7) Use payload-B to modify the Timonel running on each device to FC 162.
+   8) Repeat the routine.
+*/
+
 #include <Arduino.h>
 #include <Memory>
 #include "../include/Payloads/payload.h"
-#include "NBTinyX5.h"
+#include "NbTinyX5.h"
 #include "TimonelTwiM.h"
 
 #define USE_SERIAL Serial
-#define TML_ADDR 8  /* Bootloader I2C address*/
-#define APP_ADDR 36 /* Application I2C address*/
+//#define TML_ADDR 8  /* Bootloader I2C address*/
+//#define APP_ADDR 36 /* Application I2C address*/
 #define SDA 0       /* I2C SDA pin */
 #define SCL 2       /* I2C SCL pin */
 #define MAX_TWI_DEVS 28
@@ -46,44 +61,21 @@ char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
 
-Timonel tml(TML_ADDR, SDA, SCL);
 
 // Setup block
 void setup() {
     USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
-    //Wire.begin(SDA, SCL);
+    Wire.begin(SDA, SCL);
     ClrScr();
-    // ******* ListTwiDevices();
-    // --- bool *p_app_mode = &app_mode;
-    // --- byte address = twi.ScanBus(p_app_mode);
-    //ClrScr();
     ShowHeader();
-    if (1 == 1) {
-        byte dir = TML_ADDR + 1;
-        USE_SERIAL.printf_P("Creando %02d ...\n\r", dir);
-        Timonel tml2(dir, SDA, SCL);
-        USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
-    }
-    if (1 == 1) {
-        byte dir = TML_ADDR + 1;
-        USE_SERIAL.printf_P("\n\rCreando %02d ...\n\r", dir);
-        Timonel tml2(dir, SDA, SCL);
-        USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
-    }
-    tml.GetStatus();
-    PrintStatus(tml);
-    ShowMenu();
+    // 1)
+    ListTwiDevices();
+    // 2)
+    Timonel tml[MAX_TWI_DEVS] = { 0 };
+    GetAllTimonels(tml, MAX_TWI_DEVS);
 
-    // Timonel tml_arr[5];
-    // GetAllTimonels(tml_arr, 5);
-    // for (byte i = 0; i < 5; i++) {
-    //     tml_arr[i].GetStatus();
-    //     PrintStatus(tml_arr[i]);
-    //     delay(50);
-    // }
+
 }
-
-//Timonel tml(TML_ADDR);
 
 //
 // Main loop
@@ -142,8 +134,8 @@ void loop() {
             case 'v':
             case 'V': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
-                tml.GetStatus();
-                PrintStatus(tml);
+                // tml.GetStatus();
+                // PrintStatus(tml);
                 break;
             }
             // ********************************
@@ -152,7 +144,7 @@ void loop() {
             case 'r':
             case 'R': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Run Application ...\r\n");
-                tml.RunApplication();
+                //tml.RunApplication();
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
                 app_mode = true;
                 delay(2000);
@@ -169,10 +161,10 @@ void loop() {
             case 'e':
             case 'E': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
-                tml.DeleteApplication();
+                //tml.DeleteApplication();
                 delay(750);
-                tml.GetStatus();
-                PrintStatus(tml);
+                //tml.GetStatus();
+                //PrintStatus(tml);
                 //TwoStepInit(750);
                 break;
             }
@@ -183,7 +175,7 @@ void loop() {
             case 'B': {
                 //byte resetFirstByte = 0;
                 //byte resetSecondByte = 0;
-                Timonel::status sts = tml.GetStatus();
+                Timonel::status sts /*= tml.GetStatus()*/;
                 if ((sts.features_code & 0x08) == false) {
                     USE_SERIAL.printf_P("\n\rSet address command not supported by current Timonel features ...\n\r");
                     break;
@@ -215,7 +207,7 @@ void loop() {
             // ********************************
             case 'w':
             case 'W': {
-                tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
+                //tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
                 break;
             }
             // ********************************
@@ -225,7 +217,7 @@ void loop() {
             case 'M': {
                 //byte dataSize = 0;    // flash data size requested to ATtiny85
                 //byte dataIX = 0;  // Requested flash data start position
-                tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);
+                //tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);
                 //DumpFlashMem(MCUTOTALMEM, 8, 32);
                 new_byte = false;
                 break;
@@ -268,8 +260,8 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
-    Timonel::status sts = tml.GetStatus();
-    word last_page = (sts.bootloader_start - PAGE_SIZE);
+    Timonel::status sts /*= tml.GetStatus()*/;
+    word last_page /*= (sts.bootloader_start - PAGE_SIZE)*/;
     const byte data_length = 16;
     char serial_data[data_length];  // an array to store the received data
     static byte ix = 0;
@@ -309,7 +301,7 @@ void ClrScr() {
 
 // Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    Timonel::status tml_status /*= timonel.GetStatus()*/; /* Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
@@ -328,7 +320,7 @@ void PrintStatus(Timonel timonel) {
             }
         }
         USE_SERIAL.printf_P(" ====================================\n\r");
-        Timonel::status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        //Timonel::status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -353,7 +345,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\rTimonel Bootloader and Application I2C Commander Test (v1.2 i2cmlib)\n\n\r");
+    USE_SERIAL.printf_P("\n\rTimonel TWI master libraries test for updating multiple slave ATTiny85s (v1.2 i2cmms)\n\n\r");
 }
 
 // Function ShowMenu
@@ -361,7 +353,7 @@ void ShowMenu(void) {
     if (app_mode == true) {
         USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
     } else {
-        Timonel::status sts = tml.GetStatus();
+        Timonel::status sts /*= tml.GetStatus()*/;
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
@@ -413,34 +405,3 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     //Timonel tml_array[timonels];
     return 0;
 }
-
-// Setup block
-// void setup() {
-//     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
-//     Wire.begin(SDA, SCL);
-//     Timonel tml(8);              /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
-//     if(CheckApplUpdate() == true) {
-//         delay(2000);
-//         for (byte i = 1; i < 4; i++) {
-//             USE_SERIAL.printf_P("\n\n\r  %d %d %d %d %d %d %d\r\n ***************\n\r", i, i, i, i, i, i, i);
-//             PrintStatus(tml);
-//             delay(250);
-//             USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
-//             tml.UploadApplication(payload, sizeof(payload));
-//             delay(250);
-//             PrintStatus(tml);
-//             ThreeStarDelay();
-//             USE_SERIAL.printf_P("\n\n\r[Main] Deleting ATTiny85 firmware ...\n\r");
-//             tml.DeleteApplication();
-//             delay(850);
-//             tml.RunApplication();
-//             delay(10);
-//             PrintStatus(tml);
-//             ThreeStarDelay();
-//         }
-//         USE_SERIAL.printf_P("\n\n\r[Main] Setup routine finished!\n\r");
-//     }
-//     else {
-//         USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
-//     }
-// }
