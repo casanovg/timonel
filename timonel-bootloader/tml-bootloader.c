@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include "tml-config.h"
 #include "nb-usitwisl-if.h"
-#include "nb-i2c-cmd.h"
+#include "nb-twi-cmd.h"
 
 /* I2C Address 08 to 35: Timonel bootloader
    I2C Address 36 to 63: Application firmware
@@ -398,10 +398,10 @@ void RequestEvent(void) {
 #endif /* CMD_READFLASH */
 #if TWO_STEP_INIT
         // ******************
-        // * INITTINY Reply *
+        // * INITSOFT Reply *
         // ******************
-        case INITTINY: {
-            statusRegister |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITTINY command */
+        case INITSOFT: {
+            statusRegister |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(opCodeAck);
             break;
         }

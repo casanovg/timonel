@@ -1,8 +1,8 @@
 /*
   TimonelTwiM.h
   =============
-  Library header for uploading firmware to an Atmel ATTiny85
-  microcontroller that runs the Timonel I2C bootloader.
+  Library header for uploading firmware to a microcontroller
+  that runs the Timonel I2C bootloader.
   ---------------------------
   2018-12-13 Gustavo Casanova
   ---------------------------
@@ -11,19 +11,18 @@
 #ifndef _TIMONELTWIM_H_
 #define _TIMONELTWIM_H_
 
-#include "../../include/nb-i2c-cmd.h"
-#include "../NBTinyX5/NBTinyX5.h"
+#include "../../include/nb-twi-cmd.h"
+#include "../NbMicro/NbMicro.h"
 #include "Arduino.h"
 #include "Wire.h"
 #include "libconfig.h"
 #include "stdbool.h"
 
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
-class Timonel : public NbTinyX5 {
+class Timonel : public NbMicro {
    public:
     Timonel(byte twi_address = 0, byte sda = 0, byte scl = 0);
-    // Struct that holds a Timonel instance's status
-    struct status {
+    typedef struct tml_status_ {
         byte signature = 0;
         byte version_major = 0;
         byte version_minor = 0;
@@ -31,16 +30,18 @@ class Timonel : public NbTinyX5 {
         word bootloader_start = 0x0000;
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
-    };
-    struct status GetStatus(void);
+    } Status;
+    Status GetStatus(void);
     byte UploadApplication(byte payload[], int payload_size, int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
-    byte DumpMemory(word flash_size = MCU_TOTAL_MEM, byte rx_data_size = RX_DATA_SIZE, byte values_per_line = VALUES_PER_LINE);
+    byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
+                    const byte rx_data_size = RX_DATA_SIZE,
+                    const byte values_per_line = VALUES_PER_LINE);
 
    private:
     byte block_rx_size_ = 0;
-    struct status status_;
+    Status status_; /* Goblal struct that holds a Timonel instance's running status */
     byte QueryStatus(void);
     byte TwoStepInit(word time);
     byte WritePageBuff(byte data_array[]);

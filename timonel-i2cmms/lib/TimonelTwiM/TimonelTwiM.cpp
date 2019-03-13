@@ -1,8 +1,8 @@
 /*
   TimonelTwiM.cpp
   ===============
-  Library code for uploading firmware to an Atmel ATTiny85
-  microcontroller that runs the Timonel I2C bootloader.
+  Library code for uploading firmware to a microcontroller
+  that runs the Timonel I2C bootloader.
   ---------------------------
   2018-12-13 Gustavo Casanova
   ---------------------------
@@ -11,11 +11,11 @@
 #include "TimonelTwiM.h"
 
 // Class constructor
-Timonel::Timonel(byte twi_address, byte sda, byte scl) : NbTinyX5(twi_address, sda, scl) {
+Timonel::Timonel(byte twi_address, byte sda, byte scl) : NbMicro(twi_address, sda, scl) {
     TwoStepInit(0);
 }
 
-// Function to check the status parameters of the bootloader running on the ATTiny85
+// Retrieve the bootloader running parameters from the microcontroller
 byte Timonel::QueryStatus(void) {
     byte twi_reply_arr[V_CMD_LENGTH] = {0}; /* Status received from I2C slave */
     byte twi_cmd_err = TwiCmdXmit(GETTMNLV, ACKTMNLV, twi_reply_arr, V_CMD_LENGTH);
@@ -36,8 +36,8 @@ byte Timonel::QueryStatus(void) {
     return (OK);
 }
 
-// Get the Timonel running status
-Timonel::status Timonel::GetStatus(void) {
+// Get the Timonel bootloader running status
+Timonel::Status Timonel::GetStatus(void) {
     QueryStatus();
     return (status_);
 }
@@ -45,7 +45,7 @@ Timonel::status Timonel::GetStatus(void) {
 // Function TwoStepInit
 byte Timonel::TwoStepInit(word time) {
     delay(time);
-    InitTiny();             /* Two-step Tiny85 initialization: STEP 1 */
+    InitMicro();            /* Two-step Tiny85 initialization: STEP 1 */
     return (QueryStatus()); /* Two-step Tiny85 initialization: STEP 2 */
 }
 
@@ -81,7 +81,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
     return (wrt_errors);
 }
 
-// Upload a user application to an ATTiny85 running Timonel
+// Uploads a user application to a microcontroller running Timonel
 byte Timonel::UploadApplication(byte payload[], int payload_size, int start_address) {
     byte packet = 0;                               /* Byte amount to be sent in a single I2C data packet */
     byte padding = 0;                              /* Amount of padding bytes to match the page size */
@@ -181,7 +181,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
     return (upl_errors);
 }
 
-// Function SetPageAddress
+// Sets upload address of the forthcoming page
 byte Timonel::SetPageAddress(word page_addr) {
     const byte cmd_size = 4;
     const byte reply_size = 2;
@@ -259,13 +259,13 @@ byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset
     delay(100);
 }
 
-// Ask Timonel to stop executing and run the user application
+// Asks Timonel to stop executing and run the user application
 byte Timonel::RunApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Exit bootloader & run application >>> %d\r\n", __func__, EXITTMNL);
     return (TwiCmdXmit(EXITTMNL, ACKEXITT));
 }
 
-// Instruct Timonel to delete the user application
+// Makes Timonel delete the user application
 byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> %d\r\n", __func__, DELFLASH);
     return (TwiCmdXmit(DELFLASH, ACKDELFL));
@@ -276,7 +276,7 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
     return (((~((bootloader_start >> 1) - ((application_start + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 }
 
-// Function DumpFlashMem
+// Displays the microcontroller's entire flash memory contents
 byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_line) {
     if ((status_.features_code & 0x80) == false) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);
@@ -316,7 +316,7 @@ byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_lin
                 //USE_SERIAL.printf_P("%d\n\r", checksum + 1);
                 //USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[rx_data_size + 1]);
                 if (checksum_errors++ == MAXCKSUMERRORS) {
-                    USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS, aborting! \n\r", __func__);
+                    USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS, stopping! \n\r", __func__);
                     delay(1000);
                     return (2);
                 }

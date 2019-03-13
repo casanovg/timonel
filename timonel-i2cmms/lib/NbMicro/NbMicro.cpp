@@ -1,18 +1,18 @@
 /*
-  NbTinyX5.cpp
-  ============
-  Library code for TWI (I2C) communications with an Atmel
-  ATTiny85 microcontroller using the NB protocol.
+  NbMicro.h
+  =========
+  Library header for TWI (I2C) communications with
+  a microcontroller using the NB command set.
   ---------------------------
-  2019-03-11 Gustavo Casanova
+  2019-03-12 Gustavo Casanova
   ---------------------------
 */
 
-#include "NBTinyX5.h"
+#include "NbMicro.h"
 #include "../TimonelTwiM/TimonelTwiM.h"
 
 // Class constructor
-NbTinyX5::NbTinyX5(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
+NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
     if (!in_use.insert(addr_).second) {
         USE_SERIAL.printf_P("[%s] Warning: The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
         USE_SERIAL.printf_P("[%s] Program stopped, please review the devices' TWI addresses on your code.\r\n", __func__, addr_);
@@ -31,13 +31,13 @@ NbTinyX5::NbTinyX5(byte twi_address, byte sda, byte scl) : addr_(twi_address), s
 }
 
 // Class destructor
-NbTinyX5::~NbTinyX5() {
+NbMicro::~NbMicro() {
     USE_SERIAL.printf_P("[%s] Freeing TWI address %02d ...\r\n", __func__, addr_);
     in_use.erase(addr_);
 }
 
-// Function to set this object's TWI address (Allowed only once, if it wasn't set in the constructor)
-byte NbTinyX5::SetTwiAddress(byte twi_address) {
+// Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
+byte NbMicro::SetTwiAddress(byte twi_address) {
     if (addr_ == 0) {
         addr_ = twi_address;
         USE_SERIAL.printf_P("[%s] TWI address correctly set to %d\r\n", __func__, addr_);
@@ -49,24 +49,24 @@ byte NbTinyX5::SetTwiAddress(byte twi_address) {
 }
 
 // Function InitTiny
-byte NbTinyX5::InitTiny(void) {
+byte NbMicro::InitMicro(void) {
     Wire.beginTransmission(addr_);
-    Wire.write(INITTINY);
+    Wire.write(INITSOFT);
     Wire.endTransmission();
     Wire.requestFrom(addr_, (byte)1);
     //byte block_rx_size = 0;
     return (0);
 }
 
-// Function TWI command transmit (Overload A: transmit single byte command)
-byte NbTinyX5::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+// Sends a TWI command to the microcontroller (Overload A: single byte command)
+byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
     const byte cmd_size = 1;
     byte twi_cmd_arr[cmd_size] = {twi_cmd};
     return (TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
 }
 
-// Function TWI command transmit (Overload B: transmit multibyte command)
-byte NbTinyX5::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+// Sends a TWI command to the microcontroller (Overload B: multibyte command)
+byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
     for (int i = 0; i < cmd_size; i++) {
         Wire.beginTransmission(addr_);
         Wire.write(twi_cmd_arr[i]);
@@ -115,8 +115,6 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
     USE_SERIAL.println("\n\rScanning TWI bus, looking for the first device (lowest address) ...\n\r");
-#define MIN_TWI_ADDR 8
-#define MAX_TWI_ADDR 63
     byte twi_addr = MIN_TWI_ADDR;
     while (twi_addr < MAX_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
@@ -136,7 +134,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
 }
 
 // Function ScanTWI (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
-byte TwiBus::ScanBus(struct device_info dev_info_arr[], byte arr_size, byte start_twi_addr) {
+byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_addr) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
     // Each I2C slave must have a unique bootloader address that corresponds
@@ -144,15 +142,13 @@ byte TwiBus::ScanBus(struct device_info dev_info_arr[], byte arr_size, byte star
     // T: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
     // A: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
     USE_SERIAL.println("\n\rScanning TWI bus, searching all the connected devices, please wait ...\n\r");
-#define MIN_TWI_ADDR 8
-#define MAX_TWI_ADDR 63
     byte twi_addr = MIN_TWI_ADDR;
     while (twi_addr <= MAX_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
             if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR)) {
                 Timonel tml(twi_addr);
-                struct Timonel::status sts = tml.GetStatus();
+                Timonel::Status sts = tml.GetStatus();
                 dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
                 if (sts.signature == 84) {
                     dev_info_arr[twi_addr - start_twi_addr].firmware = "Timonel";
