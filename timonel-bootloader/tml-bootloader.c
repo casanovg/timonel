@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include "tml-config.h"
 #include "nb-usitwisl-if.h"
-#include "nb-twi-cmd.h"
+#include "../command-set/nb-twi-cmd.h"
 
 /* I2C Address 08 to 35: Timonel bootloader
    I2C Address 36 to 63: Application firmware

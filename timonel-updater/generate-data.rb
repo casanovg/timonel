@@ -54,25 +54,23 @@ start_address = 0 # skip past baked in trampoline - upgrade firmware generates o
 # TODO: Verify jump table? or store it in the upgrade firmware for verbatim installation?
 start_address += 1 while data[start_address] == 0xFF
 
-
 File.open "tml-payload.h", "w" do |file|
-  file.puts "// This file contains a new Timonel bootloader version and the Updater"
-  file.puts "// code in C header format to include into the I2C master source code."
-  file.puts "// Please verify that the I2C master have this line:"
+  file.puts "// This file contains a new Timonel bootloader version and the updater"
+  file.puts "// code in C header format to include into the TWI master source code."
+  file.puts "// Please verify that the TWI master source code has a line like this (make"
+  file.puts "// sure to include the correct path):"
   file.puts "//"  
-  file.puts "// #include \"payload.h\"."
+  file.puts "// #include \"payload.h\""
   file.puts "//"
-  file.puts "// Use generate-data.rb with ruby 1.9 or 2.0 to generate these"
-  file.puts "// values from a Timonel+Updater hex file (tml-updater.hex)."
-  file.puts "// The MAKE_RELEASE script generates this automatically ..."
+  file.puts "// Use \"generate-data.rb\" with ruby 1.9 or 2.0 to generate these"
+  file.puts "// data values from a Timonel+Updater hex file (tml-updater.hex)."
+  file.puts "// The \"MAKE_RELEASE.sh\" script makes this for you automatically ..."
   file.puts "//"
-  file.puts "// Updater starting address: #{start_address}"
+  file.puts "// Timonel updater starting address: #{start_address}"
   file.puts "//"
-  file.puts "// Generated from #{ARGV.first} at #{Time.now} by #{ENV['USER']}"
+  file.puts "// Generated from \"#{ARGV.first}\" at #{Time.now} by #{ENV['USER']}"
   file.puts ""
-  file.puts "const byte payldType = 1;    /* Timonel Updater Payload */"
-  file.puts ""
-  file.puts "const uint8_t payload[#{data.length}] = {"
+  file.puts "uint8_t payload[#{data.length}] = {"
   file.puts data.each.map { |data_byte|
 	"0x#{ (data_byte).to_s(16).rjust(2, '0') }"
   }.join(', ')  
