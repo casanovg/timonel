@@ -1,5 +1,5 @@
 #
-# File: Pass-2 (Makefile)
+# File: make-pass-2 (Makefile)
 # Project: Timonel - I2C Bootloader for ATtiny85 MCUs
 # Based on Makefile from micronucleus project
 # .......................................................
@@ -20,6 +20,9 @@ CONFIG ?= tml-t85-std
 
 CFLAGS =
 CONFIGPATH = $(CONFIG)
+# Note: In "make-pass-2", the "LOW_FL" value must be
+# declared before the "tml-config.mak" include.
+TIMONEL_START = $(LOW_FL)
 include $(CONFIGPATH)/tml-config.mak
 
 # >>>>>> PASS 3 <<<<<<

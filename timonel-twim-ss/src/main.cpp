@@ -34,7 +34,7 @@ void ShowHeader(void);
 void ShowMenu(void);
 void ClrScr(void);
 
-// Global Variables
+// Global variables
 byte slave_address = 0;
 byte block_rx_size = 0;
 bool new_key = false;

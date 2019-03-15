@@ -16,9 +16,9 @@ MCU = attiny85
 # - for the size of your device (8kb = 1024 * 8 = 8192) subtract above value 2124... = 6068
 # - How many pages in is that? 6068 / 64 (tiny85 page size in bytes) = 94.8125
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
-# If it doesn't compile, change TIMONEL_START to 1900 or lower and start over these steps
+# NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1B00
+TIMONEL_START = 1B40
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -30,18 +30,18 @@ TIMONEL_TWI_ADDR = 8
 # -----------------------------
 # This options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI =  false
-AUTO_TPL_CALC =  false
+ENABLE_LED_UI  = false
+AUTO_TPL_CALC  = false
 APP_USE_TPL_PG = false
-CMD_STPGADDR =   true
-TWO_STEP_INIT =  false
-USE_WDT_RESET =  false
+CMD_STPGADDR   = true
+TWO_STEP_INIT  = false
+USE_WDT_RESET  = false
 CHECK_EMPTY_FL = false
-CMD_READFLASH =  false
+CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!
-LED_UI_PIN =     PB1
-CYCLESTOEXIT =   40
-SET_PRESCALER =  true
+LED_UI_PIN     = PB1
+CYCLESTOEXIT   = 40
+SET_PRESCALER  = true
 FORCE_ERASE_PG = false
 
 # Timonel required libraries path:

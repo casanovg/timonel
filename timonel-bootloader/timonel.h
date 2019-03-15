@@ -4,10 +4,16 @@
  *  ...........................................
  *  File: timonel.h (Main bootloader headers)
  *  ........................................... 
- *  Version: 1.2 "Sandra" / 2019-03-15
+ *  Version: 1.2 / 2019-03-15
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
+ 
+/*
+ *****************************************************************************
+ * Please do NOT modify this file directly, change "tml-config.mak" instead! *
+ *****************************************************************************
+*/
 
 #ifndef _TML_CONFIG_H_
 #define _TML_CONFIG_H_
@@ -28,9 +34,9 @@
 /* Timonel settings and optional features */
 /* -------------------------------------- */
 
-/* ====== [ The configuration of the next optional features can be checked ] ====== */
-/* ====== [ from the I2C master by using the GETTMNLV command. Please do   ] ====== */        
-/* VVVVVV [ NOT modify this file directly, change "Makefile.inc" instead!  ] VVVVVV */
+/* ====== [   The configuration of the next optional features can be checked   ] ====== */
+/* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
+/* VVVVVV [   modify this options directly, change "tml-config.mak" instead!   ] VVVVVV */
 
 #ifndef ENABLE_LED_UI           /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
 #define ENABLE_LED_UI   false   /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
@@ -67,8 +73,9 @@
 #define CMD_READFLASH   false   /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
-/* ^^^^^^ [ End of feature settings        ] ^^^^^^ */
-/* ====== [ shown in the GETTMNLV command. ] ====== */
+/* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
+/* ====== [                   in the GETTMNLV command.                         ] ====== */
+/* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
 #define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */

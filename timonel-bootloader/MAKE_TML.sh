@@ -25,7 +25,7 @@ echo "##########################"
 echo "#   >>> TML PASS 1 <<<   #"
 echo "##########################"
 echo ""
-cp tml-t85-std/Pass-1.mak Makefile
+cp tml-t85-std/make-pass-1.mak Makefile
 make clean_all
 make all
 make squeaky_clean
@@ -33,9 +33,9 @@ echo ""
 echo "##########################"
 echo "#   >>> TML PASS 2 <<<   #"
 echo "##########################"
-cp tml-t85-std/Pass-2.mak Makefile
+cp tml-t85-std/make-pass-2.mak Makefile
 make clean_all
 make all
 cp *.hex releases
 make clean_all
-cp tml-t85-std/Pass-1.mak Makefile
+cp tml-t85-std/make-pass-1.mak Makefile
