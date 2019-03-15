@@ -1,10 +1,10 @@
-#
+# .......................................................
 # File: Makefile.inc
-# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+# Project: Timonel - TWI Bootloader for TinyX5 MCUs
 # Based on Makefile from micronucleus project
 # .......................................................
 # 2018-08-28 gustavo.casanova@nicebots.com
-# 
+# .......................................................
 
 # Controller type: ATtiny 85 - 16.5 MHz
 # Configuration:   Standard
@@ -20,6 +20,46 @@ MCU = attiny85
 # If it doesn't compile, change TIMONEL_START to 1900 or lower and start over these steps
 
 TIMONEL_START = 1B00
+
+# Timonel TWI address (decimal value):
+# -------------------------------------
+# Allowed range: 8 to 35 (0x08 to 0x23)
+
+TIMONEL_TWI_ADDR = 8
+
+# Bootloader optional features:
+# -----------------------------
+# This options are commented in the "tmc-config.h" file
+
+ENABLE_LED_UI = false
+AUTO_TPL_CALC = true
+APP_USE_TPL_PG = false
+CMD_STPGADDR = false
+TWO_STEP_INIT = false
+USE_WDT_RESET = true
+CHECK_EMPTY_FL = false
+CMD_READFLASH = false
+#
+# Warning: By modifying the below options Timonel may become unresponsive!
+#
+LED_UI_PIN = PB1
+CYCLESTOEXIT = 40
+SET_PRESCALER = true
+FORCE_ERASE_PG = false
+
+# Timonel required libraries path:
+# --------------------------------
+LIBDIR = ../nb-libs/twis
+CMDDIR = ../nb-libs/cmd
+
+# Project name:
+# -------------
+TARGET = timonel
+
+# This is a flash address low enough to allow
+# compiling in Pass 1 and Pass 2, even with all
+# features enabled. Please don't change it.
+LOW_FL = 1500
 
 # Settings for running at 8 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:0x62:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m

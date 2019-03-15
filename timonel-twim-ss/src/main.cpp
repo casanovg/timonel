@@ -1,18 +1,17 @@
 /*
-  main.cpp
-  ========
-  Timonel library test program
+  main.cpp (timonel-twim-ss)
+  ==========================
+  Timonel TWI library test program
+  for single slave setup.
   ----------------------------
-  Style: https://google.github.io/styleguide/cppguide.html#Naming
-  ---------------------------
   2019-03-11 Gustavo Casanova
   ---------------------------
 */
 #include <Arduino.h>
 #include <Memory>
-#include "../include/Payloads/payload.h"
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
+#include "payload.h"
 
 #define USE_SERIAL Serial
 #define TML_ADDR 8  /* Bootloader I2C address*/
@@ -46,46 +45,23 @@ char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
 
-Timonel tml(TML_ADDR, SDA, SCL);
+Timonel tml; /* From now on, we'll keep a Timonel intance active */
 
 // Setup block
 void setup() {
+    bool *p_app_mode = &app_mode; /* This is to take different actions depending on whether the bootloader or the application is active */
     USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
+    TwiBus i2c(SDA, SCL);
+    byte slave_address = i2c.ScanBus(p_app_mode);
     ClrScr();
-    // ******* ListTwiDevices();
-    // --- bool *p_app_mode = &app_mode;
-    // --- byte address = twi.ScanBus(p_app_mode);
-    //ClrScr();
+    tml.SetTwiAddress(slave_address);
     ShowHeader();
-    // if (1 == 1) {
-    //     byte dir = TML_ADDR + 1;
-    //     USE_SERIAL.printf_P("Creando %02d ...\n\r", dir);
-    //     Timonel tml2(dir, SDA, SCL);
-    //     USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
-    // }
-    // if (1 == 1) {
-    //     byte dir = TML_ADDR + 1;
-    //     USE_SERIAL.printf_P("\n\rCreando %02d ...\n\r", dir);
-    //     Timonel tml2(dir, SDA, SCL);
-    //     USE_SERIAL.printf_P("%02d destruido ...\n\r", dir);
-    // }
     tml.GetStatus();
     PrintStatus(tml);
     ShowMenu();
-
-    // Timonel tml_arr[5];
-    // GetAllTimonels(tml_arr, 5);
-    // for (byte i = 0; i < 5; i++) {
-    //     tml_arr[i].GetStatus();
-    //     PrintStatus(tml_arr[i]);
-    //     delay(50);
-    // }
 }
 
-//Timonel tml(TML_ADDR);
-
-//
 // Main loop
 void loop() {
     if (new_key == true) {
@@ -359,7 +335,7 @@ void ShowHeader(void) {
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
+        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset MCU, '?' help): ");
     } else {
         Timonel::Status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");

@@ -36,7 +36,7 @@ rm tml-payload.h
 #    flashed with a running Timonel through I2C.
 ruby generate-data.rb ./tmlupd-flashable/tml-updater.hex
 mv tml-payload.h tmlupd-payload
-cp -f tmlupd-payload/tml-payload.h ../timonel-twim-ss/include/Payloads/payload.h
-cp -f tmlupd-payload/tml-payload.h ../timonel-twim-ms/include/Payloads/payload.h
+cp -f tmlupd-payload/tml-payload.h ../timonel-twim-ss/data/payloads/payload.h
+cp -f tmlupd-payload/tml-payload.h ../timonel-twim-ms/data/payloads/payload.h
 rm bootloader_data.c
 make clean

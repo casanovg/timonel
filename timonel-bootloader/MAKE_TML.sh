@@ -42,6 +42,6 @@ echo "##########################"
 cp tml-t85-std/Pass-3 Makefile
 make clean
 make all
-cp tml-bootloader.hex releases
+cp timonel.hex releases
 make clean_all
 cp tml-t85-std/Pass-1 Makefile

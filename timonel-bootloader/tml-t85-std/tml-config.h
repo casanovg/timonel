@@ -14,60 +14,76 @@
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
+/* Includes */
+#include <avr/boot.h>
+#include <avr/wdt.h>
+#include <stdbool.h>
+#include "nb-usitwisl-if.h"
+#include "nb-twi-cmd.h"
+
 /* -------------------------------------- */
 /* Timonel settings and optional features */
 /* -------------------------------------- */
 
-#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
+/* ====== [ The configuration of the next optional features can be checked ] ====== */
+/* ====== [ from the I2C master by using the GETTMNLV command. Please do   ] ====== */        
+/* VVVVVV [ NOT modify this file directly, change "Makefile.inc" instead!  ] VVVVVV */
 
-#define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
-
-/*
-   ====== The configuration of the next optional features can be checked
-   ====== from the I2C master by using the GETTMNLV command ...
-*/
-
-#define ENABLE_LED_UI   false   /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
-                                /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
-                                /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
-
-#define AUTO_TPL_CALC   true    /* Automatic trampoline calculation & flash. If this is disabled,      */
-                                /* the trampoline has to be calculated and written by the I2C master.  */
-                                /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
+#ifndef ENABLE_LED_UI           /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
+#define ENABLE_LED_UI   false   /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
+#endif /* ENABLE_LED_UI */      /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
+           
+#ifndef AUTO_TPL_CALC           /* Automatic trampoline calculation & flash. If this is disabled,      */
+#define AUTO_TPL_CALC   true    /* the trampoline has to be calculated and written by the I2C master.  */
+#endif /* AUTO_TPL_CALC */      /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
                                 
-#define APP_USE_TPL_PG  false   /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
-                                /* is enabled. This is a safety measure since enabling this takes 2    */
-                                /* extra memory pages. In the end, disabling this allows 1 extra page. */
+#ifndef APP_USE_TPL_PG          /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
+#define APP_USE_TPL_PG  false   /* is enabled. This is a safety measure since enabling this takes 2    */
+#endif /* APP_USE_TPL_PG */     /* extra memory pages. In the end, disabling this allows 1 extra page. */
                                 /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
                                 /* duty to write the trampoline page is transferred to the I2C master. */
                                 
-#define CMD_STPGADDR    false   /* If this is disabled, applications can only be flashed starting      */
-                                /* from page 0, this is OK for most applications.                      */
-                                /* If this is enabled, Timonel expects STPGADDR before each data page. */
+#ifndef CMD_STPGADDR            /* If this is disabled, applications can only be flashed starting      */
+#define CMD_STPGADDR    false   /* from page 0, this is OK for most applications.                      */
+#endif /* CMD_STPGADDR */       /* If this is enabled, Timonel expects STPGADDR before each data page. */
                                 /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
-#define TWO_STEP_INIT   false   /* If this is enabled, Timonel expects a two-step initialization from  */
-                                /* an I2C master for starting. Otherwise, single-step init is enough   */
+#ifndef TWO_STEP_INIT           /* If this is enabled, Timonel expects a two-step initialization from  */
+#define TWO_STEP_INIT   false   /* an I2C master for starting. Otherwise, single-step init is enough   */
+#endif /* TWO_STEP_INIT */
 
-#define USE_WDT_RESET   true    /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
+#ifndef USE_WDT_RESET           /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
+#define USE_WDT_RESET   true    
+#endif /* USE_WDT_RESET */
 
-#define CHECK_EMPTY_FL  false   /* GETTMNLV will read the first 100 flash memory positions to check if */
-                                /* there is an application (or some other data) loaded.                */
+#ifndef CHECK_EMPTY_FL          /* GETTMNLV will read the first 100 flash memory positions to check if */
+#define CHECK_EMPTY_FL  false   /* there is an application (or some other data) loaded.                */
+#endif /* CHECK_EMPTY_FL */
 
-#define CMD_READFLASH   false   /* This option enables the READFLSH command. It can be useful for      */
-                                /* backing up the flash memory before flashing a new firmware.         */
-                                   
-/*
-   ====== End of feature settings
-   ====== shown in the GETTMNLV command.
-*/
+#ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
+#define CMD_READFLASH   false   /* backing up the flash memory before flashing a new firmware.         */
+#endif /* CMD_READFLASH */                                   
 
-#define SET_PRESCALER   true    /* If this is enabled, it forces the CPU prescaler division to 1, so   */
-                                /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+/* ^^^^^^ [ End of feature settings        ] ^^^^^^ */
+/* ====== [ shown in the GETTMNLV command. ] ====== */
 
-#define FORCE_ERASE_PG  false   /* If this option is enabled, each flash memory page is erased before  */
-                                /* writing new data. Normally, it shouldn't be necessary to enable it. */
-                                
+#ifndef CYCLESTOEXIT
+#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
+#endif /* CYCLESTOEXIT */
+
+#ifndef LED_UI_PIN
+#define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
+#endif /* LED_UI_PIN */
+
+
+#ifndef SET_PRESCALER           /* If this is enabled, it forces the CPU prescaler division to 1, so   */
+#define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+#endif /* SET_PRESCALER */
+
+#ifndef FORCE_ERASE_PG          /* If this option is enabled, each flash memory page is erased before  */
+#define FORCE_ERASE_PG  false   /* writing new data. Normally, it shouldn't be necessary to enable it. */
+#endif /* FORCE_ERASE_PG */
+
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
 /* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */

@@ -5,31 +5,33 @@
  *      | |_| | | | | |_| | | | | ____| |
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
- *  Timonel - I2C Bootloader for ATtiny85 MCUs
+ *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.1 "Sandra" / 2018-10-29
+ *  Version: 1.2 "Sandra" / 2019-03-15
  *  gustavo.casanova@nicebots.com
  */
 
 /* Includes */
-#include <avr/boot.h>
-#include <avr/wdt.h>
-#include <stdbool.h>
 #include "tml-config.h"
-#include "nb-usitwisl-if.h"
-#include "../command-set/nb-twi-cmd.h"
 
-/* I2C Address 08 to 35: Timonel bootloader
-   I2C Address 36 to 63: Application firmware
-   Each I2C node must have a unique bootloader address that corresponds
+/* Please set the TWI address in Makefile.inc, the one here is a default value!
+   ****************************************************************************
+   TWI address range 08 to 35: Timonel bootloader
+   TWI address range 36 to 63: Application firmware
+   Each TWI node must have a unique bootloader address that corresponds
    to a defined application address, as shown in this table:
-          -----------------------------------------------------------------------------------
+         -----------------------------------------------------------------------------------
    Boot: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
    Appl: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
-          -----------------------------------------------------------------------------------
+         -----------------------------------------------------------------------------------
 */
-#define I2C_ADDR        8                   /* Timonel I2C address: 08 (0x08) */
+#if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
+    #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
+    #undef TWI_ADDR
+    #define TWI_ADDR    8                   /* Timonel TWI default address: 08 (0x08) */
+#endif /* 8 <= TWI_ADDR <= 35 */
+
 
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
@@ -49,11 +51,11 @@
 #endif
                                 
 #if (RXDATASIZE > 8)
-    #pragma GCC warning "Do not set transmission data size too high to avoid hurting I2C reliability!"
+    #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 20))
-    #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for I2C master to initialize on time!"
+    #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
 // Type definitions
@@ -62,7 +64,7 @@ typedef uint16_t word;
 typedef void (* const fptr_t)(void);
 
 // Global variables
-byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from I2C master */
+byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
@@ -100,9 +102,9 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-    UsiTwiSlaveInit(I2C_ADDR);              /* Initialize I2C */
-    Usi_onReceivePtr = ReceiveEvent;        /* I2C Receive Event */
-    Usi_onRequestPtr = RequestEvent;        /* I2C Request Event */
+    UsiTwiSlaveInit(TWI_ADDR);              /* Initialize TWI */
+    Usi_onReceivePtr = ReceiveEvent;        /* TWI Receive Event */
+    Usi_onRequestPtr = RequestEvent;        /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
@@ -115,7 +117,7 @@ int main() {
     */
     for (;;) {
         /* .....................................................
-           . I2C Interrupt Emulation ......................... .
+           . TWI Interrupt Emulation ......................... .
            . Check the USI Status Register to verify           .
            . whether a USI counter overflow should be launched .
            .....................................................
@@ -124,7 +126,7 @@ int main() {
             UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
         }         
         /* .....................................................
-           . I2C Interrupt Emulation ......................... .
+           . TWI Interrupt Emulation ......................... .
            . Check the USI Status Register to verify           .
            . whether a USI start handler should be launched    .
            .....................................................
@@ -186,7 +188,7 @@ int main() {
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
-#endif /* APP_USE_TPL_PG */
+#endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
 #if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
@@ -242,14 +244,14 @@ int main() {
     return 0;
 }
 
-// I2C Receive Event
+// TWI Receive Event
 void ReceiveEvent(byte commandBytes) {
     for (byte i = 0; i < commandBytes; i++) {
-        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the I2C master in the data buffer */
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
     }
 }
 
-// I2C Request Event
+// TWI Request Event
 void RequestEvent(void) {
     byte opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
     switch (command[0]) {
@@ -342,7 +344,7 @@ void RequestEvent(void) {
 #endif /* AUTO_TPL_CALC */
                 // Modify the reset vector to point to this bootloader.
                 // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
-                // the reset vector modification MUST BE done by the I2C master's upload program.
+                // the reset vector modification MUST BE done by the TWI master's upload program.
                 // Otherwise, Timonel won't have the execution control after power on reset.
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
                 reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */

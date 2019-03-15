@@ -1,5 +1,5 @@
 // ********************************************************
-// *  Nicebots TWI Command Set                            *
+// *  NB TWI Command Set                                  *
 // *  ========================                            *
 // *  This file defines the comm protocol over TWI (I2C)  *
 // *  ..................................................  *

@@ -12,7 +12,7 @@
 #define _NBMICRO_H_
 
 #include <unordered_set>
-#include "../../../command-set/nb-twi-cmd.h"
+#include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
 #include "Wire.h"
 #include "stdbool.h"

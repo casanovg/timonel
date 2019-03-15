@@ -11,7 +11,7 @@
 #ifndef _TIMONELTWIM_H_
 #define _TIMONELTWIM_H_
 
-#include "../../../command-set/nb-twi-cmd.h"
+#include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
 #include "NbMicro.h"
 #include "Wire.h"

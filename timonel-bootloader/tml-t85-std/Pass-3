@@ -15,8 +15,6 @@ CONFIG ?= tml-t85-std
 #     make flash   			# to load the boot loader into flash
 #     make disablereset		# use external reset line for IO (CAUTION: this is not easy to enable again, see README)
 
-## Project name (without the .c)
-TARGET = tml-bootloader
 ## Automatic project name (after the enclosing directory)
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
@@ -26,9 +24,9 @@ include $(CONFIGPATH)/Makefile.inc
 
 # >>>>>> PASS 3 <<<<<<
 #
-# USE TIMONEL_START VALUE FROM Makefile.inc
-
-LIBDIR = ./nb-libs
+# WE USE THE ORIGINAL TIMONEL_START
+# ADDRESS DEFINED IN "Makefile.inc"
+###################################
 
 PROGRAMMER ?= -c USBasp
 # PROGRAMMER contains AVRDUDE options to address your programmer
@@ -37,15 +35,28 @@ PROGRAMMER ?= -c USBasp
 AVRDUDE = avrdude $(PROGRAMMER) -p $(MCU) 
 CC = avr-gcc
 
-# Options:
-CFLAGS += -I. -g2 -Os -Wall
-CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START)
+# Additional bootloader settings:
+CFLAGS += -I. -I$(CMDDIR) -g2 -Os -Wall
+CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -I$(CMDDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
+CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
+CFLAGS += -DENABLE_LED_UI=$(ENABLE_LED_UI)
+CFLAGS += -DAUTO_TPL_CALC=$(AUTO_TPL_CALC)
+CFLAGS += -DAPP_USE_TPL_PG=$(APP_USE_TPL_PG)
+CFLAGS += -DCMD_STPGADDR=$(CMD_STPGADDR)
+CFLAGS += -DTWO_STEP_INIT=$(TWO_STEP_INIT)
+CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
+CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
+CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
+CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
+CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
+CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
+CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
-#LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map,--cref,--section-start=.appvector=0x0
 LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map
 
-OBJECTS = tml-bootloader.o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
+OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
 
 # symbolic targets:
 all: $(TARGET).hex

@@ -21,14 +21,19 @@ include $(CONFIGPATH)/Makefile.inc
 
 # >>>>>> PASS 2 <<<<<<
 #
-# Overwrite Makefile.inc TIMONEL_START value ...
-TIMONEL_START = 1900
+# WE USE A TIMONEL START ADDRESS
+# LOW ENOUGH TO ALLOW COMPILING
+# EVEN WITH ALL FEATURES ENABLED
+
+TIMONEL_START = $(LOW_FL)
+
+#TIMONEL_START = ($TIMONEL_START - 0x500)
 
 ## A directory for common include files and the simple USART library.
 ## If you move either the current folder or the Library folder, you'll 
 ##  need to change this path to match.
-## LIBDIR = ../../AVR-Programming-Library (default)
-LIBDIR = ./nb-libs
+
+#LIBDIR = ../nb-libs/twis
 
 ##########------------------------------------------------------##########
 ##########                 Programmer Defaults                  ##########
@@ -60,8 +65,6 @@ AVRDUDE = avrdude
 ##########        You shouldn't need to edit below.             ##########
 ##########------------------------------------------------------##########
 
-## The name of your project (without the .c)
-TARGET = tml-bootloader
 ## Or name it automatically after the enclosing directory
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
@@ -82,7 +85,21 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 ## Splits up object files per function
 CFLAGS += -ffunction-sections -fdata-sections 
 ## Additional bootloader settings
-CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DTIMONEL_START=0x$(TIMONEL_START)
+CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -I$(CMDDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
+CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
+CFLAGS += -DENABLE_LED_UI=$(ENABLE_LED_UI)
+CFLAGS += -DAUTO_TPL_CALC=$(AUTO_TPL_CALC)
+CFLAGS += -DAPP_USE_TPL_PG=$(APP_USE_TPL_PG)
+CFLAGS += -DCMD_STPGADDR=$(CMD_STPGADDR)
+CFLAGS += -DTWO_STEP_INIT=$(TWO_STEP_INIT)
+CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
+CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
+CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
+CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
+CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
+CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
+CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 #LDFLAGS = -Wl,-Map,$(TARGET).map 
