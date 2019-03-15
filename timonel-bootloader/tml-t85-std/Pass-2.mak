@@ -1,5 +1,5 @@
 #
-# File: Pass-3 (Makefile)
+# File: Pass-2 (Makefile)
 # Project: Timonel - I2C Bootloader for ATtiny85 MCUs
 # Based on Makefile from micronucleus project
 # .......................................................
