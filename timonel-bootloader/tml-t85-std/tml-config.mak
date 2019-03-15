@@ -39,12 +39,10 @@ TWO_STEP_INIT =  false
 USE_WDT_RESET =  false
 CHECK_EMPTY_FL = false
 CMD_READFLASH =  false
-#
 # Warning: By modifying the below options Timonel may become unresponsive!
-#
-LED_UI_PIN = PB1
-CYCLESTOEXIT = 40
-SET_PRESCALER = true
+LED_UI_PIN =     PB1
+CYCLESTOEXIT =   40
+SET_PRESCALER =  true
 FORCE_ERASE_PG = false
 
 # Timonel required libraries path:
@@ -54,11 +52,12 @@ CMDDIR = ../nb-libs/cmd
 
 # Project name:
 # -------------
-TARGET = ztimonel
+#TARGET = timonel_v1.2_fc8_s-$(TIMONEL_START)_TWI-$(TIMONEL_TWI_ADDR)
+TARGET = tml-bootloader
 
 # This is a flash address low enough to allow
-# compiling in Pass 1 and Pass 2, even with all
-# features enabled. Please don't change it.
+# compiling in Pass 1, even with all features
+# enabled. Please don't change it.
 LOW_FL = 1500
 
 # Settings for running at 8 Mhz starting from Timonel v1.1

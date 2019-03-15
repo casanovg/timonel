@@ -6,11 +6,11 @@
 # flashable with an AVR programmer (e.g. USBasp).           #
 #                                                           #
 # It's a bit messy, but it gets smaller images by making it #
-# with Pass-1 to generate crt1.o, making it again with      #
-# Pass-2 to create a .elf file and finally making it once   #
-# more with Pass-3 to place it in an upper flash location.  #
-# It's needless to say that writing Makefiles is not my     #
-# strength, so any help to improve this is very welcome.    #
+# with Pass-1.mak to generate the nb-usitwisl-if.o file,    #
+# then making it again Pass-2.mak to place it in an upper   #
+# flash location. It's needless to say that writing         #
+# Makefiles is not my strength, so any help to improve      #  
+# this is very welcome.                                     #
 #                                                           #
 # ......................................................... #
 # 2018-09-16 Gustavo Casanova                               #
@@ -24,24 +24,18 @@ echo ""
 echo "##########################"
 echo "#   >>> TML PASS 1 <<<   #"
 echo "##########################"
-cp tml-t85-std/Pass-1 Makefile
-make clean
+echo ""
+cp tml-t85-std/Pass-1.mak Makefile
+make clean_all
 make all
+make squeaky_clean
 echo ""
 echo "##########################"
 echo "#   >>> TML PASS 2 <<<   #"
 echo "##########################"
-echo ""
-cp tml-t85-std/Pass-2 Makefile
-make clean
-make all
-echo ""
-echo "##########################"
-echo "#   >>> TML PASS 3 <<<   #"
-echo "##########################"
-cp tml-t85-std/Pass-3 Makefile
-make clean
-make all
-cp timonel.hex releases
+cp tml-t85-std/Pass-2.mak Makefile
 make clean_all
-cp tml-t85-std/Pass-1 Makefile
+make all
+cp *.hex releases
+make clean_all
+cp tml-t85-std/Pass-1.mak Makefile

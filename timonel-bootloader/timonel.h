@@ -1,9 +1,12 @@
 /*
- *  File: tml-config.h
- *  Project: Timonel - I2C Bootloader for ATtiny85 MCUs
+ *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
- *  .......................................................
- *  2018-10-29 gustavo.casanova@nicebots.com
+ *  ...........................................
+ *  File: timonel.h (Main bootloader headers)
+ *  ........................................... 
+ *  Version: 1.2 "Sandra" / 2019-03-15
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
  */
 
 #ifndef _TML_CONFIG_H_

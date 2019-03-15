@@ -20,7 +20,7 @@ CONFIG ?= tml-t85-std
 
 CFLAGS =
 CONFIGPATH = $(CONFIG)
-include $(CONFIGPATH)/Makefile.inc
+include $(CONFIGPATH)/tml-config.mak
 
 # >>>>>> PASS 3 <<<<<<
 #
@@ -36,7 +36,13 @@ AVRDUDE = avrdude $(PROGRAMMER) -p $(MCU)
 CC = avr-gcc
 
 # Additional bootloader settings:
-CFLAGS += -I. -I$(CMDDIR) -g2 -Os -Wall
+CFLAGS += -I. -I$(CMDDIR) -g2 -Os -Wall -std=gnu99
+
+CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
+## Splits up object files per function
+CFLAGS += -ffunction-sections -fdata-sections 
+CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
+
 CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -I$(CMDDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
 CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
@@ -52,17 +58,21 @@ CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
 CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
 CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
 CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
-CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map
 
-OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
+#OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
+
+SOURCES=$(wildcard *.c $(LIBDIR)/*.c $(LIBDIR)/*.S)
+OBJECTS=$(SOURCES:.c=.o)
+HEADERS=$(SOURCES:.c=.h)
 
 # symbolic targets:
 all: $(TARGET).hex
 
-.c.o:
-	@$(CC) $(CFLAGS) -c $< -o $@ -Wa,-ahls=$<.lst
+#.c.o:
+#%.o: %.c $(HEADERS)
+#	@$(CC) $(CFLAGS) -c $< -o $@ -Wa,-ahls=$<.lst
 
 .S.o:
 	@$(CC) $(CFLAGS) -x assembler-with-cpp -c $< -o $@
@@ -71,8 +81,8 @@ all: $(TARGET).hex
 # characters are not always preserved on Windows. To ensure WinAVR
 # compatibility define the file type manually.
 
-.c.s:
-	@$(CC) $(CFLAGS) -S $< -o $@
+#.c.s:
+#	@$(CC) $(CFLAGS) -S $< -o $@
 
 flash:	all
 	$(AVRDUDE) -U flash:w:$(TARGET).hex:i -B 20
@@ -93,7 +103,7 @@ clean:
 	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst
 
 clean_all:
-	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst $(LIBDIR)/*.o	
+	@rm -f $(TARGET).hex $(TARGET).bin $(TARGET).c.lst $(TARGET).map $(TARGET).raw $(TARGET).s $(TARGET).lss $(TARGET).lst $(TARGET).o $(TARGET).elf $(LIBDIR)/*.lst $(LIBDIR)/*.o *.o	
 
 # file targets:
 $(TARGET).bin:	$(OBJECTS)

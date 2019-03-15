@@ -12,7 +12,7 @@ CONFIG ?= tml-t85-std
 ##########              Make Environment Setup                  ##########
 ##########------------------------------------------------------##########
 CONFIGPATH = $(CONFIG)
-include $(CONFIGPATH)/Makefile.inc
+include $(CONFIGPATH)/tml-config.mak
 
 ##########------------------------------------------------------##########
 ##########              Project-specific Details                ##########
@@ -26,8 +26,6 @@ include $(CONFIGPATH)/Makefile.inc
 # EVEN WITH ALL FEATURES ENABLED
 
 TIMONEL_START = $(LOW_FL)
-
-#TIMONEL_START = ($TIMONEL_START - 0x500)
 
 ## A directory for common include files and the simple USART library.
 ## If you move either the current folder or the Library folder, you'll 
@@ -73,17 +71,20 @@ AVRDUDE = avrdude
 #  you can add them in to SOURCES below in the wildcard statement.
 #SOURCES=$(wildcard *.c *.cpp $(LIBDIR)/*.c $(LIBDIR)/*.cpp)
 SOURCES=$(wildcard *.c $(LIBDIR)/*.c)
+#SOURCES=$(wildcard *.c $(LIBDIR)/*.c $(LIBDIR)/*.S)
 OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
 ## Compilation options, type man avr-gcc if you're curious.
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. -I$(LIBDIR)
+#CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. -I$(LIBDIR)
 #CFLAGS = -Os -g -std=gnu99 -Wall
 CFLAGS += -I. -g2 -Os -Wall -std=gnu99
 ## Use short (8-bit) data types 
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
 ## Splits up object files per function
-CFLAGS += -ffunction-sections -fdata-sections 
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
+
 ## Additional bootloader settings
 CFLAGS += -I$(CONFIGPATH) -I$(LIBDIR) -I$(CMDDIR) -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
@@ -100,7 +101,6 @@ CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
 CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
 CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
 CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
-CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 #LDFLAGS = -Wl,-Map,$(TARGET).map 
 ## Optional, but often ends up with smaller code
@@ -114,9 +114,9 @@ TARGET_ARCH = -mmcu=$(MCU)
 
 ## Explicit pattern rules:
 ##  To make .o files from .c files 
-%.o: %.c $(HEADERS) Makefile
-	 $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<;
-
+#%.o: %.c $(HEADERS) Makefile
+#	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<;
+ 
 $(TARGET).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@
 
@@ -162,10 +162,16 @@ size:  $(TARGET).elf
 clean:
 	@rm $(TARGET).o
 	@rm $(TARGET).map
-	@rm $(TARGET).hex
-#	@rm $(TARGET).elf
+	@rm $(TARGET).elf
 	@rm $(LIBDIR)/nb-usitwisl-if.o
 
+clean_all:
+	@rm $(TARGET).o
+	@rm $(TARGET).map
+	@rm $(TARGET).elf
+	@rm $(TARGET).hex
+	@rm $(LIBDIR)/nb-usitwisl-if.o
+    
 squeaky_clean:
 	rm -f *.elf *.hex *.obj *.o *.d *.eep *.lst *.lss *.sym *.map *~ *.eeprom
 

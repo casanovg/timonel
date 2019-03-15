@@ -13,7 +13,7 @@
  */
 
 /* Includes */
-#include "tml-config.h"
+#include "timonel.h"
 
 /* Please set the TWI address in Makefile.inc, the one here is a default value!
    ****************************************************************************
