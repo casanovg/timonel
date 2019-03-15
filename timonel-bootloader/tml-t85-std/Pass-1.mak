@@ -1,5 +1,5 @@
 #
-# File: Pass-2 (Makefile)
+# File: Pass-1 (Makefile)
 # Project: Timonel - I2C Bootloader for ATtiny85 MCUs
 # Based on examples from "Make, AVR Programming" book
 # .......................................................
