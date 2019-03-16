@@ -2,7 +2,7 @@
 # File: Makefile
 # Project: Timonel - TWI Bootloader
 # .......................................................
-# 2018-08-28 gustavo.casanova@nicebots.com
+# 2019-03-16 gustavo.casanova@nicebots.com
 #
 
 CONFIG ?= tml-t85-std
