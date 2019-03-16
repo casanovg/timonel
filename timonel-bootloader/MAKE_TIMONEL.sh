@@ -1,6 +1,6 @@
 #!/bin/sh
 #############################################################
-# MAKE_TML.sh                                               #
+# MAKE_TIMONEL.sh                                           #
 # ......................................................... #
 # This script generates Timonel bootloader images that are  #
 # flashable with an AVR programmer (e.g. USBasp).           #
