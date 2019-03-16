@@ -1,5 +1,5 @@
 /*
- *  Timonel - TWI Bootloader for ATtiny85 MCUs
+ *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
  *  File: timonel.h (Main bootloader headers)
