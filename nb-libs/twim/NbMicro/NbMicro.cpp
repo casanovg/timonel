@@ -51,7 +51,7 @@ byte NbMicro::SetTwiAddress(byte twi_address) {
 // Function InitMicro
 byte NbMicro::InitMicro(void) {
     Wire.beginTransmission(addr_);
-    //Wire.write(INITSOFT);
+    //Wire.write(INITTINY);
     Wire.write(INITSOFT);
     Wire.endTransmission();
     Wire.requestFrom(addr_, (byte)1);

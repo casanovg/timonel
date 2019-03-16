@@ -283,7 +283,7 @@ void ClrScr() {
     USE_SERIAL.printf_P("[H");   // cursor to home command
 }
 
-// Print Timonel instance status
+// Function Print Timonel instance status
 void PrintStatus(Timonel timonel) {
     Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
@@ -369,6 +369,7 @@ void ListTwiDevices(byte sda, byte scl) {
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
+//Function GetALlTimonels
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     byte timonels = 0;
     TwiBus twi(sda, scl);
@@ -390,33 +391,3 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     return 0;
 }
 
-// Setup block
-// void setup() {
-//     USE_SERIAL.begin(9600);         /* Initialize the serial port for debugging */
-//     Wire.begin(SDA, SCL);
-//     Timonel tml(8);              /* Create a Timonel instance to communicate with an ATTiny85's bootloader */
-//     if(CheckApplUpdate() == true) {
-//         delay(2000);
-//         for (byte i = 1; i < 4; i++) {
-//             USE_SERIAL.printf_P("\n\n\r  %d %d %d %d %d %d %d\r\n ***************\n\r", i, i, i, i, i, i, i);
-//             PrintStatus(tml);
-//             delay(250);
-//             USE_SERIAL.printf_P("\n\n\r[Main] Upload firmware to ATTiny85 ...\n\r");
-//             tml.UploadApplication(payload, sizeof(payload));
-//             delay(250);
-//             PrintStatus(tml);
-//             ThreeStarDelay();
-//             USE_SERIAL.printf_P("\n\n\r[Main] Deleting ATTiny85 firmware ...\n\r");
-//             tml.DeleteApplication();
-//             delay(850);
-//             tml.RunApplication();
-//             delay(10);
-//             PrintStatus(tml);
-//             ThreeStarDelay();
-//         }
-//         USE_SERIAL.printf_P("\n\n\r[Main] Setup routine finished!\n\r");
-//     }
-//     else {
-//         USE_SERIAL.print("\n\n\r[Main] Error: Timonel not contacted ...\n\r");
-//     }
-// }
