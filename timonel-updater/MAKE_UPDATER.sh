@@ -13,9 +13,18 @@
 #                                                            #
 ##############################################################
 
+# Command line arguments
+# ARG1: Timonel .hex filename. Default = timonel
+# ARG2: Timonel TWI (I2C) address. Default = 8
+# ARG3: Timonel start memory position. Default = 1B00 (hex)
+
+ARG1=${1:-timonel}
+ARG2=${2:-8}
+ARG3=${3:-1B00}
+
 # 1) If there is no Timonel bootloader .hex, we make a new one ...
 cd ../timonel-bootloader
-./MAKE_TML.sh
+./MAKE_TIMONEL.sh $ARG1 $ARG2 $ARG3
 # 2) We generate the Timonel+Updater .hex from the Timonel's .hex.
 #    This file is placed in the "flashable-releases" folder and is
 #    intended to be flashed with an AVR programmer (e.g. USBasp).
@@ -25,7 +34,7 @@ echo "#   >>> STARTING UPDATER <<<   #"
 echo "################################"
 echo ""
 cd ../timonel-updater
-ruby generate-data.rb ../timonel-bootloader/releases/tml-bootloader.hex
+ruby generate-data.rb ../timonel-bootloader/releases/$ARG1.hex
 make clean
 make
 mv tml-updater.hex tmlupd-flashable

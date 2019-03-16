@@ -14,10 +14,20 @@
 #                                                           #
 #############################################################
 
+# Command line arguments
+# ARG1: Timonel .hex filename. Default = timonel
+# ARG2: Timonel TWI (I2C) address. Default = 8
+# ARG3: Timonel start memory position. Default = 1B00 (hex)
+
+ARG1=${1:-timonel}
+ARG2=${2:-8}
+ARG3=${3:-1B00}
+
 make clean_all
-make all
+make clean_all TARGET=$ARG1
+make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3
 cp *.hex releases
-make clean_all
+make clean_all TARGET=$ARG1
 
 #echo ""
 #echo "##########################"

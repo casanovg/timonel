@@ -167,9 +167,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
         }
     }
     if (upl_errors == 0) {
-        USE_SERIAL.printf_P("\n\r[%s] Application was successfully transferred, please select 'run app' command to start it ...\n\r", __func__);
+        USE_SERIAL.printf_P("\n\n\r[%s] Application was successfully transferred, please select 'run app' command to start it ...\n\n\r", __func__);
     } else {
-        USE_SERIAL.printf_P("\n\r[%s] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\r", __func__, upl_errors);
+        USE_SERIAL.printf_P("\n\n\r[%s] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\n\r", __func__, upl_errors);
         //DeleteFlash();
         TwoStepInit(2000);
 #if ESP8266

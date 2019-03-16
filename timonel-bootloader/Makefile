@@ -1,7 +1,6 @@
 #
-# File: make-pass-2 (Makefile)
-# Project: Timonel - I2C Bootloader for ATtiny85 MCUs
-# Based on Makefile from micronucleus project
+# File: Makefile
+# Project: Timonel - TWI Bootloader
 # .......................................................
 # 2018-08-28 gustavo.casanova@nicebots.com
 #
@@ -25,11 +24,19 @@ CONFIGPATH = $(CONFIG)
 TIMONEL_START = $(LOW_FL)
 include $(CONFIGPATH)/tml-config.mak
 
-# >>>>>> PASS 3 <<<<<<
-#
-# WE USE THE ORIGINAL TIMONEL_START
-# ADDRESS DEFINED IN "Makefile.inc"
-###################################
+# Make command line parameters
+# Use: 
+ifeq ($(TARGET),)
+		TARGET = timonel
+endif
+
+ifeq ($(TARGET),)
+		TIMONEL_TWI_ADDR = 8
+endif
+
+ifeq ($(TARGET),)
+		TIMONEL_START = 1B00
+endif
 
 PROGRAMMER ?= -c USBasp
 # PROGRAMMER contains AVRDUDE options to address your programmer
@@ -65,7 +72,7 @@ LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=
 
 #OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
 
-SOURCES=$(wildcard $(LIBDIR)/*.c $(LIBDIR)/*.S *.c)
+SOURCES=$(wildcard $(LIBDIR)/*.c $(CONFIGPATH)/*.S *.c)
 OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
@@ -125,7 +132,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo ===============================================
 	@echo  - TIMONEL_START = 0x$(TIMONEL_START) !!! TWI_ADDRESS = $(TIMONEL_TWI_ADDR)
 	@echo -----------------------------------------------
-	@echo  - ENABLE_LED_UI = $(ENABLE_LED_UI)
+	@echo  - ENABLE_LED_UI = $(ENABLE_LED_UI) TARGET [$(TARGET)]
 	@echo  - AUTO_TPL_CALC = $(AUTO_TPL_CALC)
 	@echo  - APP_USE_TPL_PG = $(APP_USE_TPL_PG)
 	@echo  - CMD_STPGADDR = $(CMD_STPGADDR)
