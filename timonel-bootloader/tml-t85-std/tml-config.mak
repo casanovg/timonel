@@ -18,7 +18,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1B40
+TIMONEL_START = 1B00
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -31,11 +31,11 @@ TIMONEL_TWI_ADDR = 8
 # This options are commented in the "tmc-config.h" file
 
 ENABLE_LED_UI  = false
-AUTO_TPL_CALC  = false
+AUTO_TPL_CALC  = true
 APP_USE_TPL_PG = false
-CMD_STPGADDR   = true
+CMD_STPGADDR   = false
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = false
+USE_WDT_RESET  = true
 CHECK_EMPTY_FL = false
 CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!
@@ -48,11 +48,9 @@ FORCE_ERASE_PG = false
 # --------------------------------
 LIBDIR = ../nb-libs/twis
 CMDDIR = ../nb-libs/cmd
-
 # Project name:
 # -------------
-#TARGET = timonel_v1.2_fc8_s-$(TIMONEL_START)_TWI-$(TIMONEL_TWI_ADDR)
-TARGET = tml-bootloader
+TARGET = timonel
 
 # This is a flash address low enough to allow
 # compiling in Pass 1, even with all features
