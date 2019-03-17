@@ -30,6 +30,7 @@ static std::unordered_set<byte> in_use;
 class NbMicro {
    public:
     NbMicro(byte twi_address = 0, byte sda = 0, byte scl = 0);
+    byte GetTwiAddress(void);
     byte SetTwiAddress(byte twi_address);
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply,
                     byte twi_reply_arr[] = nullptr, byte reply_size = 0);

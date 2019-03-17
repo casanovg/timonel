@@ -11,7 +11,7 @@
 #include "TimonelTwiM.h"
 
 // Class constructor
-Timonel::Timonel(byte twi_address, byte sda, byte scl) : NbMicro(twi_address, sda, scl) {
+Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     TwoStepInit(0);
 }
 
@@ -36,21 +36,21 @@ byte Timonel::QueryStatus(void) {
     return (OK);
 }
 
-// Get the Timonel bootloader running status
-Timonel::Status Timonel::GetStatus(void) {
+// Returns a struct with the Timonel bootloader running status
+Timonel::Status Timonel::GetBootloaderStatus(void) {
     QueryStatus();
     return (status_);
 }
 
 // Function TwoStepInit
-byte Timonel::TwoStepInit(word time) {
+byte Timonel::TwoStepInit(const word time) {
     delay(time);
     InitMicro();            /* Two-step Timonel initialization: STEP 1 */
     return (QueryStatus()); /* Two-step Timonel initialization: STEP 2 */
 }
 
 // Function WritePageBuff
-byte Timonel::WritePageBuff(byte data_array[]) {
+byte Timonel::WritePageBuff(const byte data_array[]) {
     const byte cmd_size = TXDATASIZE + 2;
     const byte reply_size = 2;
     byte twi_cmd[cmd_size] = {0};
@@ -82,7 +82,7 @@ byte Timonel::WritePageBuff(byte data_array[]) {
 }
 
 // Uploads a user application to a microcontroller running Timonel
-byte Timonel::UploadApplication(byte payload[], int payload_size, int start_address) {
+byte Timonel::UploadApplication(byte payload[], int payload_size, const int start_address) {
     byte packet = 0;                               /* Byte amount to be sent in a single I2C data packet */
     byte padding = 0;                              /* Amount of padding bytes to match the page size */
     byte page_end = 0;                             /* Byte counter to detect the end of flash mem page */
@@ -181,8 +181,8 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, int start_addr
     return (upl_errors);
 }
 
-// Sets upload address of the forthcoming page
-byte Timonel::SetPageAddress(word page_addr) {
+// Sets the upload address of the forthcoming page
+byte Timonel::SetPageAddress(const word page_addr) {
     const byte cmd_size = 4;
     const byte reply_size = 2;
     byte twi_cmd_arr[cmd_size] = {STPGADDR, 0, 0, 0};
@@ -207,7 +207,7 @@ byte Timonel::SetPageAddress(word page_addr) {
 }
 
 // Function FillSpecialPage
-byte Timonel::FillSpecialPage(byte page_type, byte app_reset_msb, byte app_reset_lsb) {
+byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, const byte app_reset_lsb) {
     word address = 0x0000;
     //byte special_page[64] = { 0xFF };
     byte special_page[64] = {
@@ -277,7 +277,7 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
 }
 
 // Displays the microcontroller's entire flash memory contents
-byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_line) {
+byte Timonel::DumpMemory(const word flash_size, const byte rx_data_size, const byte values_per_line) {
     if ((status_.features_code & 0x80) == false) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);
         return (3);
@@ -325,7 +325,8 @@ byte Timonel::DumpMemory(word flash_size, byte rx_data_size, byte values_per_lin
             USE_SERIAL.printf_P("[%s] DumpFlashMem Error parsing %d command <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (1);
         }
-        delay(100);
+        delay(50);
     }
+    USE_SERIAL.printf_P("\n\r");
     return (0);
 }

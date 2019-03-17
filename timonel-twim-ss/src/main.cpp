@@ -57,9 +57,13 @@ void setup() {
     ClrScr();
     tml.SetTwiAddress(slave_address);
     ShowHeader();
-    tml.GetStatus();
+    tml.GetBootloaderStatus();
     PrintStatus(tml);
     ShowMenu();
+
+
+
+
 }
 
 // Main loop
@@ -118,7 +122,7 @@ void loop() {
             case 'v':
             case 'V': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
-                tml.GetStatus();
+                tml.GetBootloaderStatus();
                 PrintStatus(tml);
                 break;
             }
@@ -147,7 +151,7 @@ void loop() {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
                 tml.DeleteApplication();
                 delay(750);
-                tml.GetStatus();
+                tml.GetBootloaderStatus();
                 PrintStatus(tml);
                 //TwoStepInit(750);
                 break;
@@ -159,7 +163,7 @@ void loop() {
             case 'B': {
                 //byte resetFirstByte = 0;
                 //byte resetSecondByte = 0;
-                Timonel::Status sts = tml.GetStatus();
+                Timonel::Status sts = tml.GetBootloaderStatus();
                 if ((sts.features_code & 0x08) == false) {
                     USE_SERIAL.printf_P("\n\rSet address command not supported by current Timonel features ...\n\r");
                     break;
@@ -244,7 +248,7 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
-    Timonel::Status sts = tml.GetStatus();
+    Timonel::Status sts = tml.GetBootloaderStatus();
     word last_page = (sts.bootloader_start - PAGE_SIZE);
     const byte data_length = 16;
     char serial_data[data_length];  // an array to store the received data
@@ -285,26 +289,27 @@ void ClrScr() {
 
 // Function Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    Timonel::Status tml_status = timonel.GetBootloaderStatus(); /* Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
         switch (version_major) {
             case 0: {
-                USE_SERIAL.printf_P(" Pre-release \n\r");
+                USE_SERIAL.printf_P(" Pre-release ");
                 break;
             }
             case 1: {
-                USE_SERIAL.printf_P(" \"Sandra\" \n\r");
+                USE_SERIAL.printf_P(" \"Sandra\" ");
                 break;
             }
             default: {
-                USE_SERIAL.printf_P(" Unknown \n\r");
+                USE_SERIAL.printf_P(" Unknown ");
                 break;
             }
         }
+        USE_SERIAL.printf_P("(TWI: %d)\n\r", timonel.GetTwiAddress());
         USE_SERIAL.printf_P(" ====================================\n\r");
-        Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        Timonel::Status tml_status = timonel.GetBootloaderStatus(); /* Get the instance status parameters received from the ATTiny85 */
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -337,7 +342,7 @@ void ShowMenu(void) {
     if (app_mode == true) {
         USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset MCU, '?' help): ");
     } else {
-        Timonel::Status sts = tml.GetStatus();
+        Timonel::Status sts = tml.GetBootloaderStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");

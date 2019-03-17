@@ -130,7 +130,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo ===============================================
 	@echo = Building Timonel configuration: $(CONFIG) =
 	@echo ===============================================
-	@echo  - TIMONEL_START = 0x$(TIMONEL_START) !!! TWI_ADDRESS = $(TIMONEL_TWI_ADDR)
+	@echo  - TIMONEL_START = 0x$(TIMONEL_START) - TWI_ADDRESS = $(TIMONEL_TWI_ADDR)
 	@echo -----------------------------------------------
 	@echo  - ENABLE_LED_UI = $(ENABLE_LED_UI) TARGET [$(TARGET)]
 	@echo  - AUTO_TPL_CALC = $(AUTO_TPL_CALC)

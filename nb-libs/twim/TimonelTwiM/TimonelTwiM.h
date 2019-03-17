@@ -21,7 +21,7 @@
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
 class Timonel : public NbMicro {
    public:
-    Timonel(byte twi_address = 0, byte sda = 0, byte scl = 0);
+    Timonel(const byte twi_address = 0, const byte sda = 0, const byte scl = 0);
     typedef struct tml_status_ {
         byte signature = 0;
         byte version_major = 0;
@@ -31,8 +31,8 @@ class Timonel : public NbMicro {
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
     } Status;
-    Status GetStatus(void);
-    byte UploadApplication(byte payload[], int payload_size, int start_address = 0x0000);
+    Status GetBootloaderStatus(void);
+    byte UploadApplication(byte payload[], int payload_size, const int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
@@ -40,14 +40,13 @@ class Timonel : public NbMicro {
                     const byte values_per_line = VALUES_PER_LINE);
 
    private:
-    byte block_rx_size_ = 0;
     Status status_; /* Goblal struct that holds a Timonel instance's running status */
     byte QueryStatus(void);
-    byte TwoStepInit(word time);
-    byte WritePageBuff(byte data_array[]);
-    byte SetPageAddress(word page_addr);
-    byte FillSpecialPage(byte page_type, byte app_reset_msb = 0, byte app_reset_lsb = 0);
-    word CalculateTrampoline(word bootloader_start, word application_start);
+    byte TwoStepInit(const word time);
+    byte WritePageBuff(const byte data_array[]);
+    byte SetPageAddress(const word page_addr);
+    byte FillSpecialPage(const byte page_type, const byte app_reset_msb = 0, const byte app_reset_lsb = 0);
+    word CalculateTrampoline(const word bootloader_start, const word application_start);
 };
 
 #endif /* _TIMONELTWIM_H_ */

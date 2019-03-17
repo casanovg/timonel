@@ -36,6 +36,11 @@ NbMicro::~NbMicro() {
     in_use.erase(addr_);
 }
 
+// Returns this object's TWI address
+byte NbMicro::GetTwiAddress(void) {
+    return(addr_);
+}
+
 // Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
 byte NbMicro::SetTwiAddress(byte twi_address) {
     if (addr_ == 0) {
@@ -51,8 +56,8 @@ byte NbMicro::SetTwiAddress(byte twi_address) {
 // Function InitMicro
 byte NbMicro::InitMicro(void) {
     Wire.beginTransmission(addr_);
-    //Wire.write(INITTINY);
     Wire.write(INITSOFT);
+    //Wire.write(INITTINY);
     Wire.endTransmission();
     Wire.requestFrom(addr_, (byte)1);
     //byte block_rx_size = 0;
@@ -149,7 +154,7 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
         if (Wire.endTransmission() == 0) {
             if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR)) {
                 Timonel tml(twi_addr);
-                Timonel::Status sts = tml.GetStatus();
+                Timonel::Status sts = tml.GetBootloaderStatus();
                 dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
                 if (sts.signature == 84) {
                     dev_info_arr[twi_addr - start_twi_addr].firmware = "Timonel";
