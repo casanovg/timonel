@@ -178,7 +178,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ESP8266
         ESP.restart();
 #else
-        resetFunc();
+        //resetFunc();
 #endif /* ESP8266 */
     }
     return (upl_errors);

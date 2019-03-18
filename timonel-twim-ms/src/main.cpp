@@ -24,11 +24,11 @@
    8) Repeat the routine.
 */
 
-#include <Arduino.h>
 #include <Memory>
 #include "payload.h"
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
+#include <Arduino.h>
 
 #define USE_SERIAL Serial
 //#define TML_ADDR 8  /* Bootloader I2C address*/
@@ -43,7 +43,7 @@ void loop(void);
 bool CheckApplUpdate(void);
 void ListTwiDevices(byte sda = 0, byte scl = 0);
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0);
-void PrintStatus(Timonel tml);
+void PrintStatus(Timonel timonel);
 void ThreeStarDelay(void);
 void ReadChar(void);
 word ReadWord(void);
@@ -261,12 +261,12 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
-    Timonel::Status sts /*= tml.GetStatus()*/;
-    word last_page /*= (sts.bootloader_start - PAGE_SIZE)*/;
+    Timonel::Status sts;    /*= tml.GetStatus() */
+    word last_page = 0;     /*= (sts.bootloader_start - PAGE_SIZE) */
     const byte data_length = 16;
-    char serial_data[data_length];  // an array to store the received data
+    char serial_data[data_length];  /* array to store the received data */
     static byte ix = 0;
-    char rc, endMarker = 0xD;  //standard is: char endMarker = '\n'
+    char rc, endMarker = 0xD;  /* standard is: char endMarker = '\n' */
     while (USE_SERIAL.available() > 0 && new_word == false) {
         rc = USE_SERIAL.read();
         if (rc != endMarker) {
@@ -277,7 +277,7 @@ word ReadWord(void) {
                 ix = data_length - 1;
             }
         } else {
-            serial_data[ix] = '\0';  // terminate the string
+            serial_data[ix] = '\0';  /* terminate the string */
             ix = 0;
             new_word = true;
         }
@@ -302,7 +302,7 @@ void ClrScr() {
 
 // Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::Status tml_status /*= timonel.GetStatus()*/; /* Get the instance id parameters received from the ATTiny85 */
+    Timonel::Status tml_status = timonel.GetBootloaderStatus(); /*Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
