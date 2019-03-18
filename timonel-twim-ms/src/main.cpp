@@ -73,11 +73,10 @@ void setup() {
     ListTwiDevices();
     // 2)
     Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
-    GetAllTimonels(tml_pool, MAX_TWI_DEVS);
-
+    //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
+    //Timonel t1(2); /* If NbMicro constructor is correct, the second Timonel object */
+    //Timonel t2(2); /* creation should fail due to duplicate TWI address ... */
 }
-
-//Timonel tml(8);
 
 //
 // Main loop
@@ -388,6 +387,7 @@ void ListTwiDevices(byte sda, byte scl) {
 }
 
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
+    USE_SERIAL.printf_P("\n\rGetza ....\n\r");
     // byte timonels = 0;
     // TwiBus twi(sda, scl);
     // TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];

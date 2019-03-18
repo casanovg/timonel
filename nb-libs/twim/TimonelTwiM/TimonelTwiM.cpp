@@ -12,7 +12,10 @@
 
 // Class constructor
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
-    TwoStepInit(0);
+    if ((addr_ > 0) && (addr_ < 36)) {
+        USE_SERIAL.printf_P("[%s] Instance created with address %d!\r\n", __func__, addr_);
+        TwoStepInit(0);
+    }
 }
 
 // Retrieve the bootloader running parameters from the microcontroller

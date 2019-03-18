@@ -13,12 +13,13 @@
 
 // Class constructor
 NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
-    if (!in_use.insert(addr_).second) {
-        USE_SERIAL.printf_P("[%s] Warning: The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
-        USE_SERIAL.printf_P("[%s] Program stopped, please review the devices' TWI addresses on your code.\r\n", __func__, addr_);
+    if ((!in_use.insert(addr_).second) && (addr_ != 0)) {
+        USE_SERIAL.printf_P("[%s] Error: The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Execution terminated, please review the devices' TWI addresses on your code.\r\n", __func__, addr_);
         delay(2000);
+        std::terminate();
         //throw std::logic_error(addr_.toString() + " is already in use");
-        exit(1);
+        //exit(1);
     }
     if (!((sda_ == 0) && (scl_ == 0))) {
         USE_SERIAL.printf_P("[%s] Creating a new TWI connection with address %02d\n\r", __func__, addr_);
