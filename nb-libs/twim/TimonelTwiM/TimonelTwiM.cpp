@@ -13,7 +13,7 @@
 // Class constructor
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     if ((addr_ > 0) && (addr_ < 36)) {
-        USE_SERIAL.printf_P("[%s] Instance created with address %d!\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Instance created with address %d, initializing Timonel device!\r\n", __func__, addr_);
         TwoStepInit(0);
     }
 }
