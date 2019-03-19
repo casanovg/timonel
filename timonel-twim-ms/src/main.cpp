@@ -85,6 +85,7 @@ void setup() {
     t1.DeleteApplication();
     delay(2000);
     t1.RunApplication();
+    delay(50);
     
     Timonel t2(22);
     PrintStatus(t2);
@@ -92,7 +93,7 @@ void setup() {
     t2.DeleteApplication();
     delay(2000);
     t2.RunApplication();
-
+    delay(50);
 }
 
 //
