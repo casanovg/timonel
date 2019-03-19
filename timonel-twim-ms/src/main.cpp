@@ -37,6 +37,10 @@
 #define SCL 2       /* I2C SCL pin */
 #define MAX_TWI_DEVS 28
 
+#ifndef T_SIGNATURE
+#define T_SIGNATURE 84
+#endif
+
 // Prototypes
 void setup(void);
 void loop(void);
@@ -70,12 +74,25 @@ void setup() {
     ClrScr();
     ShowHeader();
     // 1)
-    ListTwiDevices();
+    //------ListTwiDevices();
     // 2)
-    Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
+    //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
     //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
-    //Timonel t1(2); /* If NbMicro constructor is correct, the second Timonel object */
-    //Timonel t2(2); /* creation should fail due to duplicate TWI address ... */
+    Timonel t1(19);
+    
+    PrintStatus(t1);
+    delay(50);
+    t1.DeleteApplication();
+    delay(2000);
+    t1.RunApplication();
+    
+    Timonel t2(22);
+    PrintStatus(t2);
+    delay(50);
+    t2.DeleteApplication();
+    delay(2000);
+    t2.RunApplication();
+
 }
 
 //
@@ -381,30 +398,29 @@ void ListTwiDevices(byte sda, byte scl) {
         } else {
             USE_SERIAL.printf_P("No device found\n\r");
         }
-        delay(10);
+        delay(50);
     }
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
-    USE_SERIAL.printf_P("\n\rGetza ....\n\r");
-    // byte timonels = 0;
-    // TwiBus twi(sda, scl);
-    // TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
-    // //twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
-    // twi.ScanBus();
-    // for (byte i = 0; i < MAX_TWI_DEVS; i++) {
-    //     if ((dev_info_arr[i].firmware != "Timonel") && (timonels < tml_arr_size)) {
-    //         USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\r");
-    //         USE_SERIAL.printf_P("Pos: %02d | ", timonels);
-    //         byte tml_addr = dev_info_arr[i].addr;
-    //         USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
-    //         tml_arr[timonels].SetTwiAddress(tml_addr);
-    //         timonels++;
-    //     }
-    //     delay(10);
-    // }
-    // USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\r");
-    // //Timonel tml_array[timonels];
+    USE_SERIAL.printf_P("\n\n\rGetza !!!\n\r*********\n\n\r");
+    TwiBus twi(sda, scl);
+    TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
+    twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
+    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
+        if (dev_info_arr[i].firmware == "Timonel") {
+            byte tml_addr = dev_info_arr[i].addr;
+            tml_arr[i].SetObjTwiAddress(tml_addr);
+            delay(250);
+            tml_arr[i].DeleteApplication();
+            delay(1500);
+            PrintStatus(tml_arr[i]);
+            delay(150);
+        }
+        delay(50);
+    }
+    USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\r");
+    //Timonel tml_array[timonels];
     return 0;
 }

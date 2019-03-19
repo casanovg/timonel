@@ -33,8 +33,8 @@ class NbMicro
 {
 public:
   NbMicro(byte twi_address = 0, byte sda = 0, byte scl = 0);
-  byte GetTwiAddress(void);
-  byte SetTwiAddress(byte twi_address);
+  byte GetObjTwiAddress(void);
+  byte SetObjTwiAddress(byte twi_address);
   byte TwiCmdXmit(byte twi_cmd, byte twi_reply,
                   byte twi_reply_arr[] = nullptr, byte reply_size = 0);
   byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply,
@@ -62,7 +62,7 @@ public:
     byte version_minor = 0;
   } DeviceInfo;
   TwiBus(byte sda = 0, byte scl = 0);
-  byte ScanBus(bool *p_app_mode = nullptr);
+  byte ScanBus(bool *p_app_mode, byte start_twi_addr = MIN_TWI_ADDR);
   byte ScanBus(DeviceInfo dev_info_arr[] = nullptr, byte arr_size = MAX_TWI_DEVS,
                byte start_twi_addr = MIN_TWI_ADDR);
   //byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size);

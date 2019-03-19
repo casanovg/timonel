@@ -38,12 +38,12 @@ NbMicro::~NbMicro() {
 }
 
 // Returns this object's TWI address
-byte NbMicro::GetTwiAddress(void) {
+byte NbMicro::GetObjTwiAddress(void) {
     return(addr_);
 }
 
 // Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
-byte NbMicro::SetTwiAddress(byte twi_address) {
+byte NbMicro::SetObjTwiAddress(byte twi_address) {
     if (addr_ == 0) {
         addr_ = twi_address;
         USE_SERIAL.printf_P("[%s] TWI address correctly set to %d\r\n", __func__, addr_);
@@ -118,15 +118,15 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
 }
 
 // Function ScanTWI (Overload A: Returns the address and mode of the first TWI device found on the bus)
-byte TwiBus::ScanBus(bool *p_app_mode) {
+byte TwiBus::ScanBus(bool *p_app_mode, byte start_twi_addr) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
     USE_SERIAL.printf_P("\n\r[%s] Looking for the first TWI device (lowest address) ...\n\r", __func__);
-    byte twi_addr = MIN_TWI_ADDR;
+    byte twi_addr = start_twi_addr;
     while (twi_addr < MAX_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
-            if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR)) {
+            if (twi_addr < (((MAX_TWI_ADDR + 1 - start_twi_addr) / 2) + start_twi_addr)) {
                 USE_SERIAL.printf_P("[%s] Timonel bootloader found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
                 *p_app_mode = false;
             } else {
@@ -149,11 +149,11 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
     // T: |08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|
     // A: |36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|
     USE_SERIAL.printf_P("\n\r[%s] Searching all the TWI devices connected, please wait ...\n\r", __func__);
-    byte twi_addr = MIN_TWI_ADDR;
+    byte twi_addr = start_twi_addr;
     while (twi_addr <= MAX_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
-            if (twi_addr < (((MAX_TWI_ADDR + 1 - MIN_TWI_ADDR) / 2) + MIN_TWI_ADDR)) {
+            if (twi_addr < (((MAX_TWI_ADDR + 1 - start_twi_addr) / 2) + start_twi_addr)) {
                 Timonel tml(twi_addr);
                 Timonel::Status sts = tml.GetBootloaderStatus();
                 dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
