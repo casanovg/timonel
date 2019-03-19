@@ -79,6 +79,7 @@ void setup() {
     //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
     //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
     Timonel t1(19);
+    Timonel t2(22);
     
     PrintStatus(t1);
     delay(50);
@@ -87,7 +88,6 @@ void setup() {
     t1.RunApplication();
     delay(50);
     
-    Timonel t2(22);
     PrintStatus(t2);
     delay(50);
     t2.DeleteApplication();
