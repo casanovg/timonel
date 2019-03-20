@@ -13,18 +13,16 @@
 
 #include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
-#include "Wire.h"
-#include "stdbool.h"
 #include "NbMicro.h"
+#include "Wire.h"
 #include "libconfig.h"
+#include "stdbool.h"
 
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
-class Timonel : public NbMicro
-{
-  public:
+class Timonel : public NbMicro {
+   public:
     Timonel(const byte twi_address = 0, const byte sda = 0, const byte scl = 0);
-    typedef struct tml_status_
-    {
+    typedef struct tml_status_ {
         byte signature = 0;
         byte version_major = 0;
         byte version_minor = 0;
@@ -33,7 +31,7 @@ class Timonel : public NbMicro
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
     } Status;
-    Status GetBootloaderStatus(void);
+    Status GetStatus(void);
     byte UploadApplication(byte payload[], int payload_size, const int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);
@@ -41,7 +39,7 @@ class Timonel : public NbMicro
                     const byte rx_data_size = RX_DATA_SIZE,
                     const byte values_per_line = VALUES_PER_LINE);
 
-  private:
+   private:
     Status status_; /* Goblal struct that holds a Timonel instance's running status */
     byte QueryStatus(void);
     byte TwoStepInit(const word time);

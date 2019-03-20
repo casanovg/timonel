@@ -80,28 +80,28 @@ void setup() {
     //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
     Timonel t1(19);
     delay(150);
-    Timonel t2(22);
-    delay(150);    
+    // Timonel t2(22);
+    // delay(150);    
 
     PrintStatus(t1);
     USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
     t1.DeleteApplication();
     delay(3000);
-    Wire.flush();
+    Wire.begin(SDA, SCL);
     USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
     t1.RunApplication();
     delay(500);
     t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
     PrintStatus(t1);
 
-    PrintStatus(t2);
-    USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
-    t2.DeleteApplication();
-    delay(3000);
-    Wire.flush();
-    USE_SERIAL.printf_P("\n\rNext: t2 RunApplication ...\n\r");
-    t2.RunApplication();
-    delay(1500);
+    // PrintStatus(t2);
+    // USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
+    // t2.DeleteApplication();
+    // delay(3000);
+    // Wire.begin(SDA, SCL);
+    // USE_SERIAL.printf_P("\n\rNext: t2 RunApplication ...\n\r");
+    // t2.RunApplication();
+    // delay(1500);
     //t2.UploadApplication(payload, (int)sizeof(payload), 0x0);
     //PrintStatus(t2);
 
@@ -331,7 +331,7 @@ void ClrScr() {
 
 // Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::Status tml_status = timonel.GetBootloaderStatus(); /*Get the instance id parameters received from the ATTiny85 */
+    Timonel::Status tml_status = timonel.GetStatus(); /*Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
