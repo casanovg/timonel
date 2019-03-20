@@ -84,10 +84,10 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
         Wire.requestFrom(addr_, ++reply_size);
         byte reply = Wire.read();
         if (reply == twi_reply) { /* I2C reply from slave */
-            USE_SERIAL.printf_P("[%s] Command %d parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
+            USE_SERIAL.printf_P("[%s] Command 0x%02X parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
             return (0);
         } else {
-            USE_SERIAL.printf_P("[%s] Error parsing %d command <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
+            USE_SERIAL.printf_P("[%s] Error parsing 0x%02X command <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
             return (1);
         }
     } else {
@@ -99,7 +99,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
             //USE_SERIAL.printf_P("[%s] Multibyte command %d parsed OK <<< %d\n\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (0);
         } else {
-            USE_SERIAL.printf_P("[%s] Error parsing %d multibyte command <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
+            USE_SERIAL.printf_P("[%s] Error parsing 0x%02X multibyte command <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (2);
         }
     }

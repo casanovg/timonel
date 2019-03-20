@@ -14,7 +14,8 @@
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     if ((addr_ > 0) && (addr_ < 36)) {
         USE_SERIAL.printf_P("[%s] Instance created with address %d, initializing Timonel device!\r\n", __func__, addr_);
-        TwoStepInit(0);
+        //TwoStepInit(750);
+        //delay(250);             /* Time to allow the previous instruction to finish */
     }
 }
 
@@ -49,7 +50,9 @@ Timonel::Status Timonel::GetBootloaderStatus(void) {
 byte Timonel::TwoStepInit(const word time) {
     delay(time);
     InitMicro();            /* Two-step Timonel initialization: STEP 1 */
+    //delay(250);             /* Time to allow the previous instruction to finish */
     return (QueryStatus()); /* Two-step Timonel initialization: STEP 2 */
+    //delay(250);             /* Time to allow the previous instruction to finish */
 }
 
 // Function WritePageBuff
@@ -271,7 +274,9 @@ byte Timonel::RunApplication(void) {
 // Makes Timonel delete the user application
 byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> %d\r\n", __func__, DELFLASH);
-    return (TwiCmdXmit(DELFLASH, ACKDELFL));
+    byte twi_error = TwiCmdXmit(DELFLASH, ACKDELFL);
+    //TwoStepInit(750); /* NEW NEW NEW */
+    return (twi_error);
 }
 
 // Function CalculateTrampoline

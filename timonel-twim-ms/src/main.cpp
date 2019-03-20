@@ -79,21 +79,26 @@ void setup() {
     //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
     //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
     Timonel t1(19);
+    delay(150);
     Timonel t2(22);
-    
+    delay(150);    
+
     PrintStatus(t1);
-    delay(50);
+    USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
     t1.DeleteApplication();
-    delay(2000);
+    delay(750);
+    USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
     t1.RunApplication();
-    delay(50);
-    
+    delay(150);
+
     PrintStatus(t2);
-    delay(50);
+    USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
     t2.DeleteApplication();
-    delay(2000);
+    delay(750);
+    USE_SERIAL.printf_P("\n\rNext: t2 RunApplication ...\n\r");
     t2.RunApplication();
-    delay(50);
+    delay(150);
+
 }
 
 //
