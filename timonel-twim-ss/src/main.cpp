@@ -55,15 +55,11 @@ void setup() {
     TwiBus i2c(SDA, SCL);
     byte slave_address = i2c.ScanBus(p_app_mode);
     ClrScr();
-    tml.SetTwiAddress(slave_address);
+    tml.SetObjTwiAddress(slave_address);
     ShowHeader();
-    tml.GetBootloaderStatus();
+    tml.GetStatus();
     PrintStatus(tml);
     ShowMenu();
-
-
-
-
 }
 
 // Main loop
@@ -122,7 +118,7 @@ void loop() {
             case 'v':
             case 'V': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
-                tml.GetBootloaderStatus();
+                tml.GetStatus();
                 PrintStatus(tml);
                 break;
             }
@@ -151,7 +147,7 @@ void loop() {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
                 tml.DeleteApplication();
                 delay(750);
-                tml.GetBootloaderStatus();
+                tml.GetStatus();
                 PrintStatus(tml);
                 //TwoStepInit(750);
                 break;
@@ -163,7 +159,7 @@ void loop() {
             case 'B': {
                 //byte resetFirstByte = 0;
                 //byte resetSecondByte = 0;
-                Timonel::Status sts = tml.GetBootloaderStatus();
+                Timonel::Status sts = tml.GetStatus();
                 if ((sts.features_code & 0x08) == false) {
                     USE_SERIAL.printf_P("\n\rSet address command not supported by current Timonel features ...\n\r");
                     break;
@@ -248,7 +244,7 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
-    Timonel::Status sts = tml.GetBootloaderStatus();
+    Timonel::Status sts = tml.GetStatus();
     word last_page = (sts.bootloader_start - PAGE_SIZE);
     const byte data_length = 16;
     char serial_data[data_length];  // an array to store the received data
@@ -289,7 +285,7 @@ void ClrScr() {
 
 // Function Print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::Status tml_status = timonel.GetBootloaderStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
@@ -309,7 +305,7 @@ void PrintStatus(Timonel timonel) {
         }
         USE_SERIAL.printf_P("(TWI: %d)\n\r", timonel.GetTwiAddress());
         USE_SERIAL.printf_P(" ====================================\n\r");
-        Timonel::Status tml_status = timonel.GetBootloaderStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -342,7 +338,7 @@ void ShowMenu(void) {
     if (app_mode == true) {
         USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset MCU, '?' help): ");
     } else {
-        Timonel::Status sts = tml.GetBootloaderStatus();
+        Timonel::Status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
@@ -386,7 +382,7 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
             USE_SERIAL.printf_P("Pos: %02d | ", timonels);
             byte tml_addr = dev_info_arr[i].addr;
             USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
-            tml_arr[timonels].SetTwiAddress(tml_addr);
+            tml_arr[timonels].SetObjTwiAddress(tml_addr);
             timonels++;
         }
         delay(10);
