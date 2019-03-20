@@ -91,8 +91,8 @@ void setup() {
     USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
     t1.RunApplication();
     delay(500);
-    //t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
-    //PrintStatus(t1);
+    t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
+    PrintStatus(t1);
 
     PrintStatus(t2);
     USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
