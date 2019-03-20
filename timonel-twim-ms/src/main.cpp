@@ -86,18 +86,24 @@ void setup() {
     PrintStatus(t1);
     USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
     t1.DeleteApplication();
-    delay(750);
+    delay(3000);
+    Wire.flush();
     USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
     t1.RunApplication();
-    delay(150);
+    delay(500);
+    //t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
+    //PrintStatus(t1);
 
     PrintStatus(t2);
     USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
     t2.DeleteApplication();
-    delay(750);
+    delay(3000);
+    Wire.flush();
     USE_SERIAL.printf_P("\n\rNext: t2 RunApplication ...\n\r");
     t2.RunApplication();
-    delay(150);
+    delay(1500);
+    //t2.UploadApplication(payload, (int)sizeof(payload), 0x0);
+    //PrintStatus(t2);
 
 }
 
