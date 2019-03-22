@@ -65,7 +65,7 @@ typedef void (* const fptr_t)(void);
 
 // Global variables
 byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
-byte statusRegister = 0;                    /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
+byte flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
 #if AUTO_TPL_CALC
@@ -103,8 +103,8 @@ int main() {
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
     UsiTwiSlaveInit(TWI_ADDR);              /* Initialize TWI */
-    Usi_onReceivePtr = ReceiveEvent;        /* TWI Receive Event */
-    Usi_onRequestPtr = RequestEvent;        /* TWI Request Event */
+    Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
+    Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
@@ -138,10 +138,10 @@ int main() {
             dlyCounter = CYCLESTOWAIT;
             // Initialization check
 #if !(TWO_STEP_INIT)
-            if ((statusRegister & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+            if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            if ((statusRegister & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
+            if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
             ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
 #endif /* TWO_STEP_INIT */
                 // ===========================================
@@ -158,14 +158,14 @@ int main() {
                 // =======================================
                 // = Exit bootloader and run application =
                 // =======================================
-                if ((statusRegister & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
+                if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ========================================
                 // = Delete application from flash memory =
                 // ========================================
-                if ((statusRegister & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
+                if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
@@ -228,7 +228,7 @@ int main() {
                         }
                         else {
                             // -- If no, it means that the application is too big for this setup, erase it! 
-                            statusRegister |= (1 << ST_DEL_FLASH);
+                            flags |= (1 << ST_DEL_FLASH);
                         }
                     }
 #endif /* APP_USE_TPL_PG */
@@ -283,11 +283,11 @@ void RequestEvent(void) {
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
-            //statusRegister |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
-            statusRegister |= (1 << (ST_INIT_1));                   /* Single-step init */
+            //flags |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
+            flags |= (1 << (ST_INIT_1));                   /* Single-step init */
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            statusRegister |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
+            flags |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
 #endif /* TWO_STEP_INIT */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
@@ -302,7 +302,7 @@ void RequestEvent(void) {
         // ******************
         case EXITTMNL: {
             UsiTwiTransmitByte(opCodeAck);
-            statusRegister |= (1 << ST_EXIT_TML);
+            flags |= (1 << ST_EXIT_TML);
             break;
         }
         // ******************
@@ -310,7 +310,7 @@ void RequestEvent(void) {
         // ******************
         case DELFLASH: {
             UsiTwiTransmitByte(opCodeAck);
-            statusRegister |= (1 << ST_DEL_FLASH);
+            flags |= (1 << ST_DEL_FLASH);
             break;
         }
 #if (CMD_STPGADDR || !(AUTO_TPL_CALC))
@@ -363,7 +363,7 @@ void RequestEvent(void) {
                 }
             }
             if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                statusRegister |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
+                flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
@@ -403,7 +403,7 @@ void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            statusRegister |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
+            flags |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(opCodeAck);
             break;
         }

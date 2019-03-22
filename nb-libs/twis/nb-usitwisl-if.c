@@ -347,15 +347,12 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
 // Function UsiStartHandler - Interrupt-like GC
 void UsiStartHandler(void) {
     
-    /*
     // This triggers on second write, but claims to the callback there is only *one* byte in buffer
-    ONSTOP_USI_RECEIVE_CALLBACK();
-    */
-    /*
+    //ONSTOP_USI_RECEIVE_CALLBACK();
+    
     // This triggers on second write, but claims to the callback there is only *one* byte in buffer
-    USI_RECEIVE_CALLBACK();
-    */
-
+    //USI_RECEIVE_CALLBACK();
+    
     // set default starting conditions for new TWI package
     overflowState = USI_SLAVE_CHECK_ADDRESS;
 
