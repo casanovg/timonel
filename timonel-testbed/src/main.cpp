@@ -41,6 +41,7 @@ bool app_mode = true;
 char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
+byte twi_address = 0;
 
 // Setup block
 void setup() {
@@ -69,16 +70,14 @@ void loop() {
             // * Testbed ||| Initialize Timonel*
             // *********************************
             case '2': {
-                byte address = 0;
                 USE_SERIAL.printf_P("\n\rPlease enter the Timonel TWI address (8 to 35): ");
                 while (new_byte == false) {
-                    address = ReadByte();
+                    twi_address = ReadByte();                    
                 }
-                if ((address >= 8) && (address <= 35)) {
-					USE_SERIAL.printf_P("\n\n\rInitializaing Timonel with address: %d\n\n\r", address);
-                    Timonel tim(address);
-                    //Timonel::Status sts = tim.GetStatus();
-                    PrintStatus(tim);
+                if ((twi_address >= 8) && (twi_address <= 35)) {
+					USE_SERIAL.printf_P("\n\n\rInitializaing Timonel with address: %d\n\n\r", twi_address);
+                    Timonel tml(twi_address);
+                    PrintStatus(tml);
 
 				}
                 else {
@@ -87,6 +86,12 @@ void loop() {
                 new_byte = false;
                 break;
             }
+            case '3': {
+                Timonel tml(twi_address);
+                tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);
+                new_byte = false;
+                break;
+            }            
             // *********************************
             // * Test App ||| RESETINY Command *
             // *********************************
@@ -369,7 +374,7 @@ void ShowHeader(void) {
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Application command ('1' wire begin, '2' initialize Timonel , 'z' reboot, 'x' reset MCU, '?' help): ");
+        USE_SERIAL.printf_P("Application command ('1' wire begin, '2' initialize Timonel, '3' dump memory, 'z' reboot): ");
     } 
     // else {
     //     Timonel::Status sts = tml.GetStatus();
