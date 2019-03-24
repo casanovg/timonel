@@ -75,10 +75,7 @@ void loop() {
                     twi_address = ReadByte();                    
                 }
                 if ((twi_address >= 8) && (twi_address <= 35)) {
-					USE_SERIAL.printf_P("\n\n\rInitializaing Timonel with address: %d\n\n\r", twi_address);
-                    Timonel tml(twi_address);
-                    PrintStatus(tml);
-
+					USE_SERIAL.printf_P("\n\n\rTWI Address set to: %d, please initialize Timonel ...\n\n\r", twi_address);
 				}
                 else {
                     USE_SERIAL.printf_P("\n\n\rInvalid address!\n\n\r");
@@ -87,6 +84,12 @@ void loop() {
                 break;
             }
             case '3': {
+				USE_SERIAL.printf_P("\n\n\rInitializaing Timonel with address: %d\n\n\r", twi_address);
+                Timonel tml(twi_address);
+                PrintStatus(tml);
+                break;
+            }            
+            case '4': {
                 Timonel tml(twi_address);
                 tml.DumpMemory(MCU_TOTAL_MEM, RX_DATA_SIZE, VALUES_PER_LINE);
                 new_byte = false;
@@ -374,7 +377,7 @@ void ShowHeader(void) {
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Application command ('1' wire begin, '2' initialize Timonel, '3' dump memory, 'z' reboot): ");
+        USE_SERIAL.printf_P("Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot): ");
     } 
     // else {
     //     Timonel::Status sts = tml.GetStatus();
