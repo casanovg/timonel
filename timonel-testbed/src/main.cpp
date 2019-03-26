@@ -63,7 +63,7 @@ void loop() {
             case '1': {
                 //SetPB1On();
                 Wire.begin(SDA, SCL);
-                USE_SERIAL.printf_P("\n\rTWI bus initialized!\n\n\r");
+                USE_SERIAL.printf_P("\n\rTWI bus successfully initialized!\n\n\r");
                 break;
             }
             // *********************************
