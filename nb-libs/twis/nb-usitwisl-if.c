@@ -1,7 +1,7 @@
 /*
  *  Timonel USI TWI Driver (Interrupt-Free)  
  *  ..................................................
- *  Based on USITWISlave by Donald R. Blake
+ *  Based on USITWISlave by Donald Blake
  *  donblake at worldnet.att.net
  *  .................................................. 
  *  Adapted by Gustavo Casanova to work interrupt-free
@@ -344,7 +344,8 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
     return rxCount;
 }
 
-// Function UsiStartHandler - Interrupt-like GC
+// Function UsiStartHandler
+// GC: Interrupt-like function
 void UsiStartHandler(void) {
     
     // This triggers on second write, but claims to the callback there is only *one* byte in buffer
@@ -416,7 +417,8 @@ void UsiStartHandler(void) {
     USISR |= (1 << USISIF);     /* Reset the USI start flag in USISR register to prepare for new ints */
 }
 
-// Function UsiOverflowHandler - Interrupt-like GC
+// Function UsiOverflowHandler
+// GC: Interrupt-like function
 void UsiOverflowHandler(void) {
 
     switch ( overflowState ) {
@@ -424,7 +426,9 @@ void UsiOverflowHandler(void) {
         // Address mode: check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK,
         // else reset USI
         case USI_SLAVE_CHECK_ADDRESS:
-            if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            // GC: Disable this device answers to "general calls"
+            //if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            if ( ( ( USIDR >> 1) & 0x3F ) == slaveAddress ) {
                 if ( USIDR & 0x01 ) {
                     USI_REQUEST_CALLBACK();
                     overflowState = USI_SLAVE_SEND_DATA;

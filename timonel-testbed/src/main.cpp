@@ -70,11 +70,13 @@ void loop() {
             // * Testbed ||| Initialize Timonel*
             // *********************************
             case '2': {
-                USE_SERIAL.printf_P("\n\rPlease enter the Timonel TWI address (8 to 35): ");
+                //USE_SERIAL.printf_P("\n\rPlease enter the Timonel TWI address (8 to 35): ");
+                USE_SERIAL.printf_P("\n\rPlease enter the Timonel TWI address (0 to 35): ");
                 while (new_byte == false) {
                     twi_address = ReadByte();                    
                 }
-                if ((twi_address >= 8) && (twi_address <= 35)) {
+                //if ((twi_address >= 8) && (twi_address <= 35)) {
+                if ((twi_address >= 0) && (twi_address <= 35)) { /* This version allows I2C general calls */
 					USE_SERIAL.printf_P("\n\n\rTWI Address set to: %d, please initialize Timonel ...\n\n\r", twi_address);
 				}
                 else {

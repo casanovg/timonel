@@ -74,10 +74,10 @@ byte appResetMSB = 0xFF;                    /* Application second byte*/
 #endif /* AUTO_TPL_CALC */
 
 // Jump to trampoline
-//static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
+static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
 #if !(USE_WDT_RESET)
 // Restart this bootloader
-//static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
+static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 #endif /* !USE_WDT_RESET */
 
 // Prototypes
@@ -108,8 +108,8 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
     _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
     asm volatile("spm");
-    //word dlyCounter = CYCLESTOWAIT;
-    //byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
+    word dlyCounter = CYCLESTOWAIT;
+    byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -134,111 +134,112 @@ int main() {
         if (USISR & (1 << USISIF)) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
         }         
-        // if (dlyCounter-- <= 0) {
-            // dlyCounter = CYCLESTOWAIT;
-            // // Initialization check
-// #if !(TWO_STEP_INIT)
-            // if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
-// #endif /* !TWO_STEP_INIT */
-// #if TWO_STEP_INIT
-            // if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
-// #endif /* TWO_STEP_INIT */
-                // // ===========================================
-                // // = Run this until is initialized by master =
-                // // ===========================================
-// #if ENABLE_LED_UI               
-                // LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
-// #endif /* ENABLE_LED_UI */
-                // if (exitDly-- == 0) {
-                    // RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
-                // }
-            // }
-            // else {
-                // // =======================================
-                // // = Exit bootloader and run application =
-                // // =======================================
-                // if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
-                    // asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
-                    // RunApplication();                       /* Exit to the application */
-                // }
-                // // ========================================
-                // // = Delete application from flash memory =
-                // // ========================================
-                // if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
-// #if ENABLE_LED_UI                   
-                    // LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
-// #endif /* ENABLE_LED_UI */
-                    // word pageAddress = TIMONEL_START;       /* Erase flash ... */
-                    // while (pageAddress != RESET_PAGE) {
-                        // pageAddress -= PAGE_SIZE;
-                        // boot_page_erase(pageAddress);
-                    // }
-// #if !(USE_WDT_RESET)
-                    // RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
-// #else
-                    // wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
-                    // for (;;) {};
-// #endif /* !USE_WDT_RESET */                    
-                // }
-                // // ========================================================================
-                // // = Write received page to flash memory and prepare to receive a new one =
-                // // ========================================================================
-// #if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
-                // if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
-// #else
-                // if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
-// #endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
-// #if ENABLE_LED_UI
-                    // LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
-// #endif /* ENABLE_LED_UI */
-// #if FORCE_ERASE_PG
-                    // boot_page_erase(flashPageAddr);
-// #endif /* FORCE_ERASE_PG */                    
-                    // boot_page_write(flashPageAddr);
-// #if AUTO_TPL_CALC
-                    // if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
-                        // word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-                        // for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
-                            // boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
-                        // }
-                        // boot_page_fill((TIMONEL_START - 2), tpl);
-                        // boot_page_write(TIMONEL_START - PAGE_SIZE);                        
-                    // }
-// #if APP_USE_TPL_PG
-                    // if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
-                        // word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-                        // // - Read the previous page to the bootloader start, write it to the temporary buffer.
-                        // const __flash unsigned char * flashAddr;
-                        // for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
-                            // flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
-                            // word pgData = (*flashAddr & 0xFF);
-                            // pgData += ((*(++flashAddr) & 0xFF) << 8); 
-                            // boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
-                        // }
-                        // // - Check if the last two bytes of the trampoline page are 0xFF.
-                        // flashAddr = (void *)(TIMONEL_START - 2);
-                        // word pgData = (*flashAddr & 0xFF);
-                        // pgData += ((*(++flashAddr) & 0xFF) << 8);
-                        // if (pgData == 0xFFFF) {
-                            // // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
-                            // boot_page_fill(TIMONEL_START - 2, tpl);
-                            // boot_page_erase(TIMONEL_START - PAGE_SIZE);
-                            // boot_page_write(TIMONEL_START - PAGE_SIZE);
-                        // }
-                        // else {
-                            // // -- If no, it means that the application is too big for this setup, erase it! 
-                            // flags |= (1 << ST_DEL_FLASH);
-                        // }
-                    // }
-// #endif /* APP_USE_TPL_PG */
-// #endif /* AUTO_TPL_CALC */
-// #if !(CMD_STPGADDR)
-                    // flashPageAddr += PAGE_SIZE;
-// #endif /* !CMD_STPGADDR */
-                    // pageIX = 0;
-                // }
-            // }
-        // }      
+        if (dlyCounter-- <= 0) {
+            dlyCounter = CYCLESTOWAIT;
+            // Initialization check
+#if !(TWO_STEP_INIT)
+            if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+#endif /* !TWO_STEP_INIT */
+#if TWO_STEP_INIT
+            if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
+            ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
+#endif /* TWO_STEP_INIT */
+                // ===========================================
+                // = Run this until is initialized by master =
+                // ===========================================
+#if ENABLE_LED_UI               
+                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
+                if (exitDly-- == 0) {
+                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                }
+            }
+            else {
+                // =======================================
+                // = Exit bootloader and run application =
+                // =======================================
+                if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    RunApplication();                       /* Exit to the application */
+                }
+                // ========================================
+                // = Delete application from flash memory =
+                // ========================================
+                if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
+#if ENABLE_LED_UI                   
+                    LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
+#endif /* ENABLE_LED_UI */
+                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    while (pageAddress != RESET_PAGE) {
+                        pageAddress -= PAGE_SIZE;
+                        boot_page_erase(pageAddress);
+                    }
+#if !(USE_WDT_RESET)
+                    RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
+#else
+                    wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
+                    for (;;) {};
+#endif /* !USE_WDT_RESET */                    
+                }
+                // ========================================================================
+                // = Write received page to flash memory and prepare to receive a new one =
+                // ========================================================================
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
+#else
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
+#endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
+#if ENABLE_LED_UI
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
+#endif /* ENABLE_LED_UI */
+#if FORCE_ERASE_PG
+                    boot_page_erase(flashPageAddr);
+#endif /* FORCE_ERASE_PG */                    
+                    boot_page_write(flashPageAddr);
+#if AUTO_TPL_CALC
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+                        }
+                        boot_page_fill((TIMONEL_START - 2), tpl);
+                        boot_page_write(TIMONEL_START - PAGE_SIZE);                        
+                    }
+#if APP_USE_TPL_PG
+                    if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        // - Read the previous page to the bootloader start, write it to the temporary buffer.
+                        const __flash unsigned char * flashAddr;
+                        for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
+                            flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
+                            word pgData = (*flashAddr & 0xFF);
+                            pgData += ((*(++flashAddr) & 0xFF) << 8); 
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
+                        }
+                        // - Check if the last two bytes of the trampoline page are 0xFF.
+                        flashAddr = (void *)(TIMONEL_START - 2);
+                        word pgData = (*flashAddr & 0xFF);
+                        pgData += ((*(++flashAddr) & 0xFF) << 8);
+                        if (pgData == 0xFFFF) {
+                            // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
+                            boot_page_fill(TIMONEL_START - 2, tpl);
+                            boot_page_erase(TIMONEL_START - PAGE_SIZE);
+                            boot_page_write(TIMONEL_START - PAGE_SIZE);
+                        }
+                        else {
+                            // -- If no, it means that the application is too big for this setup, erase it! 
+                            flags |= (1 << ST_DEL_FLASH);
+                        }
+                    }
+#endif /* APP_USE_TPL_PG */
+#endif /* AUTO_TPL_CALC */
+#if !(CMD_STPGADDR)
+                    flashPageAddr += PAGE_SIZE;
+#endif /* !CMD_STPGADDR */
+                    pageIX = 0;
+                }
+            }
+        }      
     }
     return 0;
 }

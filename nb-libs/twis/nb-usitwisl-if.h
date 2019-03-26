@@ -1,7 +1,7 @@
 /*
  *  Timonel USI TWI Driver (Interrupt-Free)
  *  ..................................................
- *  Based on USITWISlave by Donald R. Blake
+ *  Based on USITWISlave by Donald Blake
  *  donblake at worldnet.att.net
  *  .................................................. 
  *  Adapted to work interrupt-free
@@ -24,7 +24,8 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
 void (*Usi_onReceivePtr)(uint8_t);
 
-// I2C handlers prototypes (GC: interrupts replacements)
+// I2C handlers prototypes
+// GC: These functions replace the USI hardware interrupts
 void UsiStartHandler(void);
 void UsiOverflowHandler(void);
 
