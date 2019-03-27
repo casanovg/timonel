@@ -93,7 +93,7 @@ void loop() {
             }            
             case '4': {
                 Timonel tml(twi_address);
-                tml.DumpMemory(MCU_TOTAL_MEM, SLAVE_DATA_SIZE, VALUES_PER_LINE);
+                tml.DumpMemory(MCU_TOTAL_MEM, SLV_DATA_SIZE, VALUES_PER_LINE);
                 new_byte = false;
                 break;
             }            

@@ -411,10 +411,15 @@ void UsiOverflowHandler(void) {
     switch (overflowState) {
         // Address mode: check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK,
         // else reset USI
+<<<<<<< HEAD
         case USI_SLAVE_CHECK_ADDRESS: {
             // #############################################################
             // # GC: Disable this device answers to "general calls"
             // #############################################################
+=======
+        case USI_SLAVE_CHECK_ADDRESS:
+            // GC: Disable this device's answers to "general calls"
+>>>>>>> 5c4411acb1d345e85c6b34a19c342c600b599298
             //if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
             if (((USIDR >> 1) & 0x3F) == slaveAddress) {
                 if (USIDR & 0x01) {
