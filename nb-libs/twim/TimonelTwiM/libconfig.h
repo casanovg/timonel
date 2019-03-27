@@ -25,7 +25,7 @@
 #define V_APPL_ADDR_LSB 8   /* Ver cmd reply: Application address LSB position */
 
 #define MST_DATA_SIZE   8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 10 */
+#define SLV_DATA_SIZE   8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 #define PAGE_SIZE 64		    /* Tiny85 flash page buffer size */
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */

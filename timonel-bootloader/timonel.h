@@ -119,7 +119,7 @@
 
 // TWI Commands Xmit data block size
 #define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 10 */
+#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 // Status byte
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */

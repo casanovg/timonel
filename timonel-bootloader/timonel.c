@@ -49,7 +49,7 @@
     #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
-#if ((MST_DATA_SIZE > 8) || ((SLV_DATA_SIZE > 10)))
+#if ((MST_DATA_SIZE > 8) || ((SLV_DATA_SIZE > 8)))
     #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
@@ -377,7 +377,7 @@ void RequestEvent(void) {
         case READFLSH: {
             const byte ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
             byte reply[ackLng];
-            if ((command[3] >= 1) & (command[3] <= SLV_DATA_SIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
+            if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;                              /* Checksum initialization */

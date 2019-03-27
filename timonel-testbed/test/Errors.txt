@@ -215,4 +215,72 @@ Addr 06A0: [TwiCmdXmit] Error parsing 0x87 multibyte command <<< 255
 [~NbMicro] Freeing TWI address 33 ...
 Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot):
 
+********************************************
+********************************************
+********************************************
+
+ Timonel v1.2 "Sandra" (TWI: 33) - [OTHER-TWI: 14,  MST_PACKET SIZE = 8]
+ ====================================
+ Bootloader address: 0x1A00
+  Application start: 0xFFFF (Not Set)
+      Features code: 162
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot):
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Instance created with address 33, initializing Timonel device!
+
+[DumpMemory] Dumping Flash Memory ...
+
+Addr 0000: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0020: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0040: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0060: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0080: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 00A0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 00C0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 00E0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0100: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0120: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0140: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0160: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0180: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 01A0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 01C0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 01E0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0200: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0220: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0240: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0260: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0280: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 02A0: FF FF FF FF FF FF FF FF [TwiCmdXmit] Error parsing 0x87 multibyte command <<< 255
+[DumpMemory] DumpFlashMem Error parsing 135 command <<< 255
+[~NbMicro] Freeing TWI address 33 ...
+
+********************************************
+
+ Timonel v1.2 "Sandra" (TWI: 33) - [OTHER-TWI: 14,  MST_PACKET SIZE = 2]
+ ====================================
+ Bootloader address: 0x1A00
+  Application start: 0xFFFF (Not Set)
+      Features code: 162
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot):
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Instance created with address 33, initializing Timonel device!
+
+[DumpMemory] Dumping Flash Memory ...
+
+Addr 0000: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0020: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0040: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0060: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 0080: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+Addr 00A0: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF [TwiCmdXmit] Error parsing 0x87 multibyte command <<< 255
+[DumpMemory] DumpFlashMem Error parsing 135 command <<< 255
+[~NbMicro] Freeing TWI address 33 ...
+Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot):
 
