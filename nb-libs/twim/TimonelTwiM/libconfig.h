@@ -29,7 +29,7 @@
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
 
 #define MCU_TOTAL_MEM 8192  /* Dumpflash: ATTiny flash memory size */
-#define RX_DATA_SIZE 8      /* Dumpflash: TWI command reply data size */
+#define SLAVE_DATA_SIZE 8   /* Dumpflash: TWI command slave-to-master data size */
 #define VALUES_PER_LINE 32  /* Dumpflash: Values per line to display */
 
 #define OK 0                /* No error */

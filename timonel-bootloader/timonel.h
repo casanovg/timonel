@@ -117,9 +117,9 @@
 #define ID_CHAR_2       66      /* B */
 #define ID_CHAR_3       84      /* T */
 
-// I2C TX-RX commands data size
-#define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
-#define RXDATASIZE      8       /* RX data size: always even values, min = 2, max = 8 */
+// TWI Commands Xmit data size
+#define SLV_DATA_SIZE   10      /* Slave-to-Master Xmit data size: always even values, min = 2, max = 10 */
+#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data size: always even values, min = 2, max = 8 */
 
 // Status byte
 #define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */

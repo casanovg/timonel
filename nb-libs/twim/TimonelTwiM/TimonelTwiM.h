@@ -36,7 +36,7 @@ class Timonel : public NbMicro {
     byte RunApplication(void);
     byte DeleteApplication(void);
     byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
-                    const byte rx_data_size = RX_DATA_SIZE,
+                    const byte rx_data_size = SLAVE_DATA_SIZE,
                     const byte values_per_line = VALUES_PER_LINE);
 
    private:

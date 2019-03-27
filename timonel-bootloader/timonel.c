@@ -32,7 +32,6 @@
     #define TWI_ADDR    8                   /* Timonel TWI default address: 08 (0x08) */
 #endif /* 8 <= TWI_ADDR <= 35 */
 
-
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
 #define TIMONEL_VER_MNR 2                   /* Timonel version major number   */
@@ -50,7 +49,7 @@
     #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
-#if (RXDATASIZE > 8)
+#if ((MST_DATA_SIZE > 8) || ((SLV_DATA_SIZE > 10)))
     #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
@@ -64,7 +63,7 @@ typedef uint16_t word;
 typedef void (* const fptr_t)(void);
 
 // Global variables
-byte command[(RXDATASIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
+byte command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 byte flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
 byte pageIX = 0;                            /* Flash memory page index */
@@ -106,7 +105,7 @@ int main() {
     Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
     Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
-    _BV(__SPM_ENABLE));                     /* Clear temporary page buffer */
+                 _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
     word dlyCounter = CYCLESTOWAIT;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
@@ -349,20 +348,20 @@ void RequestEvent(void) {
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
                 reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
                 pageIX += 2;
-                for (byte i = 3; i < (RXDATASIZE + 1); i += 2) {
+                for (byte i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (byte)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }                
             }
             else {
-                for (byte i = 1; i < (RXDATASIZE + 1); i += 2) {
+                for (byte i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (byte)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }
             }
-            if ((reply[1] != command[RXDATASIZE + 1]) || (pageIX > PAGE_SIZE)) {
+            if ((reply[1] != command[MST_DATA_SIZE + 1]) || (pageIX > PAGE_SIZE)) {
                 flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
@@ -378,7 +377,7 @@ void RequestEvent(void) {
         case READFLSH: {
             const byte ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
             byte reply[ackLng];
-            if ((command[3] >= 1) & (command[3] <= TXDATASIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
+            if ((command[3] >= 1) & (command[3] <= SLV_DATA_SIZE * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;                              /* Checksum initialization */
