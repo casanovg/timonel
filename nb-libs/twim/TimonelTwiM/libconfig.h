@@ -24,12 +24,13 @@
 #define V_APPL_ADDR_MSB 7   /* Ver cmd reply: Application address MSB position */
 #define V_APPL_ADDR_LSB 8   /* Ver cmd reply: Application address LSB position */
 
-#define TXDATASIZE 8  		  /* Data block size for WRITBUFF command transmisions */
+#define MST_DATA_SIZE   8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   8  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 10 */
+
 #define PAGE_SIZE 64		    /* Tiny85 flash page buffer size */
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
 
 #define MCU_TOTAL_MEM 8192  /* Dumpflash: ATTiny flash memory size */
-#define SLV_DATA_SIZE 8     /* Dumpflash: TWI command slave-to-master data size */
 #define VALUES_PER_LINE 32  /* Dumpflash: Values per line to display */
 
 #define OK 0                /* No error */

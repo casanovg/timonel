@@ -54,7 +54,7 @@ byte Timonel::TwoStepInit(const word time) {
 
 // Function WritePageBuff
 byte Timonel::WritePageBuff(const byte data_array[]) {
-    const byte cmd_size = TXDATASIZE + 2;
+    const byte cmd_size = MST_DATA_SIZE + 2;
     const byte reply_size = 2;
     byte twi_cmd[cmd_size] = {0};
     byte twi_reply_arr[reply_size] = {0};
@@ -91,7 +91,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     byte page_end = 0;                             /* Byte counter to detect the end of flash mem page */
     byte page_count = 1;                           /* Current page counter */
     byte upl_errors = 0;                           /* Upload error counter */
-    byte data_packet[TXDATASIZE] = {0xFF};         /* TWI data packet array */
+    byte data_packet[MST_DATA_SIZE] = {0xFF};         /* TWI data packet array */
     if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled */
         if (start_address >= PAGE_SIZE) {          /* If application start address is not 0 */
             USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
@@ -133,8 +133,8 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         } else {
             data_packet[packet] = 0xFF; /* If there are no more data, complete the page with padding (0xff) */
         }
-        if (packet++ == (TXDATASIZE - 1)) { /* When a data packet is completed to be sent ... */
-            for (int j = 0; j < TXDATASIZE; j++) {
+        if (packet++ == (MST_DATA_SIZE - 1)) { /* When a data packet is completed to be sent ... */
+            for (int j = 0; j < MST_DATA_SIZE; j++) {
                 USE_SERIAL.printf_P(".");
             }
             upl_errors += WritePageBuff(data_packet); /* Send data to Timonel through TWI */
@@ -223,7 +223,7 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     byte packet = 0; /* Byte amount to be sent in a single I2C data packet */
-    byte data_packet[TXDATASIZE] = {0xFF};
+    byte data_packet[MST_DATA_SIZE] = {0xFF};
     // Function mode: 1=reset vector page, 2=trampoline page
     switch (page_type) {
         case 1: { /* Reset Vector Page (0) */
@@ -249,8 +249,8 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
     delay(100);
     for (byte i = 0; i < PAGE_SIZE; i++) {
         data_packet[packet] = special_page[i];
-        if (packet++ == (TXDATASIZE - 1)) {
-            for (int j = 0; j < TXDATASIZE; j++) {
+        if (packet++ == (MST_DATA_SIZE - 1)) {
+            for (int j = 0; j < MST_DATA_SIZE; j++) {
                 USE_SERIAL.printf_P("|");
             }
             twi_errors += WritePageBuff(data_packet); /* Send data to Timonel through I2C */
