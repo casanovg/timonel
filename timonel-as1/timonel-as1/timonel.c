@@ -101,9 +101,9 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-    UsiTwiSlaveInit(TWI_ADDR);              /* Initialize TWI */
-    Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
-    Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
+    USI_TWI_Slave_Initialise(TWI_ADDR);              /* Initialize TWI */
+    Usi_onReceivePtr = ReceiveEvent;       /* TWI Receive Event */
+    Usi_onRequestPtr = RequestEvent;       /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
@@ -246,7 +246,7 @@ int main() {
 // TWI Receive Event
 void ReceiveEvent(byte commandBytes) {
     for (byte i = 0; i < commandBytes; i++) {
-        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+        command[i] = USI_TWI_Receive_Byte();                           /* Store the data sent by the TWI master in the data buffer */
     }
 }
 
@@ -292,7 +292,7 @@ void RequestEvent(void) {
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
             for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
+                USI_TWI_Transmit_Byte(reply[i]);
             }
             break;
         }
@@ -300,7 +300,7 @@ void RequestEvent(void) {
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
-            UsiTwiTransmitByte(opCodeAck);
+            USI_TWI_Transmit_Byte(opCodeAck);
             flags |= (1 << ST_EXIT_TML);
             break;
         }
@@ -308,7 +308,7 @@ void RequestEvent(void) {
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
-            UsiTwiTransmitByte(opCodeAck);
+            USI_TWI_Transmit_Byte(opCodeAck);
             flags |= (1 << ST_DEL_FLASH);
             break;
         }
@@ -324,7 +324,7 @@ void RequestEvent(void) {
             reply[0] = opCodeAck;
             reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
+                USI_TWI_Transmit_Byte(reply[i]);
             }
             break;
         }
@@ -366,7 +366,7 @@ void RequestEvent(void) {
                 reply[1] = 0;
             }
             for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
+                USI_TWI_Transmit_Byte(reply[i]);
             }
             break;
         }
@@ -388,11 +388,11 @@ void RequestEvent(void) {
                     reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
                 for (byte i = 0; i < ackLng; i++) {
-                    UsiTwiTransmitByte(reply[i]);
+                    USI_TWI_Transmit_Byte(reply[i]);
                 }
             }
             else {
-                UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
+                USI_TWI_Transmit_Byte(UNKNOWNC);                       /* Incorrect operand value received */
             }
             break;
         }   
@@ -403,12 +403,12 @@ void RequestEvent(void) {
         // ******************
         case INITSOFT: {
             flags |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
-            UsiTwiTransmitByte(opCodeAck);
+            USI_TWI_Transmit_Byte(opCodeAck);
             break;
         }
 #endif /* TWO_STEP_INIT */
         default: {
-            UsiTwiTransmitByte(UNKNOWNC);
+            USI_TWI_Transmit_Byte(UNKNOWNC);
             break;
         }
     }
