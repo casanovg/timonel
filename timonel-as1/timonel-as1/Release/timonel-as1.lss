@@ -3,13 +3,13 @@ timonel-as1.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000520  00001980  00001980  00000094  2**1
+  0 .text         000004d8  00001980  00001980  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000002  00800060  00001ea0  000005b4  2**0
+  1 .data         00000002  00800060  00001e58  0000056c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .bss          00000042  00800062  00800062  000005b6  2**0
+  2 .bss          00000042  00800062  00800062  0000056e  2**0
                   ALLOC
-  3 .comment      00000030  00000000  00000000  000005b6  2**0
+  3 .comment      00000030  00000000  00000000  0000056e  2**0
                   CONTENTS, READONLY
 
 Disassembly of section .text:
@@ -25,7 +25,7 @@ Disassembly of section .text:
     198e:	10 e0       	ldi	r17, 0x00	; 0
     1990:	a0 e6       	ldi	r26, 0x60	; 96
     1992:	b0 e0       	ldi	r27, 0x00	; 0
-    1994:	e0 ea       	ldi	r30, 0xA0	; 160
+    1994:	e8 e5       	ldi	r30, 0x58	; 88
     1996:	fe e1       	ldi	r31, 0x1E	; 30
     1998:	02 c0       	rjmp	.+4      	;  0x199e
     199a:	05 90       	lpm	r0, Z+
@@ -52,7 +52,7 @@ Disassembly of section .text:
     19c4:	c0 e0       	ldi	r28, 0x00	; 0
     19c6:	cd 17       	cp	r28, r29
     19c8:	31 f0       	breq	.+12     	;  0x19d6
-    19ca:	bc d1       	rcall	.+888    	;  0x1d44
+    19ca:	bb d1       	rcall	.+886    	;  0x1d42
     19cc:	f8 01       	movw	r30, r16
     19ce:	81 93       	st	Z+, r24
     19d0:	8f 01       	movw	r16, r30
@@ -131,19 +131,19 @@ Disassembly of section .text:
     1a68:	96 38       	cpi	r25, 0x86	; 134
     1a6a:	09 f0       	breq	.+2      	;  0x1a6e
     1a6c:	80 c0       	rjmp	.+256    	;  0x1b6e
-    1a6e:	54 d1       	rcall	.+680    	;  0x1d18
+    1a6e:	59 d1       	rcall	.+690    	;  0x1d22
     1a70:	80 91 65 00 	lds	r24, 0x0065	;  0x800065
     1a74:	88 60       	ori	r24, 0x08	; 8
     1a76:	0c c0       	rjmp	.+24     	;  0x1a90
     1a78:	d8 01       	movw	r26, r16
     1a7a:	8d 91       	ld	r24, X+
     1a7c:	8d 01       	movw	r16, r26
-    1a7e:	4c d1       	rcall	.+664    	;  0x1d18
+    1a7e:	51 d1       	rcall	.+674    	;  0x1d22
     1a80:	e0 16       	cp	r14, r16
     1a82:	f1 06       	cpc	r15, r17
     1a84:	c9 f7       	brne	.-14     	;  0x1a78
     1a86:	81 c0       	rjmp	.+258    	;  0x1b8a
-    1a88:	47 d1       	rcall	.+654    	;  0x1d18
+    1a88:	4c d1       	rcall	.+664    	;  0x1d22
     1a8a:	80 91 65 00 	lds	r24, 0x0065	;  0x800065
     1a8e:	84 60       	ori	r24, 0x04	; 4
     1a90:	80 93 65 00 	sts	0x0065, r24	;  0x800065
@@ -238,7 +238,7 @@ Disassembly of section .text:
     1b60:	94 60       	ori	r25, 0x04	; 4
     1b62:	90 93 65 00 	sts	0x0065, r25	;  0x800065
     1b66:	10 e0       	ldi	r17, 0x00	; 0
-    1b68:	d7 d0       	rcall	.+430    	;  0x1d18
+    1b68:	dc d0       	rcall	.+440    	;  0x1d22
     1b6a:	81 2f       	mov	r24, r17
     1b6c:	01 c0       	rjmp	.+2      	;  0x1b70
     1b6e:	8f ef       	ldi	r24, 0xFF	; 255
@@ -254,7 +254,7 @@ Disassembly of section .text:
     1b82:	0f 91       	pop	r16
     1b84:	ff 90       	pop	r15
     1b86:	ef 90       	pop	r14
-    1b88:	c7 c0       	rjmp	.+398    	;  0x1d18
+    1b88:	cc c0       	rjmp	.+408    	;  0x1d22
     1b8a:	29 96       	adiw	r28, 0x09	; 9
     1b8c:	0f b6       	in	r0, 0x3f	; 63
     1b8e:	f8 94       	cli
@@ -278,7 +278,7 @@ Disassembly of section .text:
     1bb2:	86 bd       	out	0x26, r24	; 38
     1bb4:	16 bc       	out	0x26, r1	; 38
     1bb6:	8e e0       	ldi	r24, 0x0E	; 14
-    1bb8:	96 d0       	rcall	.+300    	;  0x1ce6
+    1bb8:	9f d0       	rcall	.+318    	;  0x1cf8
     1bba:	8b ed       	ldi	r24, 0xDB	; 219
     1bbc:	9c e0       	ldi	r25, 0x0C	; 12
     1bbe:	90 93 a3 00 	sts	0x00A3, r25	;  0x8000a3
@@ -313,9 +313,9 @@ Disassembly of section .text:
     1c00:	fc e0       	ldi	r31, 0x0C	; 12
     1c02:	bf 2e       	mov	r11, r31
     1c04:	76 99       	sbic	0x0e, 6	; 14
-    1c06:	c5 d0       	rcall	.+394    	;  0x1d92
+    1c06:	be d0       	rcall	.+380    	;  0x1d84
     1c08:	77 99       	sbic	0x0e, 7	; 14
-    1c0a:	b2 d0       	rcall	.+356    	;  0x1d70
+    1c0a:	ac d0       	rcall	.+344    	;  0x1d64
     1c0c:	20 97       	sbiw	r28, 0x00	; 0
     1c0e:	11 f0       	breq	.+4      	;  0x1c14
     1c10:	21 97       	sbiw	r28, 0x01	; 1
@@ -412,178 +412,153 @@ Disassembly of section .text:
     1ce4:	9e cf       	rjmp	.-196    	;  0x1c22
     1ce6:	10 92 8c 00 	sts	0x008C, r1	;  0x80008c
     1cea:	10 92 8d 00 	sts	0x008D, r1	;  0x80008d
-    1cee:	10 92 8b 00 	sts	0x008B, r1	;  0x80008b
-    1cf2:	10 92 79 00 	sts	0x0079, r1	;  0x800079
-    1cf6:	10 92 7a 00 	sts	0x007A, r1	;  0x80007a
-    1cfa:	10 92 78 00 	sts	0x0078, r1	;  0x800078
-    1cfe:	80 93 9f 00 	sts	0x009F, r24	;  0x80009f
-    1d02:	87 b3       	in	r24, 0x17	; 23
-    1d04:	85 60       	ori	r24, 0x05	; 5
-    1d06:	87 bb       	out	0x17, r24	; 23
-    1d08:	c2 9a       	sbi	0x18, 2	; 24
-    1d0a:	c0 9a       	sbi	0x18, 0	; 24
-    1d0c:	b8 98       	cbi	0x17, 0	; 23
-    1d0e:	88 ea       	ldi	r24, 0xA8	; 168
-    1d10:	8d b9       	out	0x0d, r24	; 13
-    1d12:	80 ef       	ldi	r24, 0xF0	; 240
-    1d14:	8e b9       	out	0x0e, r24	; 14
-    1d16:	08 95       	ret
-    1d18:	90 91 78 00 	lds	r25, 0x0078	;  0x800078
-    1d1c:	90 31       	cpi	r25, 0x10	; 16
-    1d1e:	e1 f3       	breq	.-8      	;  0x1d18
-    1d20:	e0 91 7a 00 	lds	r30, 0x007A	;  0x80007a
-    1d24:	f0 e0       	ldi	r31, 0x00	; 0
-    1d26:	e5 58       	subi	r30, 0x85	; 133
-    1d28:	ff 4f       	sbci	r31, 0xFF	; 255
-    1d2a:	80 83       	st	Z, r24
-    1d2c:	80 91 7a 00 	lds	r24, 0x007A	;  0x80007a
-    1d30:	8f 5f       	subi	r24, 0xFF	; 255
-    1d32:	8f 70       	andi	r24, 0x0F	; 15
-    1d34:	80 93 7a 00 	sts	0x007A, r24	;  0x80007a
-    1d38:	80 91 78 00 	lds	r24, 0x0078	;  0x800078
-    1d3c:	8f 5f       	subi	r24, 0xFF	; 255
-    1d3e:	80 93 78 00 	sts	0x0078, r24	;  0x800078
-    1d42:	08 95       	ret
-    1d44:	80 91 8b 00 	lds	r24, 0x008B	;  0x80008b
-    1d48:	88 23       	and	r24, r24
-    1d4a:	e1 f3       	breq	.-8      	;  0x1d44
-    1d4c:	e0 91 8c 00 	lds	r30, 0x008C	;  0x80008c
-    1d50:	f0 e0       	ldi	r31, 0x00	; 0
-    1d52:	e2 57       	subi	r30, 0x72	; 114
-    1d54:	ff 4f       	sbci	r31, 0xFF	; 255
-    1d56:	80 81       	ld	r24, Z
-    1d58:	90 91 8c 00 	lds	r25, 0x008C	;  0x80008c
-    1d5c:	9f 5f       	subi	r25, 0xFF	; 255
-    1d5e:	9f 70       	andi	r25, 0x0F	; 15
-    1d60:	90 93 8c 00 	sts	0x008C, r25	;  0x80008c
-    1d64:	90 91 8b 00 	lds	r25, 0x008B	;  0x80008b
-    1d68:	91 50       	subi	r25, 0x01	; 1
-    1d6a:	90 93 8b 00 	sts	0x008B, r25	;  0x80008b
-    1d6e:	08 95       	ret
-    1d70:	10 92 9e 00 	sts	0x009E, r1	;  0x80009e
-    1d74:	b8 98       	cbi	0x17, 0	; 23
-    1d76:	b2 9b       	sbis	0x16, 2	; 22
-    1d78:	02 c0       	rjmp	.+4      	;  0x1d7e
-    1d7a:	b0 9b       	sbis	0x16, 0	; 22
-    1d7c:	fc cf       	rjmp	.-8      	;  0x1d76
-    1d7e:	b0 99       	sbic	0x16, 0	; 22
-    1d80:	02 c0       	rjmp	.+4      	;  0x1d86
-    1d82:	88 ef       	ldi	r24, 0xF8	; 248
-    1d84:	01 c0       	rjmp	.+2      	;  0x1d88
-    1d86:	88 ea       	ldi	r24, 0xA8	; 168
-    1d88:	8d b9       	out	0x0d, r24	; 13
-    1d8a:	80 ef       	ldi	r24, 0xF0	; 240
-    1d8c:	8e b9       	out	0x0e, r24	; 14
-    1d8e:	77 9a       	sbi	0x0e, 7	; 14
-    1d90:	08 95       	ret
-    1d92:	80 91 9e 00 	lds	r24, 0x009E	;  0x80009e
-    1d96:	82 30       	cpi	r24, 0x02	; 2
-    1d98:	09 f4       	brne	.+2      	;  0x1d9c
-    1d9a:	57 c0       	rjmp	.+174    	;  0x1e4a
-    1d9c:	28 f4       	brcc	.+10     	;  0x1da8
-    1d9e:	88 23       	and	r24, r24
-    1da0:	59 f0       	breq	.+22     	;  0x1db8
-    1da2:	81 30       	cpi	r24, 0x01	; 1
-    1da4:	71 f1       	breq	.+92     	;  0x1e02
-    1da6:	7a c0       	rjmp	.+244    	;  0x1e9c
-    1da8:	84 30       	cpi	r24, 0x04	; 4
-    1daa:	09 f4       	brne	.+2      	;  0x1dae
-    1dac:	54 c0       	rjmp	.+168    	;  0x1e56
-    1dae:	30 f1       	brcs	.+76     	;  0x1dfc
-    1db0:	85 30       	cpi	r24, 0x05	; 5
-    1db2:	09 f4       	brne	.+2      	;  0x1db6
-    1db4:	56 c0       	rjmp	.+172    	;  0x1e62
-    1db6:	72 c0       	rjmp	.+228    	;  0x1e9c
-    1db8:	8f b1       	in	r24, 0x0f	; 15
-    1dba:	86 95       	lsr	r24
-    1dbc:	8f 73       	andi	r24, 0x3F	; 63
-    1dbe:	90 91 9f 00 	lds	r25, 0x009F	;  0x80009f
-    1dc2:	89 13       	cpse	r24, r25
-    1dc4:	18 c0       	rjmp	.+48     	;  0x1df6
-    1dc6:	78 9b       	sbis	0x0f, 0	; 15
-    1dc8:	62 c0       	rjmp	.+196    	;  0x1e8e
-    1dca:	e0 91 a2 00 	lds	r30, 0x00A2	;  0x8000a2
-    1dce:	f0 91 a3 00 	lds	r31, 0x00A3	;  0x8000a3
+    1cee:	10 92 7a 00 	sts	0x007A, r1	;  0x80007a
+    1cf2:	10 92 7b 00 	sts	0x007B, r1	;  0x80007b
+    1cf6:	08 95       	ret
+    1cf8:	cf 93       	push	r28
+    1cfa:	c8 2f       	mov	r28, r24
+    1cfc:	f4 df       	rcall	.-24     	;  0x1ce6
+    1cfe:	10 92 79 00 	sts	0x0079, r1	;  0x800079
+    1d02:	10 92 78 00 	sts	0x0078, r1	;  0x800078
+    1d06:	c0 93 9f 00 	sts	0x009F, r28	;  0x80009f
+    1d0a:	87 b3       	in	r24, 0x17	; 23
+    1d0c:	85 60       	ori	r24, 0x05	; 5
+    1d0e:	87 bb       	out	0x17, r24	; 23
+    1d10:	c2 9a       	sbi	0x18, 2	; 24
+    1d12:	c0 9a       	sbi	0x18, 0	; 24
+    1d14:	b8 98       	cbi	0x17, 0	; 23
+    1d16:	88 ea       	ldi	r24, 0xA8	; 168
+    1d18:	8d b9       	out	0x0d, r24	; 13
+    1d1a:	80 ef       	ldi	r24, 0xF0	; 240
+    1d1c:	8e b9       	out	0x0e, r24	; 14
+    1d1e:	cf 91       	pop	r28
+    1d20:	08 95       	ret
+    1d22:	90 91 7b 00 	lds	r25, 0x007B	;  0x80007b
+    1d26:	9f 5f       	subi	r25, 0xFF	; 255
+    1d28:	9f 70       	andi	r25, 0x0F	; 15
+    1d2a:	20 91 7a 00 	lds	r18, 0x007A	;  0x80007a
+    1d2e:	92 17       	cp	r25, r18
+    1d30:	e1 f3       	breq	.-8      	;  0x1d2a
+    1d32:	e9 2f       	mov	r30, r25
+    1d34:	f0 e0       	ldi	r31, 0x00	; 0
+    1d36:	e4 58       	subi	r30, 0x84	; 132
+    1d38:	ff 4f       	sbci	r31, 0xFF	; 255
+    1d3a:	80 83       	st	Z, r24
+    1d3c:	90 93 7b 00 	sts	0x007B, r25	;  0x80007b
+    1d40:	08 95       	ret
+    1d42:	90 91 8d 00 	lds	r25, 0x008D	;  0x80008d
+    1d46:	80 91 8c 00 	lds	r24, 0x008C	;  0x80008c
+    1d4a:	98 17       	cp	r25, r24
+    1d4c:	d1 f3       	breq	.-12     	;  0x1d42
+    1d4e:	e0 91 8c 00 	lds	r30, 0x008C	;  0x80008c
+    1d52:	ef 5f       	subi	r30, 0xFF	; 255
+    1d54:	ef 70       	andi	r30, 0x0F	; 15
+    1d56:	e0 93 8c 00 	sts	0x008C, r30	;  0x80008c
+    1d5a:	f0 e0       	ldi	r31, 0x00	; 0
+    1d5c:	e2 57       	subi	r30, 0x72	; 114
+    1d5e:	ff 4f       	sbci	r31, 0xFF	; 255
+    1d60:	80 81       	ld	r24, Z
+    1d62:	08 95       	ret
+    1d64:	10 92 9e 00 	sts	0x009E, r1	;  0x80009e
+    1d68:	b8 98       	cbi	0x17, 0	; 23
+    1d6a:	b2 9b       	sbis	0x16, 2	; 22
+    1d6c:	02 c0       	rjmp	.+4      	;  0x1d72
+    1d6e:	b0 9b       	sbis	0x16, 0	; 22
+    1d70:	fc cf       	rjmp	.-8      	;  0x1d6a
+    1d72:	b0 9b       	sbis	0x16, 0	; 22
+    1d74:	02 c0       	rjmp	.+4      	;  0x1d7a
+    1d76:	88 ea       	ldi	r24, 0xA8	; 168
+    1d78:	01 c0       	rjmp	.+2      	;  0x1d7c
+    1d7a:	88 ef       	ldi	r24, 0xF8	; 248
+    1d7c:	8d b9       	out	0x0d, r24	; 13
+    1d7e:	80 ef       	ldi	r24, 0xF0	; 240
+    1d80:	8e b9       	out	0x0e, r24	; 14
+    1d82:	08 95       	ret
+    1d84:	80 91 9e 00 	lds	r24, 0x009E	;  0x80009e
+    1d88:	82 30       	cpi	r24, 0x02	; 2
+    1d8a:	09 f4       	brne	.+2      	;  0x1d8e
+    1d8c:	44 c0       	rjmp	.+136    	;  0x1e16
+    1d8e:	28 f4       	brcc	.+10     	;  0x1d9a
+    1d90:	88 23       	and	r24, r24
+    1d92:	59 f0       	breq	.+22     	;  0x1daa
+    1d94:	81 30       	cpi	r24, 0x01	; 1
+    1d96:	c9 f0       	breq	.+50     	;  0x1dca
+    1d98:	08 95       	ret
+    1d9a:	84 30       	cpi	r24, 0x04	; 4
+    1d9c:	09 f4       	brne	.+2      	;  0x1da0
+    1d9e:	41 c0       	rjmp	.+130    	;  0x1e22
+    1da0:	88 f0       	brcs	.+34     	;  0x1dc4
+    1da2:	85 30       	cpi	r24, 0x05	; 5
+    1da4:	09 f4       	brne	.+2      	;  0x1da8
+    1da6:	43 c0       	rjmp	.+134    	;  0x1e2e
+    1da8:	08 95       	ret
+    1daa:	8f b1       	in	r24, 0x0f	; 15
+    1dac:	88 23       	and	r24, r24
+    1dae:	31 f0       	breq	.+12     	;  0x1dbc
+    1db0:	8f b1       	in	r24, 0x0f	; 15
+    1db2:	86 95       	lsr	r24
+    1db4:	90 91 9f 00 	lds	r25, 0x009F	;  0x80009f
+    1db8:	89 13       	cpse	r24, r25
+    1dba:	2a c0       	rjmp	.+84     	;  0x1e10
+    1dbc:	78 9b       	sbis	0x0f, 0	; 15
+    1dbe:	44 c0       	rjmp	.+136    	;  0x1e48
+    1dc0:	81 e0       	ldi	r24, 0x01	; 1
+    1dc2:	43 c0       	rjmp	.+134    	;  0x1e4a
+    1dc4:	8f b1       	in	r24, 0x0f	; 15
+    1dc6:	81 11       	cpse	r24, r1
+    1dc8:	23 c0       	rjmp	.+70     	;  0x1e10
+    1dca:	e0 91 78 00 	lds	r30, 0x0078	;  0x800078
+    1dce:	f0 91 79 00 	lds	r31, 0x0079	;  0x800079
     1dd2:	30 97       	sbiw	r30, 0x00	; 0
-    1dd4:	39 f0       	breq	.+14     	;  0x1de4
-    1dd6:	80 91 8b 00 	lds	r24, 0x008B	;  0x80008b
-    1dda:	88 23       	and	r24, r24
-    1ddc:	19 f0       	breq	.+6      	;  0x1de4
-    1dde:	80 91 8b 00 	lds	r24, 0x008B	;  0x80008b
-    1de2:	09 95       	icall
-    1de4:	e0 91 a0 00 	lds	r30, 0x00A0	;  0x8000a0
-    1de8:	f0 91 a1 00 	lds	r31, 0x00A1	;  0x8000a1
-    1dec:	30 97       	sbiw	r30, 0x00	; 0
-    1dee:	09 f0       	breq	.+2      	;  0x1df2
-    1df0:	09 95       	icall
-    1df2:	81 e0       	ldi	r24, 0x01	; 1
-    1df4:	4d c0       	rjmp	.+154    	;  0x1e90
-    1df6:	88 ea       	ldi	r24, 0xA8	; 168
-    1df8:	8d b9       	out	0x0d, r24	; 13
-    1dfa:	31 c0       	rjmp	.+98     	;  0x1e5e
-    1dfc:	8f b1       	in	r24, 0x0f	; 15
-    1dfe:	81 11       	cpse	r24, r1
-    1e00:	1f c0       	rjmp	.+62     	;  0x1e40
-    1e02:	80 91 78 00 	lds	r24, 0x0078	;  0x800078
-    1e06:	88 23       	and	r24, r24
-    1e08:	b9 f0       	breq	.+46     	;  0x1e38
-    1e0a:	e0 91 79 00 	lds	r30, 0x0079	;  0x800079
-    1e0e:	f0 e0       	ldi	r31, 0x00	; 0
-    1e10:	e5 58       	subi	r30, 0x85	; 133
-    1e12:	ff 4f       	sbci	r31, 0xFF	; 255
-    1e14:	80 81       	ld	r24, Z
-    1e16:	8f b9       	out	0x0f, r24	; 15
-    1e18:	80 91 79 00 	lds	r24, 0x0079	;  0x800079
-    1e1c:	8f 5f       	subi	r24, 0xFF	; 255
-    1e1e:	8f 70       	andi	r24, 0x0F	; 15
-    1e20:	80 93 79 00 	sts	0x0079, r24	;  0x800079
-    1e24:	80 91 78 00 	lds	r24, 0x0078	;  0x800078
-    1e28:	81 50       	subi	r24, 0x01	; 1
-    1e2a:	80 93 78 00 	sts	0x0078, r24	;  0x800078
-    1e2e:	82 e0       	ldi	r24, 0x02	; 2
-    1e30:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
-    1e34:	b8 9a       	sbi	0x17, 0	; 23
-    1e36:	13 c0       	rjmp	.+38     	;  0x1e5e
-    1e38:	1f b8       	out	0x0f, r1	; 15
-    1e3a:	b8 98       	cbi	0x17, 0	; 23
-    1e3c:	8e e7       	ldi	r24, 0x7E	; 126
-    1e3e:	8e b9       	out	0x0e, r24	; 14
-    1e40:	88 ea       	ldi	r24, 0xA8	; 168
-    1e42:	8d b9       	out	0x0d, r24	; 13
-    1e44:	80 e7       	ldi	r24, 0x70	; 112
-    1e46:	8e b9       	out	0x0e, r24	; 14
-    1e48:	08 95       	ret
-    1e4a:	83 e0       	ldi	r24, 0x03	; 3
-    1e4c:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
-    1e50:	1f b8       	out	0x0f, r1	; 15
-    1e52:	b8 98       	cbi	0x17, 0	; 23
-    1e54:	21 c0       	rjmp	.+66     	;  0x1e98
-    1e56:	85 e0       	ldi	r24, 0x05	; 5
-    1e58:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
-    1e5c:	b8 98       	cbi	0x17, 0	; 23
-    1e5e:	80 e7       	ldi	r24, 0x70	; 112
-    1e60:	1c c0       	rjmp	.+56     	;  0x1e9a
-    1e62:	80 91 8b 00 	lds	r24, 0x008B	;  0x80008b
-    1e66:	80 31       	cpi	r24, 0x10	; 16
-    1e68:	90 f4       	brcc	.+36     	;  0x1e8e
-    1e6a:	e0 91 8d 00 	lds	r30, 0x008D	;  0x80008d
-    1e6e:	8f b1       	in	r24, 0x0f	; 15
-    1e70:	f0 e0       	ldi	r31, 0x00	; 0
-    1e72:	e2 57       	subi	r30, 0x72	; 114
-    1e74:	ff 4f       	sbci	r31, 0xFF	; 255
-    1e76:	80 83       	st	Z, r24
-    1e78:	80 91 8d 00 	lds	r24, 0x008D	;  0x80008d
-    1e7c:	8f 5f       	subi	r24, 0xFF	; 255
-    1e7e:	8f 70       	andi	r24, 0x0F	; 15
-    1e80:	80 93 8d 00 	sts	0x008D, r24	;  0x80008d
-    1e84:	80 91 8b 00 	lds	r24, 0x008B	;  0x80008b
-    1e88:	8f 5f       	subi	r24, 0xFF	; 255
-    1e8a:	80 93 8b 00 	sts	0x008B, r24	;  0x80008b
-    1e8e:	84 e0       	ldi	r24, 0x04	; 4
-    1e90:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
-    1e94:	1f b8       	out	0x0f, r1	; 15
-    1e96:	b8 9a       	sbi	0x17, 0	; 23
-    1e98:	8e e7       	ldi	r24, 0x7E	; 126
-    1e9a:	8e b9       	out	0x0e, r24	; 14
-    1e9c:	76 9a       	sbi	0x0e, 6	; 14
-    1e9e:	08 95       	ret
+    1dd4:	29 f0       	breq	.+10     	;  0x1de0
+    1dd6:	10 92 7a 00 	sts	0x007A, r1	;  0x80007a
+    1dda:	10 92 7b 00 	sts	0x007B, r1	;  0x80007b
+    1dde:	09 95       	icall
+    1de0:	90 91 7b 00 	lds	r25, 0x007B	;  0x80007b
+    1de4:	80 91 7a 00 	lds	r24, 0x007A	;  0x80007a
+    1de8:	98 17       	cp	r25, r24
+    1dea:	91 f0       	breq	.+36     	;  0x1e10
+    1dec:	80 91 7a 00 	lds	r24, 0x007A	;  0x80007a
+    1df0:	8f 5f       	subi	r24, 0xFF	; 255
+    1df2:	8f 70       	andi	r24, 0x0F	; 15
+    1df4:	80 93 7a 00 	sts	0x007A, r24	;  0x80007a
+    1df8:	e0 91 7a 00 	lds	r30, 0x007A	;  0x80007a
+    1dfc:	f0 e0       	ldi	r31, 0x00	; 0
+    1dfe:	e4 58       	subi	r30, 0x84	; 132
+    1e00:	ff 4f       	sbci	r31, 0xFF	; 255
+    1e02:	80 81       	ld	r24, Z
+    1e04:	8f b9       	out	0x0f, r24	; 15
+    1e06:	82 e0       	ldi	r24, 0x02	; 2
+    1e08:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
+    1e0c:	b8 9a       	sbi	0x17, 0	; 23
+    1e0e:	0d c0       	rjmp	.+26     	;  0x1e2a
+    1e10:	88 ea       	ldi	r24, 0xA8	; 168
+    1e12:	8d b9       	out	0x0d, r24	; 13
+    1e14:	0a c0       	rjmp	.+20     	;  0x1e2a
+    1e16:	83 e0       	ldi	r24, 0x03	; 3
+    1e18:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
+    1e1c:	b8 98       	cbi	0x17, 0	; 23
+    1e1e:	1f b8       	out	0x0f, r1	; 15
+    1e20:	18 c0       	rjmp	.+48     	;  0x1e52
+    1e22:	85 e0       	ldi	r24, 0x05	; 5
+    1e24:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
+    1e28:	b8 98       	cbi	0x17, 0	; 23
+    1e2a:	80 e7       	ldi	r24, 0x70	; 112
+    1e2c:	13 c0       	rjmp	.+38     	;  0x1e54
+    1e2e:	80 91 8d 00 	lds	r24, 0x008D	;  0x80008d
+    1e32:	8f 5f       	subi	r24, 0xFF	; 255
+    1e34:	8f 70       	andi	r24, 0x0F	; 15
+    1e36:	80 93 8d 00 	sts	0x008D, r24	;  0x80008d
+    1e3a:	e0 91 8d 00 	lds	r30, 0x008D	;  0x80008d
+    1e3e:	8f b1       	in	r24, 0x0f	; 15
+    1e40:	f0 e0       	ldi	r31, 0x00	; 0
+    1e42:	e2 57       	subi	r30, 0x72	; 114
+    1e44:	ff 4f       	sbci	r31, 0xFF	; 255
+    1e46:	80 83       	st	Z, r24
+    1e48:	84 e0       	ldi	r24, 0x04	; 4
+    1e4a:	80 93 9e 00 	sts	0x009E, r24	;  0x80009e
+    1e4e:	1f b8       	out	0x0f, r1	; 15
+    1e50:	b8 9a       	sbi	0x17, 0	; 23
+    1e52:	8e e7       	ldi	r24, 0x7E	; 126
+    1e54:	8e b9       	out	0x0e, r24	; 14
+    1e56:	08 95       	ret
