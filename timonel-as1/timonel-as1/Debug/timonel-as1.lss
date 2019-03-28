@@ -1,0 +1,1208 @@
+
+timonel-as1.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000594  00000000  00000000  00000094  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000002  00800060  00000594  00000628  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000042  00800062  00800062  0000062a  2**0
+                  ALLOC
+  3 .comment      00000030  00000000  00000000  0000062a  2**0
+                  CONTENTS, READONLY
+  4 .debug_aranges 000000b0  00000000  00000000  00000660  2**3
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   0000078a  00000000  00000000  00000710  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 0000037f  00000000  00000000  00000e9a  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   0000075e  00000000  00000000  00001219  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000100  00000000  00000000  00001978  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    00000516  00000000  00000000  00001a78  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    00000390  00000000  00000000  00001f8e  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 000000d0  00000000  00000000  00002320  2**3
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__bad_interrupt>:
+	.global	__bad_interrupt
+	.func	__vectors
+
+__bad_interrupt:	
+__vectors:
+	XJMP	__init
+   0:	00 c0       	rjmp	.+0      	; 0x2 <__ctors_end>
+
+00000002 <__ctors_end>:
+	   should be set to the highest address available for malloc().  */
+	.weak	__heap_end
+	.set	__heap_end, 0
+
+	.section .init2,"ax",@progbits
+	clr		R1
+   2:	11 24       	eor	r1, r1
+    
+#ifndef ENABLE_UNSAFE_OPTIMIZATIONS
+	out		0x3f,r1
+   4:	1f be       	out	0x3f, r1	; 63
+	ldi		r28,lo8(__stack)
+   6:	cf e5       	ldi	r28, 0x5F	; 95
+	ldi		r29,hi8(__stack)
+   8:	d2 e0       	ldi	r29, 0x02	; 2
+	out		0x3d, r28
+   a:	cd bf       	out	0x3d, r28	; 61
+	out		0x3e, r29
+   c:	de bf       	out	0x3e, r29	; 62
+
+0000000e <__do_copy_data>:
+   e:	10 e0       	ldi	r17, 0x00	; 0
+  10:	a0 e6       	ldi	r26, 0x60	; 96
+  12:	b0 e0       	ldi	r27, 0x00	; 0
+  14:	e4 e9       	ldi	r30, 0x94	; 148
+  16:	f5 e0       	ldi	r31, 0x05	; 5
+  18:	02 c0       	rjmp	.+4      	; 0x1e <__do_copy_data+0x10>
+  1a:	05 90       	lpm	r0, Z+
+  1c:	0d 92       	st	X+, r0
+  1e:	a2 36       	cpi	r26, 0x62	; 98
+  20:	b1 07       	cpc	r27, r17
+  22:	d9 f7       	brne	.-10     	; 0x1a <__do_copy_data+0xc>
+
+00000024 <__do_clear_bss>:
+  24:	20 e0       	ldi	r18, 0x00	; 0
+  26:	a2 e6       	ldi	r26, 0x62	; 98
+  28:	b0 e0       	ldi	r27, 0x00	; 0
+  2a:	01 c0       	rjmp	.+2      	; 0x2e <.do_clear_bss_start>
+
+0000002c <.do_clear_bss_loop>:
+  2c:	1d 92       	st	X+, r1
+
+0000002e <.do_clear_bss_start>:
+  2e:	a4 3a       	cpi	r26, 0xA4	; 164
+  30:	b2 07       	cpc	r27, r18
+  32:	e1 f7       	brne	.-8      	; 0x2c <.do_clear_bss_loop>
+#endif    
+	.section .init9,"ax",@progbits
+;  rcall main
+;  XJMP  __vectors-2
+	XJMP	main
+  34:	f8 c0       	rjmp	.+496    	; 0x226 <main>
+
+00000036 <ReceiveEvent>:
+    }
+    return 0;
+}
+
+// TWI Receive Event
+void ReceiveEvent(byte commandBytes) {
+  36:	0f 93       	push	r16
+  38:	1f 93       	push	r17
+  3a:	cf 93       	push	r28
+  3c:	df 93       	push	r29
+    for (byte i = 0; i < commandBytes; i++) {
+  3e:	88 23       	and	r24, r24
+  40:	61 f0       	breq	.+24     	; 0x5a <__SREG__+0x1b>
+  42:	c6 e6       	ldi	r28, 0x66	; 102
+  44:	d0 e0       	ldi	r29, 0x00	; 0
+  46:	81 50       	subi	r24, 0x01	; 1
+  48:	08 2f       	mov	r16, r24
+  4a:	10 e0       	ldi	r17, 0x00	; 0
+  4c:	09 59       	subi	r16, 0x99	; 153
+  4e:	1f 4f       	sbci	r17, 0xFF	; 255
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+  50:	db d1       	rcall	.+950    	; 0x408 <UsiTwiReceiveByte>
+  52:	89 93       	st	Y+, r24
+    return 0;
+}
+
+// TWI Receive Event
+void ReceiveEvent(byte commandBytes) {
+    for (byte i = 0; i < commandBytes; i++) {
+  54:	c0 17       	cp	r28, r16
+  56:	d1 07       	cpc	r29, r17
+  58:	d9 f7       	brne	.-10     	; 0x50 <__SREG__+0x11>
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+    }
+}
+  5a:	df 91       	pop	r29
+  5c:	cf 91       	pop	r28
+  5e:	1f 91       	pop	r17
+  60:	0f 91       	pop	r16
+  62:	08 95       	ret
+
+00000064 <RequestEvent>:
+
+// TWI Request Event
+void RequestEvent(void) {
+  64:	ef 92       	push	r14
+  66:	ff 92       	push	r15
+  68:	0f 93       	push	r16
+  6a:	1f 93       	push	r17
+  6c:	cf 93       	push	r28
+  6e:	df 93       	push	r29
+  70:	cd b7       	in	r28, 0x3d	; 61
+  72:	de b7       	in	r29, 0x3e	; 62
+  74:	29 97       	sbiw	r28, 0x09	; 9
+  76:	0f b6       	in	r0, 0x3f	; 63
+  78:	f8 94       	cli
+  7a:	de bf       	out	0x3e, r29	; 62
+  7c:	0f be       	out	0x3f, r0	; 63
+  7e:	cd bf       	out	0x3d, r28	; 61
+    byte opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
+  80:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <command>
+  84:	89 2f       	mov	r24, r25
+  86:	80 95       	com	r24
+    switch (command[0]) {
+  88:	93 38       	cpi	r25, 0x83	; 131
+  8a:	09 f4       	brne	.+2      	; 0x8e <RequestEvent+0x2a>
+  8c:	41 c0       	rjmp	.+130    	; 0x110 <RequestEvent+0xac>
+  8e:	18 f4       	brcc	.+6      	; 0x96 <RequestEvent+0x32>
+  90:	92 38       	cpi	r25, 0x82	; 130
+  92:	39 f0       	breq	.+14     	; 0xa2 <RequestEvent+0x3e>
+  94:	b5 c0       	rjmp	.+362    	; 0x200 <RequestEvent+0x19c>
+  96:	95 38       	cpi	r25, 0x85	; 133
+  98:	09 f4       	brne	.+2      	; 0x9c <RequestEvent+0x38>
+  9a:	41 c0       	rjmp	.+130    	; 0x11e <RequestEvent+0xba>
+  9c:	96 38       	cpi	r25, 0x86	; 134
+  9e:	89 f1       	breq	.+98     	; 0x102 <RequestEvent+0x9e>
+  a0:	af c0       	rjmp	.+350    	; 0x200 <RequestEvent+0x19c>
+#else
+            #define GETTMNLV_RPLYLN 9
+#endif /* CHECK_EMPTY_FL */
+            const __flash unsigned char * flashAddr;
+            flashAddr = (void *)(TIMONEL_START - 1); 
+            byte reply[GETTMNLV_RPLYLN] = { 0 };
+  a2:	8e 01       	movw	r16, r28
+  a4:	0f 5f       	subi	r16, 0xFF	; 255
+  a6:	1f 4f       	sbci	r17, 0xFF	; 255
+  a8:	99 e0       	ldi	r25, 0x09	; 9
+  aa:	d8 01       	movw	r26, r16
+  ac:	1d 92       	st	X+, r1
+  ae:	9a 95       	dec	r25
+  b0:	e9 f7       	brne	.-6      	; 0xac <RequestEvent+0x48>
+            reply[0] = opCodeAck;
+  b2:	89 83       	std	Y+1, r24	; 0x01
+            reply[1] = ID_CHAR_3;                                   /* T */            
+  b4:	84 e5       	ldi	r24, 0x54	; 84
+  b6:	8a 83       	std	Y+2, r24	; 0x02
+            reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
+  b8:	81 e0       	ldi	r24, 0x01	; 1
+  ba:	8b 83       	std	Y+3, r24	; 0x03
+            reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
+  bc:	82 e0       	ldi	r24, 0x02	; 2
+  be:	8c 83       	std	Y+4, r24	; 0x04
+            reply[4] = TML_FEATURES;                                /* Optional features */
+  c0:	82 e2       	ldi	r24, 0x22	; 34
+  c2:	8d 83       	std	Y+5, r24	; 0x05
+            reply[5] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
+  c4:	89 e1       	ldi	r24, 0x19	; 25
+  c6:	8e 83       	std	Y+6, r24	; 0x06
+            reply[6] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
+  c8:	80 e8       	ldi	r24, 0x80	; 128
+  ca:	8f 83       	std	Y+7, r24	; 0x07
+            reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
+  cc:	8f e7       	ldi	r24, 0x7F	; 127
+  ce:	99 e1       	ldi	r25, 0x19	; 25
+  d0:	fc 01       	movw	r30, r24
+  d2:	84 91       	lpm	r24, Z
+  d4:	88 87       	std	Y+8, r24	; 0x08
+            reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
+  d6:	8e e7       	ldi	r24, 0x7E	; 126
+  d8:	99 e1       	ldi	r25, 0x19	; 25
+  da:	fc 01       	movw	r30, r24
+  dc:	84 91       	lpm	r24, Z
+  de:	89 87       	std	Y+9, r24	; 0x09
+                reply[9] += (byte)~(*flashAddr);                    
+            }
+#endif /* CHECK_EMPTY_FL */
+#if !(TWO_STEP_INIT)
+            //flags |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
+            flags |= (1 << (ST_INIT_1));                   /* Single-step init */
+  e0:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <flags>
+  e4:	81 60       	ori	r24, 0x01	; 1
+  e6:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <flags>
+  ea:	7e 01       	movw	r14, r28
+  ec:	fa e0       	ldi	r31, 0x0A	; 10
+  ee:	ef 0e       	add	r14, r31
+  f0:	f1 1c       	adc	r15, r1
+#endif /* TWO_STEP_INIT */
+#if ENABLE_LED_UI
+            LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
+#endif /* ENABLE_LED_UI */
+            for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
+                UsiTwiTransmitByte(reply[i]);
+  f2:	d8 01       	movw	r26, r16
+  f4:	8d 91       	ld	r24, X+
+  f6:	8d 01       	movw	r16, r26
+  f8:	71 d1       	rcall	.+738    	; 0x3dc <UsiTwiTransmitByte>
+            flags |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
+#endif /* TWO_STEP_INIT */
+#if ENABLE_LED_UI
+            LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
+#endif /* ENABLE_LED_UI */
+            for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
+  fa:	e0 16       	cp	r14, r16
+  fc:	f1 06       	cpc	r15, r17
+  fe:	c9 f7       	brne	.-14     	; 0xf2 <RequestEvent+0x8e>
+ 100:	85 c0       	rjmp	.+266    	; 0x20c <RequestEvent+0x1a8>
+        }
+        // ******************
+        // * EXITTMNL Reply *
+        // ******************
+        case EXITTMNL: {
+            UsiTwiTransmitByte(opCodeAck);
+ 102:	6c d1       	rcall	.+728    	; 0x3dc <UsiTwiTransmitByte>
+            flags |= (1 << ST_EXIT_TML);
+ 104:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <flags>
+ 108:	88 60       	ori	r24, 0x08	; 8
+ 10a:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <flags>
+            break;
+ 10e:	7e c0       	rjmp	.+252    	; 0x20c <RequestEvent+0x1a8>
+        }
+        // ******************
+        // * DELFLASH Reply *
+        // ******************
+        case DELFLASH: {
+            UsiTwiTransmitByte(opCodeAck);
+ 110:	65 d1       	rcall	.+714    	; 0x3dc <UsiTwiTransmitByte>
+            flags |= (1 << ST_DEL_FLASH);
+ 112:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <flags>
+ 116:	84 60       	ori	r24, 0x04	; 4
+ 118:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <flags>
+            break;
+ 11c:	77 c0       	rjmp	.+238    	; 0x20c <RequestEvent+0x1a8>
+        // ******************
+        case WRITPAGE: {
+            #define WRITPAGE_RPLYLN 2
+            byte reply[WRITPAGE_RPLYLN] = { 0 };
+            reply[0] = opCodeAck;
+            if ((flashPageAddr + pageIX) == RESET_PAGE) {
+ 11e:	20 91 62 00 	lds	r18, 0x0062	; 0x800062 <__data_end>
+ 122:	60 91 63 00 	lds	r22, 0x0063	; 0x800063 <flashPageAddr>
+ 126:	70 91 64 00 	lds	r23, 0x0064	; 0x800064 <flashPageAddr+0x1>
+ 12a:	ab 01       	movw	r20, r22
+ 12c:	42 0f       	add	r20, r18
+ 12e:	51 1d       	adc	r21, r1
+ 130:	45 2b       	or	r20, r21
+ 132:	09 f0       	breq	.+2      	; 0x136 <RequestEvent+0xd2>
+ 134:	35 c0       	rjmp	.+106    	; 0x1a0 <RequestEvent+0x13c>
+#if AUTO_TPL_CALC
+                appResetLSB = command[1];
+ 136:	e6 e6       	ldi	r30, 0x66	; 102
+ 138:	f0 e0       	ldi	r31, 0x00	; 0
+ 13a:	31 81       	ldd	r19, Z+1	; 0x01
+ 13c:	30 93 61 00 	sts	0x0061, r19	; 0x800061 <appResetLSB>
+                appResetMSB = command[2];
+ 140:	92 81       	ldd	r25, Z+2	; 0x02
+ 142:	90 93 60 00 	sts	0x0060, r25	; 0x800060 <__data_start>
+#endif /* AUTO_TPL_CALC */
+                // Modify the reset vector to point to this bootloader.
+                // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
+                // the reset vector modification MUST BE done by the TWI master's upload program.
+                // Otherwise, Timonel won't have the execution control after power on reset.
+                boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
+ 146:	af eb       	ldi	r26, 0xBF	; 191
+ 148:	bc ec       	ldi	r27, 0xCC	; 204
+ 14a:	e0 e0       	ldi	r30, 0x00	; 0
+ 14c:	f0 e0       	ldi	r31, 0x00	; 0
+ 14e:	41 e0       	ldi	r20, 0x01	; 1
+ 150:	0d 01       	movw	r0, r26
+ 152:	40 93 57 00 	sts	0x0057, r20	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 156:	e8 95       	spm
+ 158:	11 24       	eor	r1, r1
+                reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
+ 15a:	93 0f       	add	r25, r19
+                pageIX += 2;
+ 15c:	42 e0       	ldi	r20, 0x02	; 2
+ 15e:	42 0f       	add	r20, r18
+ 160:	a6 e6       	ldi	r26, 0x66	; 102
+ 162:	b0 e0       	ldi	r27, 0x00	; 0
+ 164:	28 5f       	subi	r18, 0xF8	; 248
+                for (byte i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
+                    boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+ 166:	ff 24       	eor	r15, r15
+ 168:	f3 94       	inc	r15
+ 16a:	14 96       	adiw	r26, 0x04	; 4
+ 16c:	5c 91       	ld	r21, X
+ 16e:	14 97       	sbiw	r26, 0x04	; 4
+ 170:	13 96       	adiw	r26, 0x03	; 3
+ 172:	3c 91       	ld	r19, X
+ 174:	13 97       	sbiw	r26, 0x03	; 3
+ 176:	fb 01       	movw	r30, r22
+ 178:	e4 0f       	add	r30, r20
+ 17a:	f1 1d       	adc	r31, r1
+ 17c:	03 2f       	mov	r16, r19
+ 17e:	10 e0       	ldi	r17, 0x00	; 0
+ 180:	15 2b       	or	r17, r21
+ 182:	08 01       	movw	r0, r16
+ 184:	f0 92 57 00 	sts	0x0057, r15	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 188:	e8 95       	spm
+ 18a:	11 24       	eor	r1, r1
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
+ 18c:	35 0f       	add	r19, r21
+ 18e:	93 0f       	add	r25, r19
+ 190:	4e 5f       	subi	r20, 0xFE	; 254
+ 192:	12 96       	adiw	r26, 0x02	; 2
+                // the reset vector modification MUST BE done by the TWI master's upload program.
+                // Otherwise, Timonel won't have the execution control after power on reset.
+                boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
+                reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
+                pageIX += 2;
+                for (byte i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
+ 194:	42 13       	cpse	r20, r18
+ 196:	e9 cf       	rjmp	.-46     	; 0x16a <RequestEvent+0x106>
+ 198:	20 93 62 00 	sts	0x0062, r18	; 0x800062 <__data_end>
+ 19c:	19 2f       	mov	r17, r25
+ 19e:	21 c0       	rjmp	.+66     	; 0x1e2 <RequestEvent+0x17e>
+ 1a0:	90 e0       	ldi	r25, 0x00	; 0
+ 1a2:	a6 e6       	ldi	r26, 0x66	; 102
+ 1a4:	b0 e0       	ldi	r27, 0x00	; 0
+ 1a6:	08 e0       	ldi	r16, 0x08	; 8
+ 1a8:	02 0f       	add	r16, r18
+                    pageIX += 2;
+                }                
+            }
+            else {
+                for (byte i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
+                    boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+ 1aa:	ff 24       	eor	r15, r15
+ 1ac:	f3 94       	inc	r15
+ 1ae:	12 96       	adiw	r26, 0x02	; 2
+ 1b0:	1c 91       	ld	r17, X
+ 1b2:	12 97       	sbiw	r26, 0x02	; 2
+ 1b4:	11 96       	adiw	r26, 0x01	; 1
+ 1b6:	3c 91       	ld	r19, X
+ 1b8:	11 97       	sbiw	r26, 0x01	; 1
+ 1ba:	fb 01       	movw	r30, r22
+ 1bc:	e2 0f       	add	r30, r18
+ 1be:	f1 1d       	adc	r31, r1
+ 1c0:	43 2f       	mov	r20, r19
+ 1c2:	50 e0       	ldi	r21, 0x00	; 0
+ 1c4:	51 2b       	or	r21, r17
+ 1c6:	0a 01       	movw	r0, r20
+ 1c8:	f0 92 57 00 	sts	0x0057, r15	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 1cc:	e8 95       	spm
+ 1ce:	11 24       	eor	r1, r1
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
+ 1d0:	31 0f       	add	r19, r17
+ 1d2:	93 0f       	add	r25, r19
+ 1d4:	2e 5f       	subi	r18, 0xFE	; 254
+ 1d6:	12 96       	adiw	r26, 0x02	; 2
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
+                    pageIX += 2;
+                }                
+            }
+            else {
+                for (byte i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
+ 1d8:	20 13       	cpse	r18, r16
+ 1da:	e9 cf       	rjmp	.-46     	; 0x1ae <RequestEvent+0x14a>
+ 1dc:	00 93 62 00 	sts	0x0062, r16	; 0x800062 <__data_end>
+ 1e0:	19 2f       	mov	r17, r25
+                    boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
+                    reply[1] += (byte)((command[i + 1]) + command[i]);
+                    pageIX += 2;
+                }
+            }
+            if ((reply[1] != command[MST_DATA_SIZE + 1]) || (pageIX > PAGE_SIZE)) {
+ 1e2:	90 91 6f 00 	lds	r25, 0x006F	; 0x80006f <command+0x9>
+ 1e6:	91 13       	cpse	r25, r17
+ 1e8:	04 c0       	rjmp	.+8      	; 0x1f2 <RequestEvent+0x18e>
+ 1ea:	90 91 62 00 	lds	r25, 0x0062	; 0x800062 <__data_end>
+ 1ee:	91 34       	cpi	r25, 0x41	; 65
+ 1f0:	50 f0       	brcs	.+20     	; 0x206 <RequestEvent+0x1a2>
+                flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
+ 1f2:	90 91 65 00 	lds	r25, 0x0065	; 0x800065 <flags>
+ 1f6:	94 60       	ori	r25, 0x04	; 4
+ 1f8:	90 93 65 00 	sts	0x0065, r25	; 0x800065 <flags>
+                reply[1] = 0;
+ 1fc:	10 e0       	ldi	r17, 0x00	; 0
+ 1fe:	03 c0       	rjmp	.+6      	; 0x206 <RequestEvent+0x1a2>
+            UsiTwiTransmitByte(opCodeAck);
+            break;
+        }
+#endif /* TWO_STEP_INIT */
+        default: {
+            UsiTwiTransmitByte(UNKNOWNC);
+ 200:	8f ef       	ldi	r24, 0xFF	; 255
+ 202:	ec d0       	rcall	.+472    	; 0x3dc <UsiTwiTransmitByte>
+            break;
+        }
+    }
+}
+ 204:	03 c0       	rjmp	.+6      	; 0x20c <RequestEvent+0x1a8>
+            if ((reply[1] != command[MST_DATA_SIZE + 1]) || (pageIX > PAGE_SIZE)) {
+                flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
+                reply[1] = 0;
+            }
+            for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
+                UsiTwiTransmitByte(reply[i]);
+ 206:	ea d0       	rcall	.+468    	; 0x3dc <UsiTwiTransmitByte>
+ 208:	81 2f       	mov	r24, r17
+ 20a:	e8 d0       	rcall	.+464    	; 0x3dc <UsiTwiTransmitByte>
+        default: {
+            UsiTwiTransmitByte(UNKNOWNC);
+            break;
+        }
+    }
+}
+ 20c:	29 96       	adiw	r28, 0x09	; 9
+ 20e:	0f b6       	in	r0, 0x3f	; 63
+ 210:	f8 94       	cli
+ 212:	de bf       	out	0x3e, r29	; 62
+ 214:	0f be       	out	0x3f, r0	; 63
+ 216:	cd bf       	out	0x3d, r28	; 61
+ 218:	df 91       	pop	r29
+ 21a:	cf 91       	pop	r28
+ 21c:	1f 91       	pop	r17
+ 21e:	0f 91       	pop	r16
+ 220:	ff 90       	pop	r15
+ 222:	ef 90       	pop	r14
+ 224:	08 95       	ret
+
+00000226 <main>:
+    /*  ___________________
+       |                   | 
+       |    Setup Block    |
+       |___________________|
+    */
+    MCUSR = 0;                              /* Disable watchdog */
+ 226:	14 be       	out	0x34, r1	; 52
+    WDTCR = ((1 << WDCE) | (1 << WDE));
+ 228:	88 e1       	ldi	r24, 0x18	; 24
+ 22a:	81 bd       	out	0x21, r24	; 33
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
+ 22c:	87 e0       	ldi	r24, 0x07	; 7
+ 22e:	81 bd       	out	0x21, r24	; 33
+    cli();                                  /* Disable Interrupts */
+ 230:	f8 94       	cli
+#if ENABLE_LED_UI
+    LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
+#endif /* ENABLE_LED_UI */
+#if SET_PRESCALER
+    CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
+ 232:	80 e8       	ldi	r24, 0x80	; 128
+ 234:	86 bd       	out	0x26, r24	; 38
+    CLKPR = (0x00);
+ 236:	16 bc       	out	0x26, r1	; 38
+#endif /* SET_PRESCALER */
+    UsiTwiSlaveInit(TWI_ADDR);              /* Initialize TWI */
+ 238:	8e e0       	ldi	r24, 0x0E	; 14
+ 23a:	b7 d0       	rcall	.+366    	; 0x3aa <UsiTwiSlaveInit>
+    Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
+ 23c:	8b e1       	ldi	r24, 0x1B	; 27
+ 23e:	90 e0       	ldi	r25, 0x00	; 0
+ 240:	90 93 a3 00 	sts	0x00A3, r25	; 0x8000a3 <Usi_onReceivePtr+0x1>
+ 244:	80 93 a2 00 	sts	0x00A2, r24	; 0x8000a2 <Usi_onReceivePtr>
+    Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
+ 248:	82 e3       	ldi	r24, 0x32	; 50
+ 24a:	90 e0       	ldi	r25, 0x00	; 0
+ 24c:	90 93 a1 00 	sts	0x00A1, r25	; 0x8000a1 <Usi_onRequestPtr+0x1>
+ 250:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <Usi_onRequestPtr>
+    __SPM_REG = (_BV(CTPB) | \
+ 254:	81 e1       	ldi	r24, 0x11	; 17
+ 256:	87 bf       	out	0x37, r24	; 55
+                 _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+    asm volatile("spm");
+ 258:	e8 95       	spm
+    word dlyCounter = CYCLESTOWAIT;
+    byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
+ 25a:	d8 e2       	ldi	r29, 0x28	; 40
+    Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
+    Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
+    __SPM_REG = (_BV(CTPB) | \
+                 _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
+    asm volatile("spm");
+    word dlyCounter = CYCLESTOWAIT;
+ 25c:	ee 24       	eor	r14, r14
+ 25e:	ea 94       	dec	r14
+ 260:	fe 2c       	mov	r15, r14
+                // = Write received page to flash memory and prepare to receive a new one =
+                // ========================================================================
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
+#else
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
+ 262:	c1 e0       	ldi	r28, 0x01	; 1
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
+#endif /* ENABLE_LED_UI */
+#if FORCE_ERASE_PG
+                    boot_page_erase(flashPageAddr);
+#endif /* FORCE_ERASE_PG */                    
+                    boot_page_write(flashPageAddr);
+ 264:	0f 2e       	mov	r0, r31
+ 266:	f5 e0       	ldi	r31, 0x05	; 5
+ 268:	df 2e       	mov	r13, r31
+ 26a:	f0 2d       	mov	r31, r0
+#if AUTO_TPL_CALC
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+ 26c:	0f ef       	ldi	r16, 0xFF	; 255
+ 26e:	1f ef       	ldi	r17, 0xFF	; 255
+                        }
+                        boot_page_fill((TIMONEL_START - 2), tpl);
+ 270:	0f 2e       	mov	r0, r31
+ 272:	fe e7       	ldi	r31, 0x7E	; 126
+ 274:	6f 2e       	mov	r6, r31
+ 276:	f9 e1       	ldi	r31, 0x19	; 25
+ 278:	7f 2e       	mov	r7, r31
+ 27a:	f0 2d       	mov	r31, r0
+                        boot_page_write(TIMONEL_START - PAGE_SIZE);                        
+ 27c:	0f 2e       	mov	r0, r31
+ 27e:	f0 e4       	ldi	r31, 0x40	; 64
+ 280:	8f 2e       	mov	r8, r31
+ 282:	f9 e1       	ldi	r31, 0x19	; 25
+ 284:	9f 2e       	mov	r9, r31
+ 286:	f0 2d       	mov	r31, r0
+                // =======================================
+                // = Exit bootloader and run application =
+                // =======================================
+                if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    RunApplication();                       /* Exit to the application */
+ 288:	0f 2e       	mov	r0, r31
+ 28a:	ff eb       	ldi	r31, 0xBF	; 191
+ 28c:	af 2e       	mov	r10, r31
+ 28e:	fc e0       	ldi	r31, 0x0C	; 12
+ 290:	bf 2e       	mov	r11, r31
+ 292:	f0 2d       	mov	r31, r0
+ 294:	0c c0       	rjmp	.+24     	; 0x2ae <__stack+0x4f>
+           .....................................................
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+        }         
+        if (dlyCounter-- <= 0) {
+ 296:	41 e0       	ldi	r20, 0x01	; 1
+ 298:	e4 1a       	sub	r14, r20
+ 29a:	f1 08       	sbc	r15, r1
+ 29c:	08 c0       	rjmp	.+16     	; 0x2ae <__stack+0x4f>
+                // = Run this until is initialized by master =
+                // ===========================================
+#if ENABLE_LED_UI               
+                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
+                if (exitDly-- == 0) {
+ 29e:	df 2d       	mov	r29, r15
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+        }         
+        if (dlyCounter-- <= 0) {
+            dlyCounter = CYCLESTOWAIT;
+ 2a0:	ee 24       	eor	r14, r14
+ 2a2:	ea 94       	dec	r14
+ 2a4:	fe 2c       	mov	r15, r14
+ 2a6:	03 c0       	rjmp	.+6      	; 0x2ae <__stack+0x4f>
+ 2a8:	ee 24       	eor	r14, r14
+ 2aa:	ea 94       	dec	r14
+ 2ac:	fe 2c       	mov	r15, r14
+           . TWI Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI counter overflow should be launched .
+           .....................................................
+        */
+        if (USISR & (1 << USIOIF)) {
+ 2ae:	76 99       	sbic	0x0e, 6	; 14
+            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
+ 2b0:	d3 d0       	rcall	.+422    	; 0x458 <UsiOverflowHandler>
+           . TWI Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI start handler should be launched    .
+           .....................................................
+        */
+        if (USISR & (1 << USISIF)) {
+ 2b2:	77 99       	sbic	0x0e, 7	; 14
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+ 2b4:	bf d0       	rcall	.+382    	; 0x434 <UsiStartHandler>
+        }         
+        if (dlyCounter-- <= 0) {
+ 2b6:	e1 14       	cp	r14, r1
+ 2b8:	f1 04       	cpc	r15, r1
+ 2ba:	69 f7       	brne	.-38     	; 0x296 <__stack+0x37>
+            dlyCounter = CYCLESTOWAIT;
+            // Initialization check
+#if !(TWO_STEP_INIT)
+            if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+ 2bc:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <flags>
+ 2c0:	80 fd       	sbrc	r24, 0
+ 2c2:	0c c0       	rjmp	.+24     	; 0x2dc <__stack+0x7d>
+                // = Run this until is initialized by master =
+                // ===========================================
+#if ENABLE_LED_UI               
+                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
+                if (exitDly-- == 0) {
+ 2c4:	ff 24       	eor	r15, r15
+ 2c6:	fa 94       	dec	r15
+ 2c8:	fd 0e       	add	r15, r29
+ 2ca:	d1 11       	cpse	r29, r1
+ 2cc:	e8 cf       	rjmp	.-48     	; 0x29e <__stack+0x3f>
+                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+ 2ce:	f5 01       	movw	r30, r10
+ 2d0:	09 95       	icall
+                // = Run this until is initialized by master =
+                // ===========================================
+#if ENABLE_LED_UI               
+                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
+                if (exitDly-- == 0) {
+ 2d2:	df 2d       	mov	r29, r15
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+        }         
+        if (dlyCounter-- <= 0) {
+            dlyCounter = CYCLESTOWAIT;
+ 2d4:	ee 24       	eor	r14, r14
+ 2d6:	ea 94       	dec	r14
+ 2d8:	fe 2c       	mov	r15, r14
+ 2da:	e9 cf       	rjmp	.-46     	; 0x2ae <__stack+0x4f>
+            }
+            else {
+                // =======================================
+                // = Exit bootloader and run application =
+                // =======================================
+                if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
+ 2dc:	83 ff       	sbrs	r24, 3
+ 2de:	03 c0       	rjmp	.+6      	; 0x2e6 <__stack+0x87>
+                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+ 2e0:	ff 77       	andi	r31, 0x7F	; 127
+                    RunApplication();                       /* Exit to the application */
+ 2e2:	f5 01       	movw	r30, r10
+ 2e4:	09 95       	icall
+                }
+                // ========================================
+                // = Delete application from flash memory =
+                // ========================================
+                if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
+ 2e6:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <flags>
+ 2ea:	82 ff       	sbrs	r24, 2
+ 2ec:	13 c0       	rjmp	.+38     	; 0x314 <__stack+0xb5>
+ 2ee:	e0 e8       	ldi	r30, 0x80	; 128
+ 2f0:	f9 e1       	ldi	r31, 0x19	; 25
+                    LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
+#endif /* ENABLE_LED_UI */
+                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    while (pageAddress != RESET_PAGE) {
+                        pageAddress -= PAGE_SIZE;
+                        boot_page_erase(pageAddress);
+ 2f2:	83 e0       	ldi	r24, 0x03	; 3
+#if ENABLE_LED_UI                   
+                    LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
+#endif /* ENABLE_LED_UI */
+                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    while (pageAddress != RESET_PAGE) {
+                        pageAddress -= PAGE_SIZE;
+ 2f4:	e0 54       	subi	r30, 0x40	; 64
+ 2f6:	f1 09       	sbc	r31, r1
+                        boot_page_erase(pageAddress);
+ 2f8:	80 93 57 00 	sts	0x0057, r24	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 2fc:	e8 95       	spm
+                if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
+#if ENABLE_LED_UI                   
+                    LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
+#endif /* ENABLE_LED_UI */
+                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    while (pageAddress != RESET_PAGE) {
+ 2fe:	30 97       	sbiw	r30, 0x00	; 0
+ 300:	c9 f7       	brne	.-14     	; 0x2f4 <__stack+0x95>
+__attribute__ ((__always_inline__))
+void wdt_enable (const uint8_t value)
+{
+	if (_SFR_IO_REG_P (_WD_CONTROL_REG))
+	{
+		__asm__ __volatile__ (
+ 302:	98 e0       	ldi	r25, 0x08	; 8
+ 304:	88 e1       	ldi	r24, 0x18	; 24
+ 306:	0f b6       	in	r0, 0x3f	; 63
+ 308:	f8 94       	cli
+ 30a:	a8 95       	wdr
+ 30c:	81 bd       	out	0x21, r24	; 33
+ 30e:	0f be       	out	0x3f, r0	; 63
+ 310:	91 bd       	out	0x21, r25	; 33
+ 312:	ff cf       	rjmp	.-2      	; 0x312 <__stack+0xb3>
+                // = Write received page to flash memory and prepare to receive a new one =
+                // ========================================================================
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
+#else
+                if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
+ 314:	20 91 63 00 	lds	r18, 0x0063	; 0x800063 <flashPageAddr>
+ 318:	30 91 64 00 	lds	r19, 0x0064	; 0x800064 <flashPageAddr+0x1>
+ 31c:	8c 2f       	mov	r24, r28
+ 31e:	90 91 62 00 	lds	r25, 0x0062	; 0x800062 <__data_end>
+ 322:	90 34       	cpi	r25, 0x40	; 64
+ 324:	09 f0       	breq	.+2      	; 0x328 <__stack+0xc9>
+ 326:	80 e0       	ldi	r24, 0x00	; 0
+ 328:	88 23       	and	r24, r24
+ 32a:	09 f4       	brne	.+2      	; 0x32e <__stack+0xcf>
+ 32c:	bd cf       	rjmp	.-134    	; 0x2a8 <__stack+0x49>
+ 32e:	8c 2f       	mov	r24, r28
+ 330:	20 34       	cpi	r18, 0x40	; 64
+ 332:	f9 e1       	ldi	r31, 0x19	; 25
+ 334:	3f 07       	cpc	r19, r31
+ 336:	08 f0       	brcs	.+2      	; 0x33a <__stack+0xdb>
+ 338:	80 e0       	ldi	r24, 0x00	; 0
+ 33a:	88 23       	and	r24, r24
+ 33c:	09 f4       	brne	.+2      	; 0x340 <__stack+0xe1>
+ 33e:	b4 cf       	rjmp	.-152    	; 0x2a8 <__stack+0x49>
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
+#endif /* ENABLE_LED_UI */
+#if FORCE_ERASE_PG
+                    boot_page_erase(flashPageAddr);
+#endif /* FORCE_ERASE_PG */                    
+                    boot_page_write(flashPageAddr);
+ 340:	f9 01       	movw	r30, r18
+ 342:	d0 92 57 00 	sts	0x0057, r13	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 346:	e8 95       	spm
+#if AUTO_TPL_CALC
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+ 348:	21 15       	cp	r18, r1
+ 34a:	31 05       	cpc	r19, r1
+ 34c:	11 f5       	brne	.+68     	; 0x392 <__stack+0x133>
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+ 34e:	80 91 60 00 	lds	r24, 0x0060	; 0x800060 <__data_start>
+ 352:	90 e0       	ldi	r25, 0x00	; 0
+ 354:	98 2f       	mov	r25, r24
+ 356:	88 27       	eor	r24, r24
+ 358:	40 91 61 00 	lds	r20, 0x0061	; 0x800061 <appResetLSB>
+ 35c:	84 2b       	or	r24, r20
+ 35e:	8f 5b       	subi	r24, 0xBF	; 191
+ 360:	9c 40       	sbci	r25, 0x0C	; 12
+ 362:	9f 70       	andi	r25, 0x0F	; 15
+ 364:	90 6c       	ori	r25, 0xC0	; 192
+ 366:	e0 e4       	ldi	r30, 0x40	; 64
+ 368:	f9 e1       	ldi	r31, 0x19	; 25
+                        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+ 36a:	08 01       	movw	r0, r16
+ 36c:	c0 93 57 00 	sts	0x0057, r28	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 370:	e8 95       	spm
+ 372:	11 24       	eor	r1, r1
+ 374:	32 96       	adiw	r30, 0x02	; 2
+#endif /* FORCE_ERASE_PG */                    
+                    boot_page_write(flashPageAddr);
+#if AUTO_TPL_CALC
+                    if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
+                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
+ 376:	ee 37       	cpi	r30, 0x7E	; 126
+ 378:	49 e1       	ldi	r20, 0x19	; 25
+ 37a:	f4 07       	cpc	r31, r20
+ 37c:	b1 f7       	brne	.-20     	; 0x36a <__stack+0x10b>
+                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+                        }
+                        boot_page_fill((TIMONEL_START - 2), tpl);
+ 37e:	f3 01       	movw	r30, r6
+ 380:	0c 01       	movw	r0, r24
+ 382:	c0 93 57 00 	sts	0x0057, r28	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 386:	e8 95       	spm
+ 388:	11 24       	eor	r1, r1
+                        boot_page_write(TIMONEL_START - PAGE_SIZE);                        
+ 38a:	f4 01       	movw	r30, r8
+ 38c:	d0 92 57 00 	sts	0x0057, r13	; 0x800057 <__EEPROM_REGION_LENGTH__+0x7f0057>
+ 390:	e8 95       	spm
+                        }
+                    }
+#endif /* APP_USE_TPL_PG */
+#endif /* AUTO_TPL_CALC */
+#if !(CMD_STPGADDR)
+                    flashPageAddr += PAGE_SIZE;
+ 392:	20 5c       	subi	r18, 0xC0	; 192
+ 394:	3f 4f       	sbci	r19, 0xFF	; 255
+ 396:	30 93 64 00 	sts	0x0064, r19	; 0x800064 <flashPageAddr+0x1>
+ 39a:	20 93 63 00 	sts	0x0063, r18	; 0x800063 <flashPageAddr>
+#endif /* !CMD_STPGADDR */
+                    pageIX = 0;
+ 39e:	10 92 62 00 	sts	0x0062, r1	; 0x800062 <__data_end>
+        */
+        if (USISR & (1 << USISIF)) {
+            UsiStartHandler();      /* If so, run the USI start handler ... */
+        }         
+        if (dlyCounter-- <= 0) {
+            dlyCounter = CYCLESTOWAIT;
+ 3a2:	ee 24       	eor	r14, r14
+ 3a4:	ea 94       	dec	r14
+ 3a6:	fe 2c       	mov	r15, r14
+ 3a8:	82 cf       	rjmp	.-252    	; 0x2ae <__stack+0x4f>
+
+000003aa <UsiTwiSlaveInit>:
+}
+
+// Function UsiTwiAmountDataInReceiveBuffer
+uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
+    return rxCount;
+}
+ 3aa:	10 92 8c 00 	sts	0x008C, r1	; 0x80008c <rxTail>
+ 3ae:	10 92 8d 00 	sts	0x008D, r1	; 0x80008d <rxHead>
+ 3b2:	10 92 8b 00 	sts	0x008B, r1	; 0x80008b <rxCount>
+ 3b6:	10 92 79 00 	sts	0x0079, r1	; 0x800079 <txTail>
+ 3ba:	10 92 7a 00 	sts	0x007A, r1	; 0x80007a <txHead>
+ 3be:	10 92 78 00 	sts	0x0078, r1	; 0x800078 <txCount>
+ 3c2:	80 93 9f 00 	sts	0x009F, r24	; 0x80009f <slaveAddress>
+ 3c6:	87 b3       	in	r24, 0x17	; 23
+ 3c8:	85 60       	ori	r24, 0x05	; 5
+ 3ca:	87 bb       	out	0x17, r24	; 23
+ 3cc:	c2 9a       	sbi	0x18, 2	; 24
+ 3ce:	c0 9a       	sbi	0x18, 0	; 24
+ 3d0:	b8 98       	cbi	0x17, 0	; 23
+ 3d2:	88 ea       	ldi	r24, 0xA8	; 168
+ 3d4:	8d b9       	out	0x0d, r24	; 13
+ 3d6:	80 ef       	ldi	r24, 0xF0	; 240
+ 3d8:	8e b9       	out	0x0e, r24	; 14
+ 3da:	08 95       	ret
+
+000003dc <UsiTwiTransmitByte>:
+ 3dc:	90 91 78 00 	lds	r25, 0x0078	; 0x800078 <txCount>
+ 3e0:	90 31       	cpi	r25, 0x10	; 16
+ 3e2:	e1 f3       	breq	.-8      	; 0x3dc <UsiTwiTransmitByte>
+ 3e4:	e0 91 7a 00 	lds	r30, 0x007A	; 0x80007a <txHead>
+ 3e8:	f0 e0       	ldi	r31, 0x00	; 0
+ 3ea:	e5 58       	subi	r30, 0x85	; 133
+ 3ec:	ff 4f       	sbci	r31, 0xFF	; 255
+ 3ee:	80 83       	st	Z, r24
+ 3f0:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <txHead>
+ 3f4:	8f 5f       	subi	r24, 0xFF	; 255
+ 3f6:	8f 70       	andi	r24, 0x0F	; 15
+ 3f8:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <txHead>
+ 3fc:	80 91 78 00 	lds	r24, 0x0078	; 0x800078 <txCount>
+ 400:	8f 5f       	subi	r24, 0xFF	; 255
+ 402:	80 93 78 00 	sts	0x0078, r24	; 0x800078 <txCount>
+ 406:	08 95       	ret
+
+00000408 <UsiTwiReceiveByte>:
+ 408:	80 91 8b 00 	lds	r24, 0x008B	; 0x80008b <rxCount>
+ 40c:	88 23       	and	r24, r24
+ 40e:	e1 f3       	breq	.-8      	; 0x408 <UsiTwiReceiveByte>
+ 410:	e0 91 8c 00 	lds	r30, 0x008C	; 0x80008c <rxTail>
+ 414:	f0 e0       	ldi	r31, 0x00	; 0
+ 416:	e2 57       	subi	r30, 0x72	; 114
+ 418:	ff 4f       	sbci	r31, 0xFF	; 255
+ 41a:	80 81       	ld	r24, Z
+ 41c:	90 91 8c 00 	lds	r25, 0x008C	; 0x80008c <rxTail>
+ 420:	9f 5f       	subi	r25, 0xFF	; 255
+ 422:	9f 70       	andi	r25, 0x0F	; 15
+ 424:	90 93 8c 00 	sts	0x008C, r25	; 0x80008c <rxTail>
+ 428:	90 91 8b 00 	lds	r25, 0x008B	; 0x80008b <rxCount>
+ 42c:	91 50       	subi	r25, 0x01	; 1
+ 42e:	90 93 8b 00 	sts	0x008B, r25	; 0x80008b <rxCount>
+ 432:	08 95       	ret
+
+00000434 <UsiStartHandler>:
+
+    // This triggers on second write, but claims to the callback there is only *one* byte in buffer
+    //USI_RECEIVE_CALLBACK();
+
+    // set default starting conditions for new TWI package
+    overflowState = USI_SLAVE_CHECK_ADDRESS;
+ 434:	10 92 9e 00 	sts	0x009E, r1	; 0x80009e <overflowState>
+
+    // set SDA as input
+    DDR_USI &= ~(1 << PORT_USI_SDA);
+ 438:	b8 98       	cbi	0x17, 0	; 23
+    // wait for SCL to go low to ensure the Start Condition has completed (the
+    // start detector will hold SCL low ) - if a Stop Condition arises then leave
+    // the interrupt to prevent waiting forever - don't use USISR to test for Stop
+    // Condition as in Application Note AVR312 because the Stop Condition Flag is
+    // going to be set from the last TWI sequence
+    while (
+ 43a:	b2 9b       	sbis	0x16, 2	; 22
+ 43c:	02 c0       	rjmp	.+4      	; 0x442 <UsiStartHandler+0xe>
+        // SCL his high
+        (PIN_USI & (1 << PIN_USI_SCL)) &&
+ 43e:	b0 9b       	sbis	0x16, 0	; 22
+ 440:	fc cf       	rjmp	.-8      	; 0x43a <UsiStartHandler+0x6>
+        // and SDA is low
+        !((PIN_USI & (1 << PIN_USI_SDA))))
+        ;
+
+    if (!(PIN_USI & (1 << PIN_USI_SDA))) {
+ 442:	b0 99       	sbic	0x16, 0	; 22
+ 444:	03 c0       	rjmp	.+6      	; 0x44c <UsiStartHandler+0x18>
+        // a Stop Condition did not occur
+
+        USICR =
+ 446:	88 ef       	ldi	r24, 0xF8	; 248
+ 448:	8d b9       	out	0x0d, r24	; 13
+ 44a:	02 c0       	rjmp	.+4      	; 0x450 <UsiStartHandler+0x1c>
+            // no toggle clock-port pin
+            (0 << USITC);
+    } else {
+        // a Stop Condition did occur
+
+        USICR =
+ 44c:	88 ea       	ldi	r24, 0xA8	; 168
+ 44e:	8d b9       	out	0x0d, r24	; 13
+            (1 << USICS1) | (0 << USICS0) | (0 << USICLK) |
+            // no toggle clock-port pin
+            (0 << USITC);
+    }
+
+    USISR =
+ 450:	80 ef       	ldi	r24, 0xF0	; 240
+ 452:	8e b9       	out	0x0e, r24	; 14
+        (1 << USI_START_COND_INT) | (1 << USIOIF) |
+        (1 << USIPF) | (1 << USIDC) |
+        // set USI to sample 8 bits (count 16 external SCL pin toggles)
+        (0x0 << USICNT0);
+
+    USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
+ 454:	77 9a       	sbi	0x0e, 7	; 14
+ 456:	08 95       	ret
+
+00000458 <UsiOverflowHandler>:
+}
+
+// Function UsiOverflowHandler
+// GC: Interrupt-like function
+void UsiOverflowHandler(void) {
+    switch (overflowState) {
+ 458:	80 91 9e 00 	lds	r24, 0x009E	; 0x80009e <overflowState>
+ 45c:	82 30       	cpi	r24, 0x02	; 2
+ 45e:	09 f4       	brne	.+2      	; 0x462 <UsiOverflowHandler+0xa>
+ 460:	6b c0       	rjmp	.+214    	; 0x538 <UsiOverflowHandler+0xe0>
+ 462:	30 f4       	brcc	.+12     	; 0x470 <UsiOverflowHandler+0x18>
+ 464:	88 23       	and	r24, r24
+ 466:	61 f0       	breq	.+24     	; 0x480 <UsiOverflowHandler+0x28>
+ 468:	81 30       	cpi	r24, 0x01	; 1
+ 46a:	09 f4       	brne	.+2      	; 0x46e <UsiOverflowHandler+0x16>
+ 46c:	3f c0       	rjmp	.+126    	; 0x4ec <UsiOverflowHandler+0x94>
+ 46e:	90 c0       	rjmp	.+288    	; 0x590 <UsiOverflowHandler+0x138>
+ 470:	84 30       	cpi	r24, 0x04	; 4
+ 472:	09 f4       	brne	.+2      	; 0x476 <UsiOverflowHandler+0x1e>
+ 474:	69 c0       	rjmp	.+210    	; 0x548 <UsiOverflowHandler+0xf0>
+ 476:	90 f1       	brcs	.+100    	; 0x4dc <UsiOverflowHandler+0x84>
+ 478:	85 30       	cpi	r24, 0x05	; 5
+ 47a:	09 f4       	brne	.+2      	; 0x47e <UsiOverflowHandler+0x26>
+ 47c:	6c c0       	rjmp	.+216    	; 0x556 <UsiOverflowHandler+0xfe>
+ 47e:	88 c0       	rjmp	.+272    	; 0x590 <UsiOverflowHandler+0x138>
+        case USI_SLAVE_CHECK_ADDRESS: {
+            // #############################################################
+            // # GC: Disable this device answers to "general calls"
+            // #############################################################
+            //if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            if (((USIDR >> 1) & 0x3F) == slaveAddress) {
+ 480:	8f b1       	in	r24, 0x0f	; 15
+ 482:	86 95       	lsr	r24
+ 484:	8f 73       	andi	r24, 0x3F	; 63
+ 486:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <slaveAddress>
+ 48a:	89 13       	cpse	r24, r25
+ 48c:	22 c0       	rjmp	.+68     	; 0x4d2 <UsiOverflowHandler+0x7a>
+                if (USIDR & 0x01) {
+ 48e:	78 9b       	sbis	0x0f, 0	; 15
+ 490:	18 c0       	rjmp	.+48     	; 0x4c2 <UsiOverflowHandler+0x6a>
+                    USI_REQUEST_CALLBACK();
+ 492:	e0 91 a2 00 	lds	r30, 0x00A2	; 0x8000a2 <Usi_onReceivePtr>
+ 496:	f0 91 a3 00 	lds	r31, 0x00A3	; 0x8000a3 <Usi_onReceivePtr+0x1>
+ 49a:	30 97       	sbiw	r30, 0x00	; 0
+ 49c:	39 f0       	breq	.+14     	; 0x4ac <UsiOverflowHandler+0x54>
+    return rtn_byte;
+}
+
+// Function UsiTwiAmountDataInReceiveBuffer
+uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
+    return rxCount;
+ 49e:	80 91 8b 00 	lds	r24, 0x008B	; 0x80008b <rxCount>
+            // # GC: Disable this device answers to "general calls"
+            // #############################################################
+            //if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            if (((USIDR >> 1) & 0x3F) == slaveAddress) {
+                if (USIDR & 0x01) {
+                    USI_REQUEST_CALLBACK();
+ 4a2:	88 23       	and	r24, r24
+ 4a4:	19 f0       	breq	.+6      	; 0x4ac <UsiOverflowHandler+0x54>
+    return rtn_byte;
+}
+
+// Function UsiTwiAmountDataInReceiveBuffer
+uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
+    return rxCount;
+ 4a6:	80 91 8b 00 	lds	r24, 0x008B	; 0x80008b <rxCount>
+            // # GC: Disable this device answers to "general calls"
+            // #############################################################
+            //if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            if (((USIDR >> 1) & 0x3F) == slaveAddress) {
+                if (USIDR & 0x01) {
+                    USI_REQUEST_CALLBACK();
+ 4aa:	09 95       	icall
+ 4ac:	e0 91 a0 00 	lds	r30, 0x00A0	; 0x8000a0 <Usi_onRequestPtr>
+ 4b0:	f0 91 a1 00 	lds	r31, 0x00A1	; 0x8000a1 <Usi_onRequestPtr+0x1>
+ 4b4:	30 97       	sbiw	r30, 0x00	; 0
+ 4b6:	09 f0       	breq	.+2      	; 0x4ba <UsiOverflowHandler+0x62>
+ 4b8:	09 95       	icall
+                    overflowState = USI_SLAVE_SEND_DATA;
+ 4ba:	81 e0       	ldi	r24, 0x01	; 1
+ 4bc:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+ 4c0:	03 c0       	rjmp	.+6      	; 0x4c8 <UsiOverflowHandler+0x70>
+                } else {
+                    overflowState = USI_SLAVE_REQUEST_DATA;
+ 4c2:	84 e0       	ldi	r24, 0x04	; 4
+ 4c4:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+                }
+                SET_USI_TO_SEND_ACK();
+ 4c8:	1f b8       	out	0x0f, r1	; 15
+ 4ca:	b8 9a       	sbi	0x17, 0	; 23
+ 4cc:	8e e7       	ldi	r24, 0x7E	; 126
+ 4ce:	8e b9       	out	0x0e, r24	; 14
+ 4d0:	5f c0       	rjmp	.+190    	; 0x590 <UsiOverflowHandler+0x138>
+            } else {
+                SET_USI_TO_TWI_START_CONDITION_MODE();
+ 4d2:	88 ea       	ldi	r24, 0xA8	; 168
+ 4d4:	8d b9       	out	0x0d, r24	; 13
+ 4d6:	80 e7       	ldi	r24, 0x70	; 112
+ 4d8:	8e b9       	out	0x0e, r24	; 14
+ 4da:	5a c0       	rjmp	.+180    	; 0x590 <UsiOverflowHandler+0x138>
+            break;
+        }
+        // Master write data mode: check reply and goto USI_SLAVE_SEND_DATA if OK,
+        // else reset USI
+        case USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA: {
+            if (USIDR) {
+ 4dc:	8f b1       	in	r24, 0x0f	; 15
+ 4de:	88 23       	and	r24, r24
+ 4e0:	29 f0       	breq	.+10     	; 0x4ec <UsiOverflowHandler+0x94>
+                // if NACK, the master does not want more data
+                SET_USI_TO_TWI_START_CONDITION_MODE();
+ 4e2:	88 ea       	ldi	r24, 0xA8	; 168
+ 4e4:	8d b9       	out	0x0d, r24	; 13
+ 4e6:	80 e7       	ldi	r24, 0x70	; 112
+ 4e8:	8e b9       	out	0x0e, r24	; 14
+                return;
+ 4ea:	08 95       	ret
+
+        // Copy data from buffer to USIDR and set USI to shift byte
+        // Next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
+        case USI_SLAVE_SEND_DATA: {
+            // Get data from Buffer
+            if (txCount) {
+ 4ec:	80 91 78 00 	lds	r24, 0x0078	; 0x800078 <txCount>
+ 4f0:	88 23       	and	r24, r24
+ 4f2:	c9 f0       	breq	.+50     	; 0x526 <UsiOverflowHandler+0xce>
+                USIDR = txBuf[txTail];
+ 4f4:	e0 91 79 00 	lds	r30, 0x0079	; 0x800079 <txTail>
+ 4f8:	f0 e0       	ldi	r31, 0x00	; 0
+ 4fa:	e5 58       	subi	r30, 0x85	; 133
+ 4fc:	ff 4f       	sbci	r31, 0xFF	; 255
+ 4fe:	80 81       	ld	r24, Z
+ 500:	8f b9       	out	0x0f, r24	; 15
+                txTail = (txTail + 1) & TWI_TX_BUFFER_MASK;
+ 502:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <txTail>
+ 506:	8f 5f       	subi	r24, 0xFF	; 255
+ 508:	8f 70       	andi	r24, 0x0F	; 15
+ 50a:	80 93 79 00 	sts	0x0079, r24	; 0x800079 <txTail>
+                txCount--;
+ 50e:	80 91 78 00 	lds	r24, 0x0078	; 0x800078 <txCount>
+ 512:	81 50       	subi	r24, 0x01	; 1
+ 514:	80 93 78 00 	sts	0x0078, r24	; 0x800078 <txCount>
+                // The buffer is empty
+                SET_USI_TO_READ_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
+                SET_USI_TO_TWI_START_CONDITION_MODE();
+                return;
+            }
+            overflowState = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
+ 518:	82 e0       	ldi	r24, 0x02	; 2
+ 51a:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+            SET_USI_TO_SEND_DATA();
+ 51e:	b8 9a       	sbi	0x17, 0	; 23
+ 520:	80 e7       	ldi	r24, 0x70	; 112
+ 522:	8e b9       	out	0x0e, r24	; 14
+            break;
+ 524:	35 c0       	rjmp	.+106    	; 0x590 <UsiOverflowHandler+0x138>
+                USIDR = txBuf[txTail];
+                txTail = (txTail + 1) & TWI_TX_BUFFER_MASK;
+                txCount--;
+            } else {
+                // The buffer is empty
+                SET_USI_TO_READ_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
+ 526:	1f b8       	out	0x0f, r1	; 15
+ 528:	b8 98       	cbi	0x17, 0	; 23
+ 52a:	8e e7       	ldi	r24, 0x7E	; 126
+ 52c:	8e b9       	out	0x0e, r24	; 14
+                SET_USI_TO_TWI_START_CONDITION_MODE();
+ 52e:	88 ea       	ldi	r24, 0xA8	; 168
+ 530:	8d b9       	out	0x0d, r24	; 13
+ 532:	80 e7       	ldi	r24, 0x70	; 112
+ 534:	8e b9       	out	0x0e, r24	; 14
+                return;
+ 536:	08 95       	ret
+        }
+
+        // Set USI to sample reply from master
+        // Next USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA
+        case USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA: {
+            overflowState = USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA;
+ 538:	83 e0       	ldi	r24, 0x03	; 3
+ 53a:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+            SET_USI_TO_READ_ACK();
+ 53e:	1f b8       	out	0x0f, r1	; 15
+ 540:	b8 98       	cbi	0x17, 0	; 23
+ 542:	8e e7       	ldi	r24, 0x7E	; 126
+ 544:	8e b9       	out	0x0e, r24	; 14
+            break;
+ 546:	24 c0       	rjmp	.+72     	; 0x590 <UsiOverflowHandler+0x138>
+        }
+
+        // Master read data mode: set USI to sample data from master, next
+        // USI_SLAVE_GET_DATA_AND_SEND_ACK
+        case USI_SLAVE_REQUEST_DATA: {
+            overflowState = USI_SLAVE_GET_DATA_AND_SEND_ACK;
+ 548:	85 e0       	ldi	r24, 0x05	; 5
+ 54a:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+            SET_USI_TO_READ_DATA();
+ 54e:	b8 98       	cbi	0x17, 0	; 23
+ 550:	80 e7       	ldi	r24, 0x70	; 112
+ 552:	8e b9       	out	0x0e, r24	; 14
+            break;
+ 554:	1d c0       	rjmp	.+58     	; 0x590 <UsiOverflowHandler+0x138>
+        // Copy data from USIDR and send ACK
+        // Next USI_SLAVE_REQUEST_DATA
+        case USI_SLAVE_GET_DATA_AND_SEND_ACK: {
+            // put data into buffer
+            // check buffer size
+            if (rxCount < TWI_RX_BUFFER_SIZE) {
+ 556:	80 91 8b 00 	lds	r24, 0x008B	; 0x80008b <rxCount>
+ 55a:	80 31       	cpi	r24, 0x10	; 16
+ 55c:	90 f4       	brcc	.+36     	; 0x582 <UsiOverflowHandler+0x12a>
+                rxBuf[rxHead] = USIDR;
+ 55e:	e0 91 8d 00 	lds	r30, 0x008D	; 0x80008d <rxHead>
+ 562:	8f b1       	in	r24, 0x0f	; 15
+ 564:	f0 e0       	ldi	r31, 0x00	; 0
+ 566:	e2 57       	subi	r30, 0x72	; 114
+ 568:	ff 4f       	sbci	r31, 0xFF	; 255
+ 56a:	80 83       	st	Z, r24
+                rxHead = (rxHead + 1) & TWI_RX_BUFFER_MASK;
+ 56c:	80 91 8d 00 	lds	r24, 0x008D	; 0x80008d <rxHead>
+ 570:	8f 5f       	subi	r24, 0xFF	; 255
+ 572:	8f 70       	andi	r24, 0x0F	; 15
+ 574:	80 93 8d 00 	sts	0x008D, r24	; 0x80008d <rxHead>
+                rxCount++;
+ 578:	80 91 8b 00 	lds	r24, 0x008B	; 0x80008b <rxCount>
+ 57c:	8f 5f       	subi	r24, 0xFF	; 255
+ 57e:	80 93 8b 00 	sts	0x008B, r24	; 0x80008b <rxCount>
+            } else {
+                // Overrun
+                // Drop data
+            }
+            // Next USI_SLAVE_REQUEST_DATA
+            overflowState = USI_SLAVE_REQUEST_DATA;
+ 582:	84 e0       	ldi	r24, 0x04	; 4
+ 584:	80 93 9e 00 	sts	0x009E, r24	; 0x80009e <overflowState>
+            SET_USI_TO_SEND_ACK();
+ 588:	1f b8       	out	0x0f, r1	; 15
+ 58a:	b8 9a       	sbi	0x17, 0	; 23
+ 58c:	8e e7       	ldi	r24, 0x7E	; 126
+ 58e:	8e b9       	out	0x0e, r24	; 14
+            break;
+        }
+    }
+
+    USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
+ 590:	76 9a       	sbi	0x0e, 6	; 14
+ 592:	08 95       	ret
