@@ -122,6 +122,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="USI_TWI_Slave-dblake.c__">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="USI_TWI_Slave-dblake.h__">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="nb-usitwisl-if.c">
       <SubType>compile</SubType>
     </Compile>
@@ -129,12 +135,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="nb-twi-cmd.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="nb-usitwisl-if.c__">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="nb-usitwisl-if.h__">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

@@ -101,9 +101,17 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-    USI_TWI_Slave_Initialise(TWI_ADDR);              /* Initialize TWI */
-    Usi_onReceivePtr = ReceiveEvent;       /* TWI Receive Event */
-    Usi_onRequestPtr = RequestEvent;       /* TWI Request Event */
+
+#if (TWILIB == 1)
+    UsiTwiSlaveInit(TWI_ADDR);				/* Initialize TWI GC-if */
+#elif (TWILIB == 2)
+	USI_TWI_Slave_Initialise(TWI_ADDR);		/* Initialize TWI dblake */
+#elif (TWILIB == 3)
+	// AVR312
+#endif
+
+    Usi_onReceivePtr = &ReceiveEvent;       /* TWI Receive Event */
+    Usi_onRequestPtr = &RequestEvent;       /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
@@ -246,7 +254,15 @@ int main() {
 // TWI Receive Event
 void ReceiveEvent(byte commandBytes) {
     for (byte i = 0; i < commandBytes; i++) {
-        command[i] = USI_TWI_Receive_Byte();                           /* Store the data sent by the TWI master in the data buffer */
+		
+#if (TWILIB == 1)
+		command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+#elif (TWILIB == 2)
+		command[i] = USI_TWI_Receive_Byte();                        /* Store the data sent by the TWI master in the data buffer */
+#elif (TWILIB == 3)
+		// AVR312
+#endif
+		
     }
 }
 
@@ -292,7 +308,13 @@ void RequestEvent(void) {
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
             for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
+#if (TWILIB == 1)
+                UsiTwiTransmitByte(reply[i]);
+#elif (TWILIB == 2)
                 USI_TWI_Transmit_Byte(reply[i]);
+#elif (TWILIB == 3)
+				// AVR312
+#endif						
             }
             break;
         }
@@ -300,7 +322,13 @@ void RequestEvent(void) {
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
+#if (TWILIB == 1)
+            UsiTwiTransmitByte(opCodeAck);
+#elif (TWILIB == 2)
             USI_TWI_Transmit_Byte(opCodeAck);
+#elif (TWILIB == 3)
+			// AVR312
+#endif			
             flags |= (1 << ST_EXIT_TML);
             break;
         }
@@ -308,7 +336,13 @@ void RequestEvent(void) {
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
-            USI_TWI_Transmit_Byte(opCodeAck);
+#if (TWILIB == 1)
+			UsiTwiTransmitByte(opCodeAck);
+#elif (TWILIB == 2)
+			USI_TWI_Transmit_Byte(opCodeAck);
+#elif (TWILIB == 3)
+			// AVR312
+#endif			
             flags |= (1 << ST_DEL_FLASH);
             break;
         }
@@ -324,7 +358,13 @@ void RequestEvent(void) {
             reply[0] = opCodeAck;
             reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
+#if (TWILIB == 1)
+                UsiTwiTransmitByte(reply[i]);
+#elif (TWILIB == 2)
                 USI_TWI_Transmit_Byte(reply[i]);
+#elif (TWILIB == 3)
+				// AVR312
+#endif				
             }
             break;
         }
@@ -366,7 +406,13 @@ void RequestEvent(void) {
                 reply[1] = 0;
             }
             for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
+#if (TWILIB == 1)
+				UsiTwiTransmitByte(reply[i]);
+#elif (TWILIB == 2)
                 USI_TWI_Transmit_Byte(reply[i]);
+#elif (TWILIB == 3)
+				// AVR312
+#endif				
             }
             break;
         }
@@ -388,11 +434,23 @@ void RequestEvent(void) {
                     reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
                 for (byte i = 0; i < ackLng; i++) {
-                    USI_TWI_Transmit_Byte(reply[i]);
+#if (TWILIB == 1)
+					UsiTwiTransmitByte(reply[i]);
+#elif (TWILIB == 2)
+					USI_TWI_Transmit_Byte(reply[i]);
+#elif (TWILIB == 3)
+					// AVR312
+#endif					
                 }
             }
             else {
-                USI_TWI_Transmit_Byte(UNKNOWNC);                       /* Incorrect operand value received */
+#if (TWILIB == 1)
+				UsiTwiTransmitByte(UNKNOWNC);						/* Incorrect operand value received */
+#elif (TWILIB == 2)
+				USI_TWI_Transmit_Byte(UNKNOWNC);					/* Incorrect operand value received */
+#elif (TWILIB == 3)
+				// AVR312
+#endif				
             }
             break;
         }   
@@ -402,13 +460,25 @@ void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            flags |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
-            USI_TWI_Transmit_Byte(opCodeAck);
+            flags |= (1 << ST_INIT_1);								/* Two-step init step 1: receive INITSOFT command */
+#if (TWILIB == 1)
+			UsiTwiTransmitByte(opCodeAck);
+#elif (TWILIB == 2)
+			USI_TWI_Transmit_Byte(opCodeAck);
+#elif (TWILIB == 3)
+			// AVR312
+#endif			
             break;
         }
 #endif /* TWO_STEP_INIT */
         default: {
-            USI_TWI_Transmit_Byte(UNKNOWNC);
+#if (TWILIB == 1)
+			UsiTwiTransmitByte(UNKNOWNC);
+#elif (TWILIB == 2)
+			USI_TWI_Transmit_Byte(UNKNOWNC);
+#elif (TWILIB == 3)
+			// AVR312
+#endif			
             break;
         }
     }

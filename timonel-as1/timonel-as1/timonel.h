@@ -23,12 +23,22 @@
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
+#define TWILIB 1	/* 1=GC-if, 2=dblake, 3=AVR312*/
+
 /* Includes */
 #include <avr/boot.h>
 #include <avr/wdt.h>
 #include <stdbool.h>
 
-#include "../nb-libs-as1/nb-usitwisl-if.h"
+#if (TWILIB == 1)
+	#include "../nb-libs-as1/nb-usitwisl-if.h"
+#elif (TWILIB == 2)
+	#include "../nb-libs-as1/USI_TWI_Slave-dblake.h"
+	#include <avr/interrupt.h>
+#elif (TWILIB == 3)
+// AVR312
+#endif
+
 #include "../nb-libs-as1/nb-twi-cmd.h"
 
 /* -------------------------------------- */
@@ -71,7 +81,7 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   false   /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   true   /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
