@@ -282,11 +282,11 @@ void RequestEvent(void) {
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
-            //flags |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));  /* Single-step init */
-            flags |= (1 << (ST_INIT_1));                   /* Single-step init */
+            //flags |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));     /* Single-step init */
+            flags |= (1 << ST_INIT_1);                              /* Single-step init */
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            flags |= (1 << ST_INIT_2);                     /* Two-step init step 2: receive GETTMNLV command */
+            flags |= (1 << ST_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
 #endif /* TWO_STEP_INIT */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */

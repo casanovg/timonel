@@ -59,7 +59,8 @@
                                 
 #ifndef TWO_STEP_INIT           /* If this is enabled, Timonel expects a two-step initialization from  */
 #define TWO_STEP_INIT   false   /* an I2C master for starting. Otherwise, single-step init is enough   */
-#endif /* TWO_STEP_INIT */
+#endif /* TWO_STEP_INIT */      /* Single-step init: Step 1 = GETTMNLV                                 */
+                                /* Two-step init: Step 1 = INITSOFT, Step 2 = GETTMNLV                 */
 
 #ifndef USE_WDT_RESET           /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 #define USE_WDT_RESET   true    
