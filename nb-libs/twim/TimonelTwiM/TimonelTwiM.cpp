@@ -48,7 +48,9 @@ Timonel::Status Timonel::GetStatus(void) {
 // Function TwoStepInit
 byte Timonel::TwoStepInit(const word time) {
     delay(time);
+#if TWO_STEP_INIT
     InitMicro();            /* Two-step Timonel initialization: STEP 1 */
+#endif    
     return (QueryStatus()); /* Two-step Timonel initialization: STEP 2 */
 }
 

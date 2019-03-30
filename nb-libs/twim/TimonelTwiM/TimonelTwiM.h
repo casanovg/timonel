@@ -18,6 +18,8 @@
 #include "libconfig.h"
 #include "stdbool.h"
 
+#define TWO_STEP_INIT true
+
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
 class Timonel : public NbMicro {
    public:

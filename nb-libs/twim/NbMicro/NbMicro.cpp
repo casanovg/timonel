@@ -56,13 +56,7 @@ byte NbMicro::SetObjTwiAddress(byte twi_address) {
 
 // Function InitMicro
 byte NbMicro::InitMicro(void) {
-    Wire.beginTransmission(addr_);
-    Wire.write(INITSOFT);
-    //Wire.write(INITTINY);
-    Wire.endTransmission();
-    Wire.requestFrom(addr_, (byte)1);
-    //byte block_rx_size = 0;
-    return (0);
+    return (TwiCmdXmit(INITSOFT, ACKINITS));
 }
 
 // Sends a TWI command to the microcontroller (Overload A: single byte command)
