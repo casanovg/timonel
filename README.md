@@ -1,7 +1,7 @@
 Timonel - ATtiny85 I2C Bootloader
 =================================
 
-Timonel is an I2C bootloader for ATtiny85 microcontrollers. The aim is to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) acting as I2C master and one or more Tiny85 as I2C slave performing peripheral functions.
+Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. The aim is to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) acting as I2C master and one or more Tiny85 as I2C slave performing peripheral functions.
 
 Some possible cases:
 
