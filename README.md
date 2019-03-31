@@ -10,7 +10,7 @@ Some possible cases:
 * etc ...
 
 In these examples, it's handy to have the chance of updating the AVRs firmware straight from the I2C master. But, so far (mid-2018), I haven't found an I2C bootloader that fits directly the TinyX5 family, addressing its limitations:
-* It doesn't have a specific hardware for I2C, only the USI.
+* It doesn't have dedicated hardware to handle I2C, only the USI (Universal Serial Interface).
 * It lacks a protected memory area for the bootloader.
 * It is not possible to redirect the interruption vectors to the bootloader.
 
