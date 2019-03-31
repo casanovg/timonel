@@ -9,7 +9,7 @@ Some possible cases:
 * Multi-sensor systems, where each Tiny85 is a node that handles one or more sensors.
 * etc ...
 
-In these situations, it's handy to have the chance of updating the AVRs firmware straight from the I2C master. But, so far (mid-2018), I haven't found an I2C bootloader that fits directly the TinyX5 family, addressing its limitations:
+In these situations, it's handy to be able to update the AVRs firmware straight from the I2C master. But, so far (mid-2018), I haven't found an I2C bootloader that fits directly the TinyX5 family, addressing its several limitations::
 * It doesn't have dedicated hardware to handle I2C, only the USI (Universal Serial Interface).
 * It lacks a protected memory area for the bootloader.
 * It is not possible to redirect the interruption vectors to the bootloader.
