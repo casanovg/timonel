@@ -61,7 +61,7 @@ byte NbMicro::InitMicro(void) {
 
 // Sends a TWI command to the microcontroller (Overload A: single byte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-    USE_SERIAL.printf_P("[%s] > Single: 0x%02X, calling Multi ...\n\r", __func__, twi_cmd);
+    USE_SERIAL.printf_P("[%s] > Single: 0x%02X, calling multi ...\n\r", __func__, twi_cmd);
     const byte cmd_size = 1;
     byte twi_cmd_arr[cmd_size] = {twi_cmd};
     return (TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
