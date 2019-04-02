@@ -9,6 +9,7 @@ CHECK WITH DIODES TO ISOLATE THE NON-ADDRESSED SLAVE !!!
 Outcome:
 --------
 When the TWI master requests a memory dump from a specific slave device, this slave starts transmitting its memory contents to the TWI bus. During this transmission, apparently, a non-addressed slave interprets a false TWI START condition due to a particular data pattern sent by the addressed slave. When this occurs, as soon as the addressed slave transmits a data pattern that matches the non-addressed slave address, this one sends wrongly a TWI ACKNOWLEDGE, corrupting the addressed slave transmission and forcing the master to abort the running command.
+
 The most probable cause of this behavior is poor handling of data bit status changing made by the slave USI_TWI driver. The bit status change should occur just a little bit after the clock line falling edge. Now, is made right in the edge of the falling clock pulse, making it possible to be confused by a non-wanted TWI START or STOP condition.
 
 Analyzer capture:
