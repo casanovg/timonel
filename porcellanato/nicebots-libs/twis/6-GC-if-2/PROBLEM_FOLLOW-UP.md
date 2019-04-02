@@ -46,14 +46,7 @@ FF FF FF FF FF FF FF FF [TwiCmdXmit] >> Multi: 0x87 --> making actual TWI transm
 [TwiCmdXmit] Error parsing 0x87 multibyte command <<< 255
 [DumpMemory] DumpFlashMem Error parsing 135 command <<< 255
 [~NbMicro] Freeing TWI address 14 ...
+
 +
+
 SL33 Freezed and holding the TWI bus !!!
-
-
-
-
-
-
-
- 
- 
