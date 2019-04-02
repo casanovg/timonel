@@ -86,7 +86,7 @@ void loop() {
                 break;
             }
             case '3': {
-				USE_SERIAL.printf_P("\n\rInitializing Timonel with address: %d\n\n\r",  __func__, twi_address);
+				USE_SERIAL.printf_P("\n\rInitializing Timonel with address: %d\n\n\r", twi_address);
                 Timonel tml(twi_address);
                 PrintStatus(tml);
                 break;
