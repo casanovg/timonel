@@ -2,13 +2,13 @@
 # File: tml-config.mak
 # Project: Timonel - TWI Bootloader for TinyX5 MCUs
 # .......................................................
-# 2018-08-28 gustavo.casanova@nicebots.com
+# 2018-08-28 gustavo.casanova@nicebots.com (PORCELLANATO)
 # .......................................................
 
 # Controller type: ATtiny 85 - 16.5 MHz
 # Configuration:   Standard
 
-F_CPU = 16500000
+#F_CPU = 16500000
 MCU = attiny85
 
 # Hexadecimal address for bootloader section to begin. To calculate the best value:
@@ -46,11 +46,17 @@ FORCE_ERASE_PG = false
 
 # Timonel required libraries path:
 # --------------------------------
-LIBDIR = ../nb-libs/twis
-CMDDIR = ../nb-libs/cmd
+#LIBDIR = ./nicebots-libs/twis/1-GC-if
+#LIBDIR = ./nicebots-libs/twis/2-Blake
+#LIBDIR = ./nicebots-libs/twis/3-AVR312
+#LIBDIR = ./nicebots-libs/twis/4-eriksl
+#LIBDIR = ./nicebots-libs/twis/5-RmbMst
+LIBDIR = ./nicebots-libs/twis/6-GC-if-2
+ 
+CMDDIR = ./nicebots-libs/cmd
 # Project name:
 # -------------
-TARGET = timonel
+TARGET = porcellanato
 
 # This is a flash address low enough to allow
 # compiling in Pass 1, even with all features

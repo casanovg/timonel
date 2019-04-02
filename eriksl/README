@@ -1,0 +1,12 @@
+This is a generic "main" to be used with
+usitwislave, it allows to receive various
+commands (see commands file) (mostly one
+byte) and have various inputs, outputs,
+counters, pwm's and adc's to be controlled.
+
+Have a look a ioport.h and ioport.c on
+how to link the ioports on your device
+to the various commands.
+
+The license of the whole repository
+is GPLv2.

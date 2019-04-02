@@ -9,7 +9,7 @@
  */
 
 // Includes
-#include "nb-usitwisl-if.h"
+#include "nb-usitwisl-if2.h"
 
 // Device Dependent Defines
 #if defined(__AVR_ATtiny25__) | \
@@ -128,77 +128,95 @@
 #endif
 
 // SET_USI_TO_SEND_ACK Macro Function
-#define SET_USI_TO_SEND_ACK()                                       \
-    {                                                               \
-        USIDR = 0;                      /* Prepare ACK */           \
-        DDR_USI |= (1 << PORT_USI_SDA); /* Set SDA as output */     \
-        /* Clear all interrupt flags, except start condition */     \
-        USISR = (0 << USI_START_COND_INT) |                         \
-                (1 << USIOIF) |                                     \
-                (1 << USIPF) |                                      \
-                (1 << USIDC) | /* set USI counter to shift 1 bit */ \
-                (0x0E << USICNT0);                                  \
-    }
+#define SET_USI_TO_SEND_ACK( ) \
+{ \
+  /* prepare ACK, ack is a zero */ \
+  USIDR = 0; \
+  /* set SDA as output */ \
+  DDR_USI |= ( 1 << PORT_USI_SDA ); \
+  /* clear all interrupt flags, except Start Cond */ \
+  USISR = \
+       ( 0 << USI_START_COND_INT ) | \
+       ( 1 << USIOIF ) | \
+       ( 1 << USIPF ) | \
+       ( 1 << USIDC )| \
+       /* set USI counter to shift 1 bit */ \
+       ( 0x0E << USICNT0 ); \
+}
 
 // SET_USI_TO_READ_ACK Macro Function
-#define SET_USI_TO_READ_ACK()                                       \
-    {                                                               \
-        USIDR = 0;                       /* Prepare ACK */          \
-        DDR_USI &= ~(1 << PORT_USI_SDA); /* set SDA as input */     \
-        /* Clear all interrupt flags, except start condition */     \
-        USISR = (0 << USI_START_COND_INT) |                         \
-                (1 << USIOIF) |                                     \
-                (1 << USIPF) |                                      \
-                (1 << USIDC) | /* set USI counter to shift 1 bit */ \
-                (0x0E << USICNT0);                                  \
-    }
+#define SET_USI_TO_READ_ACK( ) \
+{ \
+  /* set SDA as input */ \
+  DDR_USI &= ~( 1 << PORT_USI_SDA ); \
+  /* prepare ACK */ \
+  USIDR = 0; \
+  /* clear all interrupt flags, except Start Cond */ \
+  USISR = \
+       ( 0 << USI_START_COND_INT ) | \
+       ( 1 << USIOIF ) | \
+       ( 1 << USIPF ) | \
+       ( 1 << USIDC ) | \
+       /* set USI counter to shift 1 bit */ \
+       ( 0x0E << USICNT0 ); \
+}
 
 // SET_USI_TO_TWI_START_CONDITION_MODE Macro Function
-#define SET_USI_TO_TWI_START_CONDITION_MODE()                                                                                                                              \
-    {                                                                                                                                                                      \
-        USICR =                                                                                         /* Enable start condition Interrupt, disable overflow interrupt */ \
-            (1 << USISIE) | (0 << USIOIE) |                                                             /* Set USI in Two-wire mode, no USI counter overflow hold */       \
-            (1 << USIWM1) | (0 << USIWM0) | /* Shift register clock Source = external, positive edge */ /* 4-Bit counter source = external, both edges */                  \
-            (1 << USICS1) | (0 << USICS0) | (0 << USICLK) |                                             /* No toggle clock-port pin */                                     \
-            (0 << USITC);                                                                                                                                                  \
-        USISR = /* clear all interrupt flags, except start condition */                                                                                                    \
-            (0 << USI_START_COND_INT) | (1 << USIOIF) | (1 << USIPF) |                                                                                                     \
-            (1 << USIDC) | (0x0 << USICNT0);                                                                                                                               \
-    }
+#define SET_USI_TO_TWI_START_CONDITION_MODE( ) \
+{ \
+  USICR = \
+       /* enable Start Condition Interrupt, disable Overflow Interrupt */ \
+       ( 1 << USISIE ) | ( 0 << USIOIE ) | \
+       /* set USI in Two-wire mode, no USI Counter overflow hold */ \
+       ( 1 << USIWM1 ) | ( 0 << USIWM0 ) | \
+       /* Shift Register Clock Source = External, positive edge */ \
+       /* 4-Bit Counter Source = external, both edges */ \
+       ( 1 << USICS1 ) | ( 0 << USICS0 ) | ( 0 << USICLK ) | \
+       /* no toggle clock-port pin */ \
+       ( 0 << USITC ); \
+  USISR = \
+        /* clear all interrupt flags, except Start Cond */ \
+        ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
+        ( 1 << USIDC ) | ( 0x0 << USICNT0 ); \
+}
 
 // SET_USI_TO_SEND_DATA Macro Function
-#define SET_USI_TO_SEND_DATA()                                         \
-    {                                                                  \
-        /* Set SDA as output */                                        \
-        DDR_USI |= (1 << PORT_USI_SDA);                                \
-        /* Clear all interrupt flags, except start condition */        \
-        USISR =                                                        \
-            (0 << USI_START_COND_INT) | (1 << USIOIF) | (1 << USIPF) | \
-            (1 << USIDC) | /* set USI to shift out 8 bits */           \
-            (0x0 << USICNT0);                                          \
-    }
+#define SET_USI_TO_SEND_DATA( ) \
+{ \
+  /* set SDA as output */ \
+  DDR_USI |=  ( 1 << PORT_USI_SDA ); \
+  /* clear all interrupt flags, except Start Cond */ \
+  USISR    =  \
+       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
+       ( 1 << USIDC) | \
+       /* set USI to shift out 8 bits */ \
+       ( 0x0 << USICNT0 ); \
+}
 
 // SET_USI_TO_READ_DATA Macro Function
-#define SET_USI_TO_READ_DATA()                                              \
-    {                                                                       \
-        /* Set SDA as input */                                              \
-        DDR_USI &= ~(1 << PORT_USI_SDA);                                    \
-        /* Clear all interrupt flags, except start condition */             \
-        USISR =                                                             \
-            (0 << USI_START_COND_INT) | (1 << USIOIF) |                     \
-            (1 << USIPF) | (1 << USIDC) | /* Set USI to shift out 8 bits */ \
-            (0x0 << USICNT0);                                               \
-    }
+#define SET_USI_TO_READ_DATA( ) \
+{ \
+  /* set SDA as input */ \
+  DDR_USI &= ~( 1 << PORT_USI_SDA ); \
+  /* clear all interrupt flags, except Start Cond */ \
+  USISR    = \
+       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | \
+       ( 1 << USIPF ) | ( 1 << USIDC ) | \
+       /* set USI to shift out 8 bits */ \
+       ( 0x0 << USICNT0 ); \
+}
 
 // USI_RECEIVE_CALLBACK Macro Function
-#define USI_RECEIVE_CALLBACK()                                       \
-    {                                                                \
-        if (Usi_onReceivePtr) {                                      \
-            if (UsiTwiAmountDataInReceiveBuffer()) {                 \
-                Usi_onReceivePtr(UsiTwiAmountDataInReceiveBuffer()); \
-            }                                                        \
-        }                                                            \
-    }
+#define USI_RECEIVE_CALLBACK() \
+{ \
+    if (Usi_onReceivePtr) \
+    { \
+        if (UsiTwiAmountDataInReceiveBuffer()) \
+        { \
+            Usi_onReceivePtr(UsiTwiAmountDataInReceiveBuffer()); \
+        } \
+    } \
+}
 
 // ONSTOP_USI_RECEIVE_CALLBACK Macro Function
 #define ONSTOP_USI_RECEIVE_CALLBACK() \
@@ -210,12 +228,12 @@
 
 // USI_REQUEST_CALLBACK Macro Function
 #define USI_REQUEST_CALLBACK()  \
-    {                           \
-        USI_RECEIVE_CALLBACK(); \
-        if (Usi_onRequestPtr) { \
-            Usi_onRequestPtr(); \
-        }                       \
-    }
+{                               \
+    USI_RECEIVE_CALLBACK();     \
+    if(Usi_onRequestPtr) {      \
+        Usi_onRequestPtr();     \
+    }                           \
+}    
 
 // Data Type definitions
 typedef enum {
@@ -300,7 +318,6 @@ bool UsiTwiDataInTransmitBuffer(void) {
 
 // Function UsiTwiTransmitByte
 void UsiTwiTransmitByte(uint8_t data) {
-    // GC: ---> uint8_t tmphead;
 
     // Wait for free space in buffer
     while (txCount == TWI_TX_BUFFER_SIZE) {
@@ -355,12 +372,13 @@ void UsiStartHandler(void) {
     // the interrupt to prevent waiting forever - don't use USISR to test for Stop
     // Condition as in Application Note AVR312 because the Stop Condition Flag is
     // going to be set from the last TWI sequence
-    while (
+    while ( (PIN_USI & (1<<PORT_USI_SCL)) && (!(PIN_USI & (1<<PORT_USI_SDA))) );
         // SCL his high
-        (PIN_USI & (1 << PIN_USI_SCL)) &&
-        // and SDA is low
-        !((PIN_USI & (1 << PIN_USI_SDA))))
-        ;
+        // (PIN_USI & (1 << PIN_USI_SCL)) &&
+        // // and SDA is low
+        // !((PIN_USI & (1 << PIN_USI_SDA))))
+        // ;
+        
 
     if (!(PIN_USI & (1 << PIN_USI_SDA))) {
         // a Stop Condition did not occur
@@ -415,12 +433,12 @@ void UsiOverflowHandler(void) {
             // #############################################################
             // # GC: Disable this device answers to "general calls"
             // #############################################################
-            if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
-            //if (((USIDR >> 1) & 0x3F) == slaveAddress) {
-                if (USIDR & 0x01) {
+            // ****** if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) ) {
+            if (((USIDR >> 1) & 0x3F) == slaveAddress) {
+                if (USIDR & 0x01) {             /* If 1: Slave sends data to master */
                     USI_REQUEST_CALLBACK();
                     overflowState = USI_SLAVE_SEND_DATA;
-                } else {
+                } else {                        /* If 1: Slave receives data from master */
                     overflowState = USI_SLAVE_REQUEST_DATA;
                 }
                 SET_USI_TO_SEND_ACK();

@@ -1,0 +1,5 @@
+SL14 => SL33 (2A0)
+SL22 => SL33 (2C0)
+SL31 => SL33 (Can't operate)
+
+What happen when a slave dev reads an address that's not its own? Does it send NACK???

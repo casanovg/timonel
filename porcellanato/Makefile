@@ -2,7 +2,7 @@
 # File: Makefile
 # Project: Timonel - TWI Bootloader
 # .......................................................
-# 2019-03-16 gustavo.casanova@nicebots.com
+# 2019-03-16 gustavo.casanova@nicebots.com (PORCELLANATO)
 #
 
 CONFIG ?= tml-t85-std
@@ -27,15 +27,15 @@ include $(CONFIGPATH)/tml-config.mak
 # Make command line parameters
 # Use: 
 ifeq ($(TARGET),)
-		TARGET = timonel
+	TARGET = porcellanato
 endif
 
 ifeq ($(TARGET),)
-		TIMONEL_TWI_ADDR = 8
+	TIMONEL_TWI_ADDR = 8
 endif
 
 ifeq ($(TARGET),)
-		TIMONEL_START = 1B00
+	TIMONEL_START = 1B00
 endif
 
 PROGRAMMER ?= -c USBasp
