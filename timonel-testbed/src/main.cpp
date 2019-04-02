@@ -349,7 +349,7 @@ void PrintStatus(Timonel timonel) {
             }
         }
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
-        USE_SERIAL.printf_P("(TWI: %d)\n\r", twi_address);
+        USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
         USE_SERIAL.printf_P(" ====================================\n\r");        
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
