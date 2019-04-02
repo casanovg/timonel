@@ -379,7 +379,8 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\rTimonel Bootloader Testbed (v1.0 testbed)\n\n\r");
+    USE_SERIAL.printf_P("\n\r[ Timonel Bootloader Testbed (v1.1 \"MA'82\") ]");
+    USE_SERIAL.printf_P("\n\r[ 2019-04-02 Gustavo Casanova ............. ]\n\n\r");
 }
 
 // Function ShowMenu
