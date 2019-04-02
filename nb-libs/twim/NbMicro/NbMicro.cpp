@@ -39,7 +39,7 @@ NbMicro::~NbMicro() {
 
 // Returns this object's TWI address
 byte NbMicro::GetTwiAddress(void) {
-    return(addr_);
+    return (addr_);
 }
 
 // Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
@@ -61,6 +61,7 @@ byte NbMicro::InitMicro(void) {
 
 // Sends a TWI command to the microcontroller (Overload A: single byte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+    USE_SERIAL.printf_P("[%s] > SINGLE: 0x%02X\n\r", __func__, twi_cmd);
     const byte cmd_size = 1;
     byte twi_cmd_arr[cmd_size] = {twi_cmd};
     return (TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
@@ -68,16 +69,18 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byt
 
 // Sends a TWI command to the microcontroller (Overload B: multibyte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+    USE_SERIAL.printf_P("[%s] >> MULTI: 0x%02X\n\n\r", __func__, twi_cmd_arr[0]);
+    // TWI command transmit
     for (int i = 0; i < cmd_size; i++) {
         Wire.beginTransmission(addr_);
         Wire.write(twi_cmd_arr[i]);
         Wire.endTransmission();
     }
-    // Receive reply
+    // Twi command reply
     if (reply_size == 0) {
-        Wire.requestFrom(addr_, ++reply_size);
-        byte reply = Wire.read();
-        if (reply == twi_reply) { /* I2C reply from slave */
+        Wire.requestFrom(addr_, ++reply_size, true); /* True: releases the bus with a stop after a master request. */
+        byte reply = Wire.read();                    /* False: sends a restart, not releasing the bus.             */
+        if (reply == twi_reply) {
             USE_SERIAL.printf_P("[%s] Command 0x%02X parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
             return (0);
         } else {
@@ -85,8 +88,8 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
             return (1);
         }
     } else {
-        byte reply_length = Wire.requestFrom(addr_, reply_size);
-        for (int i = 0; i < reply_size; i++) {
+        byte reply_length = Wire.requestFrom(addr_, reply_size, true); /* True: releases the bus with a stop after a master request. */
+        for (int i = 0; i < reply_size; i++) {                         /* False: sends a restart, not releasing the bus.             */
             twi_reply_arr[i] = Wire.read();
         }
         if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {

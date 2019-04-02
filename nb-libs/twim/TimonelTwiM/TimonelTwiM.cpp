@@ -13,13 +13,14 @@
 // Class constructor
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     if ((addr_ > 0) && (addr_ < 36)) {
-        USE_SERIAL.printf_P("[%s] Instance created with address %d, initializing Timonel device!\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Bootloader instance created with address %d\r\n", __func__, addr_);
         BootloaderInit(0);
     }
 }
 
 // Retrieve the bootloader running parameters from the microcontroller
 byte Timonel::QueryStatus(void) {
+    USE_SERIAL.printf_P("[%s] Querying Timonel device %d to get status ...\r\n", __func__, addr_);
     byte twi_reply_arr[V_CMD_LENGTH] = {0}; /* Status received from I2C slave */
     byte twi_cmd_err = TwiCmdXmit(GETTMNLV, ACKTMNLV, twi_reply_arr, V_CMD_LENGTH);
     if ((twi_cmd_err == 0) && (twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && (twi_reply_arr[V_SIGNATURE] == T_SIGNATURE)) {
@@ -41,12 +42,14 @@ byte Timonel::QueryStatus(void) {
 
 // Returns a struct with the Timonel bootloader running status
 Timonel::Status Timonel::GetStatus(void) {
+    USE_SERIAL.printf_P("[%s] Getting Timonel device %d status!\r\n", __func__, addr_);
     QueryStatus();
     return (status_);
 }
 
 // Function TwoStepInit
 byte Timonel::BootloaderInit(const word time) {
+    USE_SERIAL.printf_P("[%s] Initializing Timonel device %d!\r\n", __func__, addr_);
     delay(time);
     byte step1_outcome = QueryStatus(); /* Timonel initialization: STEP 1 */
     byte step2_outcome = 0;

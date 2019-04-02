@@ -77,7 +77,7 @@ void loop() {
                 }
                 //if ((twi_address >= 8) && (twi_address <= 35)) {
                 if ((twi_address >= 0) && (twi_address <= 127)) { /* This version allows I2C general calls */
-					USE_SERIAL.printf_P("\n\n\rTWI Address set to: %d, please initialize Timonel ...\n\n\r", twi_address);
+					USE_SERIAL.printf_P("\n\n\rTWI Address set to: %d, please press 3 to initialize Timonel ...\n\n\r", twi_address);
 				}
                 else {
                     USE_SERIAL.printf_P("\n\n\rInvalid address!\n\n\r");
@@ -86,7 +86,7 @@ void loop() {
                 break;
             }
             case '3': {
-				USE_SERIAL.printf_P("\n\n\rInitializaing Timonel with address: %d\n\n\r", twi_address);
+				USE_SERIAL.printf_P("\n\n\r[%s] Initializing Timonel with address: %d\n\n\r",  __func__, twi_address);
                 Timonel tml(twi_address);
                 PrintStatus(tml);
                 break;
@@ -329,26 +329,28 @@ void ClrScr() {
 // Function Print Timonel instance status
 void PrintStatus(Timonel timonel) {
     Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    byte twi_address = timonel.GetTwiAddress();
     if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
         byte version_major = tml_status.version_major;
-        USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
+        byte version_minor = tml_status.version_minor;
+        String version_mj_nick = "";
         switch (version_major) {
             case 0: {
-                USE_SERIAL.printf_P(" Pre-release ");
+                version_mj_nick = "\"Pre-release\"";
                 break;
             }
             case 1: {
-                USE_SERIAL.printf_P(" \"Sandra\" ");
+                version_mj_nick = "\"Sandra\"";
                 break;
             }
             default: {
-                USE_SERIAL.printf_P(" Unknown ");
+                version_mj_nick = "\"Unknown\"";
                 break;
             }
         }
-        USE_SERIAL.printf_P("(TWI: %d)\n\r", timonel.GetTwiAddress());
-        USE_SERIAL.printf_P(" ====================================\n\r");
-        Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
+        USE_SERIAL.printf_P("(TWI: %d)\n\r", twi_address);
+        USE_SERIAL.printf_P(" ====================================\n\r");        
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -357,6 +359,10 @@ void PrintStatus(Timonel timonel) {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
         USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
+    } else {
+        USE_SERIAL.printf_P("\n\r ***********************************************************\n\r");
+        USE_SERIAL.printf_P(" * Unknown bootloader or application at TWI address %d ... *\n\r", twi_address);
+        USE_SERIAL.printf_P(" ***********************************************************\n\n\r");
     }
 }
 
