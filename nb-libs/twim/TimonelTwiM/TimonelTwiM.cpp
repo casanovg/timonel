@@ -50,11 +50,11 @@ Timonel::Status Timonel::GetStatus(void) {
 // Function TwoStepInit
 byte Timonel::BootloaderInit(const word time) {
     delay(time);
-    USE_SERIAL.printf_P("[%s] Timonel device %02d *** Initialization Step 1 *** ...\r\n", __func__, addr_);
+    USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 1 required by features *\r\n", __func__, addr_);
     byte step1_outcome = QueryStatus(); /* Timonel initialization: STEP 1 */
     byte step2_outcome = 0;
     if ((status_.features_code & 0x10) == 0x10) {
-        USE_SERIAL.printf_P("[%s] Timonel device %02d *** Initialization Step 2 *** ...\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 2 required by features *\r\n", __func__, addr_);
         step2_outcome = InitMicro();    /* Timonel initialization: STEP 2 (only if Timonel has this feature enabled) */
     }
     if ((step1_outcome + step1_outcome) == ACKINITS) {
