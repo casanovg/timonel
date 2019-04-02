@@ -1,15 +1,11 @@
-SL14 => SL33 (2A0) pre-error address
-SL22 => SL33 (2C0)
-SL31 => SL33 (Can't operate)
+What happen when a slave dev reads an address that's not its own? Does it send NACK?
+====================================================================================
+ V
+ 
+CHECK WITH DIODES TO ISOLATE THE NON-ADDRESSED SLAVE !!!
 
-What happen when a slave dev reads an address that's not its own? Does it send NACK???
  V
- V
- V
-CHECK WITH DIODES !!!
- V
- V
- V
+ 
 Outcome:
 --------
 When the TWI master requests a memory dump from a specific slave device, this slave starts transmitting its memory contents to the TWI bus. During this transmission, apparently, a non-addressed slave interprets a false TWI START condition due to a particular data pattern sent by the addressed slave. When this occurs, as soon as the addressed slave transmits a data pattern that matches the non-addressed slave address, this one sends wrongly a TWI ACKNOWLEDGE, corrupting the addressed slave transmission and forcing the master to abort the running command.
@@ -22,8 +18,8 @@ Analyzer capture:
  
 Test 1:
 ======
-
 SL14 (direct) FC 130 / 0x1900 initialized
+
 SL33 (direct) FC 130 / 0x1980 initialized
  
 SL33 Command: Dump Memory (READFLSH 0x87 n-times starting from position 0) output:
