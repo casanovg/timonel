@@ -61,7 +61,7 @@ byte NbMicro::InitMicro(void) {
 
 // Sends a TWI command to the microcontroller (Overload A: single byte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-    USE_SERIAL.printf_P("[%s] > SINGLE: 0x%02X\n\r", __func__, twi_cmd);
+    USE_SERIAL.printf_P("[%s] > Single: 0x%02X\n\r", __func__, twi_cmd);
     const byte cmd_size = 1;
     byte twi_cmd_arr[cmd_size] = {twi_cmd};
     return (TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
@@ -69,7 +69,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byt
 
 // Sends a TWI command to the microcontroller (Overload B: multibyte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-    USE_SERIAL.printf_P("[%s] >> MULTI: 0x%02X\n\n\r", __func__, twi_cmd_arr[0]);
+    USE_SERIAL.printf_P("[%s] >> Multi: 0x%02X --> making actual TWI transmission ...\n\r", __func__, twi_cmd_arr[0]);
     // TWI command transmit
     for (int i = 0; i < cmd_size; i++) {
         Wire.beginTransmission(addr_);
