@@ -330,9 +330,9 @@ void ClrScr() {
 void PrintStatus(Timonel timonel) {
     Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
     byte twi_address = timonel.GetTwiAddress();
-    if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
-        byte version_major = tml_status.version_major;
-        byte version_minor = tml_status.version_minor;
+    byte version_major = tml_status.version_major;
+    byte version_minor = tml_status.version_minor;
+    if ((tml_status.signature == T_SIGNATURE) && ((version_major != 0) || (version_minor != 0))) {
         String version_mj_nick = "";
         switch (version_major) {
             case 0: {
@@ -360,9 +360,9 @@ void PrintStatus(Timonel timonel) {
         }
         USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
     } else {
-        USE_SERIAL.printf_P("\n\r ***********************************************************\n\r");
-        USE_SERIAL.printf_P(" * Unknown bootloader or application at TWI address %d ... *\n\r", twi_address);
-        USE_SERIAL.printf_P(" ***********************************************************\n\n\r");
+        USE_SERIAL.printf_P("\n\r *******************************************************************\n\r");
+        USE_SERIAL.printf_P(" * Unknown bootloader, application or device at TWI address %02d ... *\n\r", twi_address);
+        USE_SERIAL.printf_P(" *******************************************************************\n\n\r");
     }
 }
 
