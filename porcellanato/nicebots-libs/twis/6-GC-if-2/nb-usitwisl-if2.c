@@ -438,7 +438,7 @@ void UsiOverflowHandler(void) {
                 if (USIDR & 0x01) {             /* If 1: Slave sends data to master */
                     USI_REQUEST_CALLBACK();
                     overflowState = USI_SLAVE_SEND_DATA;
-                } else {                        /* If 1: Slave receives data from master */
+                } else {                        /* If 0: Slave receives data from master */
                     overflowState = USI_SLAVE_REQUEST_DATA;
                 }
                 SET_USI_TO_SEND_ACK();
