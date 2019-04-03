@@ -386,7 +386,7 @@ void ShowHeader(void) {
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Application command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot): ");
+        USE_SERIAL.printf_P("Test command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot): ");
     } 
     // else {
     //     Timonel::Status sts = tml.GetStatus();
