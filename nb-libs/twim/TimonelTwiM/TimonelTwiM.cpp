@@ -341,7 +341,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte slave_data_size, cons
             USE_SERIAL.printf_P("[%s] DumpFlashMem Error parsing %d command <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (1);
         }
-        delay(250);  /* Verify if this delay matters on multi-slave setups: 50 --> 250 */
+        delay(50);  /* Verify if this delay matters on multi-slave setups: 50 --> 250 */
     }
     USE_SERIAL.printf_P("\n\r");
     return (OK);
