@@ -54,7 +54,7 @@ byte NbMicro::SetObjTwiAddress(byte twi_address) {
     }
 }
 
-// Function InitMicro
+// Member Function InitMicro
 byte NbMicro::InitMicro(void) {
     return (TwiCmdXmit(INITSOFT, ACKINITS));
 }
@@ -114,7 +114,7 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     }
 }
 
-// Function ScanTWI (Overload A: Returns the address and mode of the first TWI device found on the bus)
+// ScanBus (Overload A: Returns the address and mode of the first TWI device found on the bus)
 byte TwiBus::ScanBus(bool *p_app_mode) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
@@ -137,7 +137,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
     }
 }
 
-// Function ScanTWI (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
+// ScanBus (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
 byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_addr) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
