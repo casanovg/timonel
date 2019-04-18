@@ -29,7 +29,8 @@
                3) AVR312
                4) eriksl
                5) Rmb-Mast
-               6) GC-if-2 */
+               6) GC-if-2
+			   7) Stepper */
 #define TWILIB 6
 
 /* Includes */

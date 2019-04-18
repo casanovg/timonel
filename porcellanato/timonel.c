@@ -118,7 +118,7 @@ int main() {
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
            . Check the USI Status Register to verify           .
-           . whether a USI counter overflow should be launched .
+           . whether a USI overflow handler should be launched .
            .....................................................
         */
         if (USISR & (1 << USIOIF)) {
