@@ -1,11 +1,12 @@
 /*
- *  Timonel USI TWI Driver (Interrupt-Free)
- *  ..................................................
- *  Based on USITWISlave by Donald Blake
- *  donblake at worldnet.att.net
- *  .................................................. 
- *  Adapted to work interrupt-free
- *  2018-07-15 gustavo.casanova@nicebots.com
+ *  Timonel USI TWI Interrupt-Free Driver
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: nb-usitwisl.h (Driver headers)
+ *  ........................................... 
+ *  Version: 1.0 / 2019-04-19
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
  */
 
 #ifndef _NB_USITWISL_IF_H_

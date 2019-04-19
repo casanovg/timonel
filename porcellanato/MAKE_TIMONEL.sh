@@ -23,28 +23,17 @@ ARG1=${1:-timonel}
 ARG2=${2:-8}
 ARG3=${3:-1B00}
 
+echo "***************************************************************************"
+echo "* Starting Timonel compilation with these parameters: "
+echo "* --------------------------------------------------- "
+echo "* Binary file: $ARG1.hex"
+echo "* TWI address: $ARG2"
+echo "* Flash position: $ARG3 <- use a lower position if you get compile errors"
+echo "***************************************************************************"
+
 make clean_all
 make clean_all TARGET=$ARG1
 make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3
 cp *.hex releases
 make clean_all TARGET=$ARG1
 
-#echo ""
-#echo "##########################"
-#echo "#   >>> TML PASS 1 <<<   #"
-#echo "##########################"
-#echo ""
-#cp tml-t85-std/make-pass-1.mak Makefile
-#make clean_all
-#make all
-#make squeaky_clean
-#echo ""
-#echo "##########################"
-#echo "#   >>> TML PASS 2 <<<   #"
-#echo "##########################"
-#cp tml-t85-std/make-pass-2.mak Makefile
-#make clean_all
-#make all
-#cp *.hex releases
-#make clean_all
-#cp tml-t85-std/make-pass-1.mak Makefile

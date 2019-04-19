@@ -1,11 +1,12 @@
 /*
- *  Timonel USI TWI Driver (Interrupt-Free)  
- *  ..................................................
- *  Based on USITWISlave by Donald Blake
- *  donblake at worldnet.att.net
- *  .................................................. 
- *  Adapted by Gustavo Casanova to work interrupt-free
- *  2018-07-15 gustavo.casanova@nicebots.com
+ *  Timonel USI TWI Interrupt-Free Driver
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: nb-usitwisl.c (Driver library)
+ *  ........................................... 
+ *  Version: 1.0 / 2019-04-19
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
  */
 
 // Includes
@@ -22,9 +23,10 @@
 #define PORT_USI_SCL PB2
 #define PIN_USI_SDA PINB0
 #define PIN_USI_SCL PINB2
-#define USI_START_COND_INT USISIF
-#define USI_START_VECTOR USI_START_vect
-#define USI_OVERFLOW_VECTOR USI_OVF_vect
+#define TWI_START_COND_FLAG USISIF	/* This flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
+#define USI_OVERFLOW_FLAG USIOIF	/* This flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
+#define TWI_STOP_COND_FLAG USIPF	/* This flag indicates that an I2C STOP condition occurred on the bus */
+#define TWI_COLLISION_FLAG USIDC	/* This flag indicates that a data output collision occurred on the bus */
 #endif
 
 // SET_USI_TO_SEND_ACK Macro Function
@@ -36,10 +38,10 @@
   DDR_USI |= ( 1 << PORT_USI_SDA ); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR = \
-       ( 0 << USI_START_COND_INT ) | \
-       ( 1 << USIOIF ) | \
-       ( 1 << USIPF ) | \
-       ( 1 << USIDC )| \
+       ( 0 << TWI_START_COND_FLAG ) | \
+       ( 1 << USI_OVERFLOW_FLAG ) | \
+       ( 1 << TWI_STOP_COND_FLAG ) | \
+       ( 1 << TWI_COLLISION_FLAG )| \
        /* set USI counter to shift 1 bit */ \
        ( 0x0E << USICNT0 ); \
 }
@@ -53,10 +55,10 @@
   USIDR = 0; \
   /* clear all interrupt flags, except Start Cond */ \
   USISR = \
-       ( 0 << USI_START_COND_INT ) | \
-       ( 1 << USIOIF ) | \
-       ( 1 << USIPF ) | \
-       ( 1 << USIDC ) | \
+       ( 0 << TWI_START_COND_FLAG ) | \
+       ( 1 << USI_OVERFLOW_FLAG ) | \
+       ( 1 << TWI_STOP_COND_FLAG ) | \
+       ( 1 << TWI_COLLISION_FLAG ) | \
        /* set USI counter to shift 1 bit */ \
        ( 0x0E << USICNT0 ); \
 }
@@ -76,8 +78,8 @@
        ( 0 << USITC ); \
   USISR = \
         /* clear all interrupt flags, except Start Cond */ \
-        ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
-        ( 1 << USIDC ) | ( 0x0 << USICNT0 ); \
+        ( 0 << TWI_START_COND_FLAG ) | ( 1 << USI_OVERFLOW_FLAG ) | ( 1 << TWI_STOP_COND_FLAG ) | \
+        ( 1 << TWI_COLLISION_FLAG ) | ( 0x0 << USICNT0 ); \
 }
 
 // SET_USI_TO_SEND_DATA Macro Function
@@ -87,8 +89,8 @@
   DDR_USI |=  ( 1 << PORT_USI_SDA ); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR    =  \
-       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
-       ( 1 << USIDC) | \
+       ( 0 << TWI_START_COND_FLAG ) | ( 1 << USI_OVERFLOW_FLAG ) | ( 1 << TWI_STOP_COND_FLAG ) | \
+       ( 1 << TWI_COLLISION_FLAG) | \
        /* set USI to shift out 8 bits */ \
        ( 0x0 << USICNT0 ); \
 }
@@ -100,8 +102,8 @@
   DDR_USI &= ~( 1 << PORT_USI_SDA ); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR    = \
-       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | \
-       ( 1 << USIPF ) | ( 1 << USIDC ) | \
+       ( 0 << TWI_START_COND_FLAG ) | ( 1 << USI_OVERFLOW_FLAG ) | \
+       ( 1 << TWI_STOP_COND_FLAG ) | ( 1 << TWI_COLLISION_FLAG ) | \
        /* set USI to shift out 8 bits */ \
        ( 0x0 << USICNT0 ); \
 }
@@ -121,7 +123,7 @@
 // ONSTOP_USI_RECEIVE_CALLBACK Macro Function
 #define ONSTOP_USI_RECEIVE_CALLBACK() \
     {                                 \
-        if (USISR & (1 << USIPF)) {   \
+        if (USISR & (1 << TWI_STOP_COND_FLAG)) {   \
             USI_RECEIVE_CALLBACK();   \
         }                             \
     }
@@ -195,9 +197,9 @@ void UsiTwiSlaveInit(uint8_t ownAddress) {
 
     USICR =
         // enable Start Condition Interrupt
-        (1 << USISIE) |
+        //(1 << USISIE) |
         // disable Overflow Interrupt
-        (0 << USIOIE) |
+        //(0 << USIOIE) |
         // set USI in Two-wire mode, no USI Counter overflow hold
         (1 << USIWM1) | (0 << USIWM0) |
         // Shift Register Clock Source = external, positive edge
@@ -207,7 +209,7 @@ void UsiTwiSlaveInit(uint8_t ownAddress) {
         (0 << USITC);
 
     // Clear all interrupt flags and reset overflow counter
-    USISR = (1 << USI_START_COND_INT) | (1 << USIOIF) | (1 << USIPF) | (1 << USIDC);
+    USISR = (1 << TWI_START_COND_FLAG) | (1 << USI_OVERFLOW_FLAG) | (1 << TWI_STOP_COND_FLAG) | (1 << TWI_COLLISION_FLAG);
 }
 
 // Function UsiTwiDataInTransmitBuffer
@@ -315,12 +317,11 @@ void UsiStartHandler(void) {
     USISR =
         // clear interrupt flags - resetting the Start Condition Flag will
         // release SCL
-        (1 << USI_START_COND_INT) | (1 << USIOIF) |
-        (1 << USIPF) | (1 << USIDC) |
+        (1 << TWI_START_COND_FLAG) | (1 << USI_OVERFLOW_FLAG) | (1 << TWI_STOP_COND_FLAG) | (1 << TWI_COLLISION_FLAG) |
         // set USI to sample 8 bits (count 16 external SCL pin toggles)
         (0x0 << USICNT0);
 
-    USISR |= (1 << USISIF); /* Reset the USI start flag in USISR register to prepare for new ints */
+    USISR |= (1 << TWI_START_COND_FLAG); /* Reset the USI start flag in USISR register to prepare for new ints */
 }
 
 // Function UsiOverflowHandler
@@ -414,5 +415,5 @@ void UsiOverflowHandler(void) {
         }
     }
 
-    USISR |= (1 << USIOIF); /* Reset the USI overflow flag in USISR register to prepare for new ints */
+    USISR |= (1 << USI_OVERFLOW_FLAG); /* Reset the USI overflow flag in USISR register to prepare for new ints */
 }

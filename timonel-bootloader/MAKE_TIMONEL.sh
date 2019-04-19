@@ -23,6 +23,14 @@ ARG1=${1:-timonel}
 ARG2=${2:-8}
 ARG3=${3:-1B00}
 
+echo "******************************************************"
+echo "* Starting Timonel compilation with these parameters: "
+echo "* --------------------------------------------------- "
+echo "* Binary file: $ARG1.hex"
+echo "* TWI address: $ARG2"
+echo "* Flash position: 0x$ARG3 <- Use a lower position if you get compile errors"
+echo "***************************************"
+
 make clean_all
 make clean_all TARGET=$ARG1
 make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3
