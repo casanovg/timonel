@@ -217,7 +217,10 @@ void UsiTwiSlaveInit(uint8_t twi_address) {
         (0 << USITC);
 
     // Clear all interrupt flags and reset overflow counter
-    USISR = (1 << TWI_START_COND_FLAG) | (1 << USI_OVERFLOW_FLAG) | (1 << TWI_STOP_COND_FLAG) | (1 << TWI_COLLISION_FLAG);
+    USISR = (1 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG);
 }
 
 // Function UsiTwiDataInTransmitBuffer
