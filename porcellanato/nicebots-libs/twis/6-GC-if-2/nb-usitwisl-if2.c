@@ -23,11 +23,19 @@
 #define PORT_USI_SCL PB2
 #define PIN_USI_SDA PINB0
 #define PIN_USI_SCL PINB2
-#define TWI_START_COND_FLAG USISIF	/* This flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
+#define TWI_START_COND_FLAG	USISIF	/* This flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
 #define USI_OVERFLOW_FLAG USIOIF	/* This flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
 #define TWI_STOP_COND_FLAG USIPF	/* This flag indicates that an I2C STOP condition occurred on the bus */
 #define TWI_COLLISION_FLAG USIDC	/* This flag indicates that a data output collision occurred on the bus */
 #endif
+
+// USI direction macros
+#define USI_SET_SDA_OUTPUT()	{ DDR_USI |=  (1 << PORT_USI_SDA); }
+#define USI_SET_SDA_INPUT() 	{ DDR_USI &= ~(1 << PORT_USI_SDA); }
+#define USI_SET_SCL_OUTPUT()	{ DDR_USI |=  (1 << PORT_USI_SCL); }
+#define USI_SET_SCL_INPUT() 	{ DDR_USI &= ~(1 << PORT_USI_SCL); }
+#define USI_SET_BOTH_OUTPUT()	{ DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL); }
+#define USI_SET_BOTH_INPUT() 	{ DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL)); }
 
 // SET_USI_TO_SEND_ACK Macro Function
 #define SET_USI_TO_SEND_ACK( ) \
@@ -174,9 +182,9 @@ static void FlushTwiBuffers(void) {
 // Initialize USI for TWI slave mode
 
 // Function UsiTwiSlaveInit
-void UsiTwiSlaveInit(uint8_t ownAddress) {
+void UsiTwiSlaveInit(uint8_t twi_address) {
     FlushTwiBuffers();
-    slaveAddress = ownAddress;
+    slaveAddress = twi_address;
 
     // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
     // low when a start condition is detected or a counter overflow (only
@@ -184,7 +192,7 @@ void UsiTwiSlaveInit(uint8_t ownAddress) {
     // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
 
     // Set SCL and SDA as output
-    DDR_USI |= (1 << PORT_USI_SCL) | (1 << PORT_USI_SDA);
+	USI_SET_BOTH_OUTPUT();
 
     // set SCL high
     PORT_USI |= (1 << PORT_USI_SCL);
@@ -193,13 +201,13 @@ void UsiTwiSlaveInit(uint8_t ownAddress) {
     PORT_USI |= (1 << PORT_USI_SDA);
 
     // Set SDA as input
-    DDR_USI &= ~(1 << PORT_USI_SDA);
+	USI_SET_SDA_INPUT();
 
     USICR =
         // enable Start Condition Interrupt
-        //(1 << USISIE) |
+        (1 << USISIE) |
         // disable Overflow Interrupt
-        //(0 << USIOIE) |
+        (0 << USIOIE) |
         // set USI in Two-wire mode, no USI Counter overflow hold
         (1 << USIWM1) | (0 << USIWM0) |
         // Shift Register Clock Source = external, positive edge

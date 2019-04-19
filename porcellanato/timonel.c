@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.2 "Sandra" / 2019-03-15 (PORCELLANATO)
+ *  Version: 1.3 "Sandra" / 2019-04-19 (PORCELLANATO)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -121,7 +121,7 @@ int main() {
            . whether a USI overflow handler should be launched .
            .....................................................
         */
-        if (USISR & (1 << USIOIF)) {
+        if ((USISR & (1 << USIOIF)) && (USICR & (1 << USIOIE))) {
             UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
         }         
         /* .....................................................
@@ -130,7 +130,7 @@ int main() {
            . whether a USI start handler should be launched    .
            .....................................................
         */
-        if (USISR & (1 << USISIF)) {
+        if ((USISR & (1 << USISIF)) && (USICR & (1 << USISIE))) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
         }         
         if (dlyCounter-- <= 0) {
@@ -240,7 +240,7 @@ int main() {
             }
         }      
     }
-    return 0;
+    return(0);
 }
 
 // TWI Receive Event
