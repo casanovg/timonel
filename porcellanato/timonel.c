@@ -118,21 +118,21 @@ int main() {
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
            . Check the USI Status Register to verify           .
-           . whether a USI overflow handler should be launched .
-           .....................................................
-        */
-        if ((USISR & (1 << USIOIF)) && (USICR & (1 << USIOIE))) {
-            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
-        }         
-        /* .....................................................
-           . TWI Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify           .
            . whether a USI start handler should be launched    .
            .....................................................
         */
         if ((USISR & (1 << USISIF)) && (USICR & (1 << USISIE))) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
-        }         
+        } 		
+        /* .....................................................
+           . TWI Interrupt Emulation ......................... .
+           . Check the USI Status Register to verify           .
+           . whether a USI overflow handler should be launched .
+           .....................................................
+        */
+        if ((USISR & (1 << USIOIF)) && (USICR & (1 << USIOIE))) {
+            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
+        }                 
         if (dlyCounter-- <= 0) {
             dlyCounter = CYCLESTOWAIT;
             // Initialization check

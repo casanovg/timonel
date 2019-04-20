@@ -69,10 +69,12 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byt
 
 // Sends a TWI command to the microcontroller (Overload B: multibyte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
+    #define SLOW_TML_DLY 3
     USE_SERIAL.printf_P("[%s] >> Multi: 0x%02X --> making actual TWI transmission ...\n\r", __func__, twi_cmd_arr[0]);
     // TWI command transmit
     for (int i = 0; i < cmd_size; i++) {
         Wire.beginTransmission(addr_);
+        delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
         Wire.write(twi_cmd_arr[i]);
         Wire.endTransmission();
     }
@@ -80,6 +82,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     if (reply_size == 0) {
         Wire.requestFrom(addr_, ++reply_size, true); /* True: releases the bus with a stop after a master request. */
         byte reply = Wire.read();                    /* False: sends a restart, not releasing the bus.             */
+        delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
         if (reply == twi_reply) {
             USE_SERIAL.printf_P("[%s] Command 0x%02X parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
             return (0);
@@ -91,6 +94,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
         byte reply_length = Wire.requestFrom(addr_, reply_size, true); /* True: releases the bus with a stop after a master request. */
         for (int i = 0; i < reply_size; i++) {                         /* False: sends a restart, not releasing the bus.             */
             twi_reply_arr[i] = Wire.read();
+            delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
         }
         if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
             //USE_SERIAL.printf_P("[%s] Multibyte command %d parsed OK <<< %d\n\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
