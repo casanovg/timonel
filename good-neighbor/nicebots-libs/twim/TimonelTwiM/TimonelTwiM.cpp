@@ -13,14 +13,13 @@
 // Class constructor
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     if ((addr_ > 0) && (addr_ < 36)) {
-        USE_SERIAL.printf_P("[%s] Bootloader instance created with address %02d.\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Instance created with address %d, initializing Timonel device!\r\n", __func__, addr_);
         BootloaderInit(0);
     }
 }
 
-// Member Function QueryStatus (Retrieves the bootloader running parameters from the microcontroller)
+// Retrieve the bootloader running parameters from the microcontroller
 byte Timonel::QueryStatus(void) {
-    USE_SERIAL.printf_P("[%s] Querying Timonel device %02d to get status ...\r\n", __func__, addr_);
     byte twi_reply_arr[V_CMD_LENGTH] = {0}; /* Status received from I2C slave */
     byte twi_cmd_err = TwiCmdXmit(GETTMNLV, ACKTMNLV, twi_reply_arr, V_CMD_LENGTH);
     if ((twi_cmd_err == 0) && (twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && (twi_reply_arr[V_SIGNATURE] == T_SIGNATURE)) {
@@ -34,7 +33,7 @@ byte Timonel::QueryStatus(void) {
         status_.trampoline_addr++;
         status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
     } else {
-        //USE_SERIAL.printf_P("\n\r[%s] Error: parsing %02d command! <<< %d\n\r", __func__, GETTMNLV, twi_reply_arr[0]);
+        //USE_SERIAL.printf_P("\n\r[%s] Error: parsing %d command! <<< %d\n\r", __func__, GETTMNLV, twi_reply_arr[0]);
         return (ERR_01);
     }
     return (OK);
@@ -42,29 +41,27 @@ byte Timonel::QueryStatus(void) {
 
 // Returns a struct with the Timonel bootloader running status
 Timonel::Status Timonel::GetStatus(void) {
-    USE_SERIAL.printf_P("[%s] Getting Timonel device %02d status ...\r\n", __func__, addr_);
     QueryStatus();
     return (status_);
 }
 
-// Member Function BootloaderInit
+// Function TwoStepInit
 byte Timonel::BootloaderInit(const word time) {
     delay(time);
-    USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 1 required by features *\r\n", __func__, addr_);
     byte step1_outcome = QueryStatus(); /* Timonel initialization: STEP 1 */
     byte step2_outcome = 0;
-    if ((status_.features_code & 0x10) == 0x10) {
-        USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 2 required by features *\r\n", __func__, addr_);
-        step2_outcome = InitMicro(); /* Timonel initialization: STEP 2 (only if Timonel has this feature enabled) */
+    if ((status_.features_code & 0x10) == true) {
+        step2_outcome = InitMicro(); /* Timonel initialization: STEP 2 (Only if this feature is enabled) */
     }
     if ((step1_outcome + step1_outcome) == ACKINITS) {
-        return (OK);
-    } else {
-        return (1);
+        return(OK);
+    }
+    else {
+        return(1);
     }
 }
 
-// Member Function WritePageBuff
+// Function WritePageBuff
 byte Timonel::WritePageBuff(const byte data_array[]) {
     const byte cmd_size = MST_DATA_SIZE + 2;
     const byte reply_size = 2;
@@ -80,16 +77,16 @@ byte Timonel::WritePageBuff(const byte data_array[]) {
     byte wrt_errors = TwiCmdXmit(twi_cmd, cmd_size, ACKWTPAG, twi_reply_arr, reply_size);
     if (twi_reply_arr[0] == ACKWTPAG) {
         if (twi_reply_arr[1] != checksum) {
-            USE_SERIAL.printf_P("[%s] Data parsed with {{{ERROR}}} <<< Checksum = 0x%02X\r\n", __func__, twi_reply_arr[1]);
+            USE_SERIAL.printf_P("[%s] Data parsed with {{{ERROR}}} <<< Checksum = 0x%X\r\n", __func__, twi_reply_arr[1]);
             if (wrt_errors++ > 0) { /* Checksum error detected ... */
-                USE_SERIAL.printf_P("\n\r[%s] Checksum Errors, Exiting!\r\n", __func__);
+                USE_SERIAL.printf_P("\n\r[%s] Checksum Errors, Aborting ...\r\n", __func__);
                 exit(wrt_errors);
             }
         }
     } else {
-        USE_SERIAL.printf_P("[%s] Error parsing 0x%02X command! <<< 0x%02X\r\n", __func__, twi_cmd[0], twi_reply_arr[0]);
+        USE_SERIAL.printf_P("[%s] Error parsing %d command! <<< %d\r\n", __func__, twi_cmd[0], twi_reply_arr[0]);
         if (wrt_errors++ > 0) { /* Opcode error detected ... */
-            USE_SERIAL.printf_P("\n\r[%s] Opcode Reply Errors, Exiting!\n\r", __func__);
+            USE_SERIAL.printf_P("\n\r[%s] Opcode Reply Errors, Aborting ...\n\r", __func__);
             exit(wrt_errors);
         }
     }
@@ -103,27 +100,27 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     byte page_end = 0;                             /* Byte counter to detect the end of flash mem page */
     byte page_count = 1;                           /* Current page counter */
     byte upl_errors = 0;                           /* Upload error counter */
-    byte data_packet[MST_DATA_SIZE] = {0xFF};      /* Payload data packet to be sent to Timonel */
+    byte data_packet[MST_DATA_SIZE] = {0xFF};         /* TWI data packet array */
     if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled */
         if (start_address >= PAGE_SIZE) {          /* If application start address is not 0 */
-            USE_SERIAL.printf_P("\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
+            USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\n\r", __func__);
             FillSpecialPage(1);
             SetPageAddress(start_address); /* Calculate and fill reset page */
             delay(100);
         }
-        if ((status_.features_code & 0x02) == false) {                  /* if AUTO_TPL_CALC is disabled in Timonel device */
-            if (payload_size <= status_.bootloader_start - PAGE_SIZE) { /* if the user application does NOT USE the trampoline page */
-                USE_SERIAL.printf_P("\n\r[%s] Application doesn't use trampoline page ...\n\r", __func__);
+        if ((status_.features_code & 0x02) == false) {                  /* if AUTO_TPL_CALC is disabled */
+            if (payload_size <= status_.bootloader_start - PAGE_SIZE) { /* if the application does NOT use the trampoline page */
+                USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't use trampoline page ...\n\n\r", __func__);
                 FillSpecialPage(2, payload[1], payload[0]); /* Calculate and fill trampoline page */
                 SetPageAddress(start_address);
             } else {
-                if (payload_size <= status_.bootloader_start) { /* if the user application does USE the trampoline page, replace its last two bytes with the trampoline bytes */
-                    USE_SERIAL.printf_P("\n\r[%s] Application uses trampoline page ...\n\r", __func__);
+                if (payload_size <= status_.bootloader_start) { /* if the application does use the trampoline page, set a flag */
+                    USE_SERIAL.printf_P("\n\n\r[%s] Application uses trampoline page ...\n\n\r", __func__);
                     word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
                     payload[payload_size - 2] = (byte)(tpl & 0xFF);
                     payload[payload_size - 1] = (byte)((tpl >> 8) & 0xFF);
                 } else { /* if the application overlaps the bootloader */
-                    USE_SERIAL.printf_P("\n\r[%s] Application doesn't fit in flash memory ...\n\r", __func__);
+                    USE_SERIAL.printf_P("\n\n\r[%s] Application doesn't fit in flash memory ...\n\r", __func__);
                     USE_SERIAL.printf_P("[%s] Bootloafer start: %d\n\r", __func__, status_.bootloader_start);
                     USE_SERIAL.printf_P("[%s] Application size: %d\n\r", __func__, payload_size);
                     USE_SERIAL.printf_P("[%s] ----------------------\n\r", __func__);
@@ -138,7 +135,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
         payload_size += padding;
     }
-    USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
+    USE_SERIAL.printf_P("\n\r[%s] Writing payload to flash, starting at 0x%04X ...\n\n\r", __func__, start_address);
     for (int i = 0; i < payload_size; i++) {
         if (i < (payload_size - padding)) {
             data_packet[packet] = payload[i]; /* If there are data to fill the page, use them ... */
@@ -149,7 +146,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             for (int j = 0; j < MST_DATA_SIZE; j++) {
                 USE_SERIAL.printf_P(".");
             }
-            upl_errors += WritePageBuff(data_packet); /* Send a data packet to Timonel through TWI */
+            upl_errors += WritePageBuff(data_packet); /* Send data to Timonel through TWI */
             packet = 0;
             delay(10); /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
         }
@@ -167,9 +164,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 
             USE_SERIAL.printf_P(" P%d ", page_count);
 
-            if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
-                delay(100);                                /* delay to allow memory flashing, then set the next   */
-                USE_SERIAL.printf_P("\n\r");               /* page address before sending new data.               */
+            if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a 100  */
+                delay(100);                                /* ms delay to allow memory flashing and setting the */
+                USE_SERIAL.printf_P("\n\r");               /* next page address before sending new data.        */
                 SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
 
@@ -182,9 +179,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         }
     }
     if (upl_errors == 0) {
-        USE_SERIAL.printf_P("\n\r[%s] Application was successfully transferred, please select 'run app' command to start it ...\n\r", __func__);
+        USE_SERIAL.printf_P("\n\n\r[%s] Application was successfully transferred, please select 'run app' command to start it ...\n\n\r", __func__);
     } else {
-        USE_SERIAL.printf_P("\n\r[%s] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\r", __func__, upl_errors);
+        USE_SERIAL.printf_P("\n\n\r[%s] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\n\r", __func__, upl_errors);
         //DeleteFlash();
         BootloaderInit(2000);
 #if ESP8266
@@ -196,7 +193,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     return (upl_errors);
 }
 
-// Member Function SetPageAddres (Set the start memory address of the next page to load)
+// Sets the upload address of the forthcoming page
 byte Timonel::SetPageAddress(const word page_addr) {
     const byte cmd_size = 4;
     const byte reply_size = 2;
@@ -221,7 +218,7 @@ byte Timonel::SetPageAddress(const word page_addr) {
     return (twi_cmd_err);
 }
 
-// Member Function FillSpecialPage
+// Function FillSpecialPage
 byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, const byte app_reset_lsb) {
     word address = 0x0000;
     //byte special_page[64] = { 0xFF };
@@ -286,7 +283,7 @@ byte Timonel::DeleteApplication(void) {
     return (TwiCmdXmit(DELFLASH, ACKDELFL));
 }
 
-// Member Function CalculateTrampoline
+// Function CalculateTrampoline
 word Timonel::CalculateTrampoline(word bootloader_start, word application_start) {
     return (((~((bootloader_start >> 1) - ((application_start + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 }
@@ -340,7 +337,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte slave_data_size, cons
             USE_SERIAL.printf_P("[%s] DumpFlashMem Error parsing %d command <<< %d\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (1);
         }
-        delay(150); /* Verify if this delay matters on multi-slave setups: 50 --> 250 */
+        delay(50);
     }
     USE_SERIAL.printf_P("\n\r");
     return (OK);

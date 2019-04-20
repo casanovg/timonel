@@ -39,7 +39,7 @@ NbMicro::~NbMicro() {
 
 // Returns this object's TWI address
 byte NbMicro::GetTwiAddress(void) {
-    return (addr_);
+    return(addr_);
 }
 
 // Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
@@ -54,14 +54,13 @@ byte NbMicro::SetObjTwiAddress(byte twi_address) {
     }
 }
 
-// Member Function InitMicro
+// Function InitMicro
 byte NbMicro::InitMicro(void) {
     return (TwiCmdXmit(INITSOFT, ACKINITS));
 }
 
 // Sends a TWI command to the microcontroller (Overload A: single byte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-    USE_SERIAL.printf_P("[%s] > Single: 0x%02X, calling multi ...\n\r", __func__, twi_cmd);
     const byte cmd_size = 1;
     byte twi_cmd_arr[cmd_size] = {twi_cmd};
     return (TwiCmdXmit(twi_cmd_arr, cmd_size, twi_reply, twi_reply_arr, reply_size));
@@ -69,21 +68,16 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd, byte twi_reply, byte twi_reply_arr[], byt
 
 // Sends a TWI command to the microcontroller (Overload B: multibyte command)
 byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte twi_reply_arr[], byte reply_size) {
-    #define SLOW_TML_DLY 0
-    USE_SERIAL.printf_P("[%s] >> Multi: 0x%02X --> making actual TWI transmission ...\n\r", __func__, twi_cmd_arr[0]);
-    // TWI command transmit
     for (int i = 0; i < cmd_size; i++) {
         Wire.beginTransmission(addr_);
-        //delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
         Wire.write(twi_cmd_arr[i]);
         Wire.endTransmission();
     }
-    // Twi command reply
+    // Receive reply
     if (reply_size == 0) {
-        Wire.requestFrom(addr_, ++reply_size, true); /* True: releases the bus with a stop after a master request. */
-        byte reply = Wire.read();                    /* False: sends a restart, not releasing the bus.             */
-        //delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
-        if (reply == twi_reply) {
+        Wire.requestFrom(addr_, ++reply_size);
+        byte reply = Wire.read();
+        if (reply == twi_reply) { /* I2C reply from slave */
             USE_SERIAL.printf_P("[%s] Command 0x%02X parsed OK <<< %d\n\r", __func__, twi_cmd_arr[0], reply);
             return (0);
         } else {
@@ -91,10 +85,9 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
             return (1);
         }
     } else {
-        byte reply_length = Wire.requestFrom(addr_, reply_size, true); /* True: releases the bus with a stop after a master request. */
-        for (int i = 0; i < reply_size; i++) {                         /* False: sends a restart, not releasing the bus.             */
+        byte reply_length = Wire.requestFrom(addr_, reply_size);
+        for (int i = 0; i < reply_size; i++) {
             twi_reply_arr[i] = Wire.read();
-            //delay(SLOW_TML_DLY); /* Delay test for Timonel @ 8 Mhz */
         }
         if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
             //USE_SERIAL.printf_P("[%s] Multibyte command %d parsed OK <<< %d\n\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
@@ -118,7 +111,7 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     }
 }
 
-// ScanBus (Overload A: Returns the address and mode of the first TWI device found on the bus)
+// Function ScanTWI (Overload A: Returns the address and mode of the first TWI device found on the bus)
 byte TwiBus::ScanBus(bool *p_app_mode) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
@@ -141,7 +134,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
     }
 }
 
-// ScanBus (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
+// Function ScanTWI (Overload B: Fills an array with the address, firmware, and version of all devices connected to the bus)
 byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_addr) {
     // Address 08 to 35: Timonel bootloader
     // Address 36 to 63: Application firmware
