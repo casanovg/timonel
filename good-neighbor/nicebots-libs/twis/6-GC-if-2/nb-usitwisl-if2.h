@@ -74,6 +74,7 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
 void (*Usi_onReceivePtr)(uint8_t);
 
+
 // I2C handlers prototypes
 // GC: These functions replace the USI hardware interrupts
 void UsiStartHandler(void);

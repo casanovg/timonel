@@ -152,8 +152,6 @@ static void FlushTwiBuffers(void) {
     txCount = 0;
 }
 
-// Initialize USI for TWI slave mode
-
 // Function UsiTwiSlaveInit
 //void UsiTwiSlaveInit(uint8_t twi_addr) {
 void UsiTwiSlaveInit(void) {
@@ -205,12 +203,10 @@ bool UsiTwiDataInTransmitBuffer(void) {
 
 // Function UsiTwiTransmitByte
 void UsiTwiTransmitByte(uint8_t data) {
-
     // Wait for free space in buffer
     while (txCount == TWI_TX_BUFFER_SIZE) {
         // Nothing
     };
-
     // Store data in buffer
     tx_buffer[txHead] = data;
     txHead = (txHead + 1) & TWI_TX_BUFFER_MASK;
@@ -224,12 +220,10 @@ uint8_t UsiTwiReceiveByte(void) {
     while (!rxCount) {
         // Nothing
     };
-
     rtn_byte = rx_buffer[rxTail];
     // calculate buffer index
     rxTail = (rxTail + 1) & TWI_RX_BUFFER_MASK;
     rxCount--;
-
     // return data from the buffer.
     return rtn_byte;
 }
@@ -254,18 +248,18 @@ void UsiStartHandler() {
     // set SDA as input
     DDR_USI &= ~(1 << PORT_USI_SDA);
 
-    // wait for SCL to go low to ensure the Start Condition has completed (the
+    // Wait for SCL to go low to ensure the Start Condition has completed (the
     // start detector will hold SCL low ) - if a Stop Condition arises then leave
     // the interrupt to prevent waiting forever - don't use USISR to test for Stop
     // Condition as in Application Note AVR312 because the Stop Condition Flag is
     // going to be set from the last TWI sequence
-    while ( (PIN_USI & (1<<PORT_USI_SCL)) && (!(PIN_USI & (1<<PORT_USI_SDA))) );
+    while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
         // SCL his high
         // (PIN_USI & (1 << PIN_USI_SCL)) &&
         // // and SDA is low
         // !((PIN_USI & (1 << PIN_USI_SDA))))
         // ;
-        
+	}
 
     if (!(PIN_USI & (1 << PIN_USI_SDA))) {
         // a Stop Condition did not occur
@@ -306,7 +300,7 @@ void UsiStartHandler() {
         // set USI to sample 8 bits (count 16 external SCL pin toggles)
         (0x0 << USICNT0);
 
-    USISR |= (1 << TWI_START_COND_FLAG); /* Reset the USI start flag in USISR register to prepare for new ints */
+    USISR |= (1 << TWI_START_COND_FLAG); /* GC: Clear the TWI start condition flag in USI status register to prepare for new ints */
 }
 
 // Function UsiOverflowHandler
@@ -400,5 +394,5 @@ void UsiOverflowHandler(uint8_t twi_address) {
         }
     }
 
-    USISR |= (1 << USI_OVERFLOW_FLAG); /* Reset the USI overflow flag in USISR register to prepare for new ints */
+    USISR |= (1 << USI_OVERFLOW_FLAG); /* GC: Clear the 4-bit counter overflow flag in USI status register to prepare for new ints */
 }
