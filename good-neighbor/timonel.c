@@ -101,7 +101,8 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-    UsiTwiSlaveInit(TWI_ADDR);              /* Initialize TWI */
+	UsiTwiSlaveInit();              		/* Initialize TWI */
+	//UsiTwiSlaveInit(TWI_ADDR);              		/* Initialize TWI */
     Usi_onReceivePtr = ReceiveEvent;        /* TWI Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
@@ -131,7 +132,7 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << USIOIF)) && (USICR & (1 << USIOIE))) {
-            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
+            UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
         }                 
         if (dlyCounter-- <= 0) {
             dlyCounter = CYCLESTOWAIT;
