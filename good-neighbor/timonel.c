@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-04-19 (PORCELLANATO)
+ *  Version: 1.3 "Sandra" / 2019-04-19 (GOOD-NEIGHBOR)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -102,7 +102,7 @@ int main() {
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
 	UsiTwiSlaveInit();              		/* Initialize TWI */
-	//UsiTwiSlaveInit(TWI_ADDR);              		/* Initialize TWI */
+	//UsiTwiSlaveInit(TWI_ADDR);            /* Initialize TWI */
     Usi_onReceivePtr = ReceiveEvent;        /* TWI Receive Event */
     Usi_onRequestPtr = RequestEvent;        /* TWI Request Event */
     __SPM_REG = (_BV(CTPB) | \
@@ -118,20 +118,20 @@ int main() {
     for (;;) {
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify           .
-           . whether a USI start handler should be launched    .
+           . Check the USI Status Register to verify whether   .
+           . a TWI start condition handler should be launched  .
            .....................................................
         */
-        if ((USISR & (1 << USISIF)) && (USICR & (1 << USISIE))) {
+        if ((USISR & (1 << TWI_START_COND_FLAG)) && (USICR & (1 << TWI_START_COND_INT))) {
             UsiStartHandler();      /* If so, run the USI start handler ... */
         } 		
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify           .
-           . whether a USI overflow handler should be launched .
+           . Check the USI Status Register to verify whether   .
+           . a USI counter overflow handler should be launched .
            .....................................................
         */
-        if ((USISR & (1 << USIOIF)) && (USICR & (1 << USIOIE))) {
+        if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
             UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
         }                 
         if (dlyCounter-- <= 0) {

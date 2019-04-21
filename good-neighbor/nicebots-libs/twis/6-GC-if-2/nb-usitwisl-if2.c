@@ -36,30 +36,31 @@ inline void DATA_REQUESTED_BY_MASTER_CALLBACK() __attribute__((always_inline));
 inline void STOP_CONDITION_RECEIVED_CALLBACK() __attribute__((always_inline));
 
 // USI direction setting functions
+// -----------------------------------------------------
 inline void SET_USI_SDA_AS_OUTPUT() {
 	DDR_USI |=  (1 << PORT_USI_SDA);
 }
-
+// -----------------------------------------------------
 inline void SET_USI_SDA_AS_INPUT() {
 	DDR_USI &= ~(1 << PORT_USI_SDA);
 }
-
+// -----------------------------------------------------
 inline void SET_USI_SCL_AS_OUTPUT() {
 	DDR_USI |=  (1 << PORT_USI_SCL);
 }
-
+// -----------------------------------------------------
 inline void SET_USI_SCL_AS_INPUT() {
 	DDR_USI &= ~(1 << PORT_USI_SCL);
 }
-
+// -----------------------------------------------------
 inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() {
 	DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
 }
-
+// -----------------------------------------------------
 inline void SET_USI_SDA_AND_SCL_AS_INPUT() {
 	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
 }
-
+// -----------------------------------------------------
 // USI basic TWI operations functions
 // -----------------------------------------------------
 inline void SET_USI_TO_SEND_ACK() {
