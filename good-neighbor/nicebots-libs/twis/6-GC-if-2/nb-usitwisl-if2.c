@@ -177,23 +177,21 @@ bool UsiTwiDataInTransmitBuffer(void) {
 
 // Function UsiTwiTransmitByte
 void UsiTwiTransmitByte(uint8_t data_byte) {
-    while (tx_count == TWI_TX_BUFFER_SIZE) {
+    while (tx_count++ == TWI_TX_BUFFER_SIZE) {
 		/* Wait until there is free space in the TX buffer */
     };
     tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
     tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
-    tx_count++;
 }
 
 // Function UsiTwiReceiveByte
 uint8_t UsiTwiReceiveByte(void) {
     uint8_t received_byte;
-    while (!rx_count) {
+    while (!rx_count--) {
         /* Wait until a byte is received into the RX buffer */
     };
     received_byte = rx_buffer[rx_tail];
     rx_tail = (rx_tail + 1) & TWI_RX_BUFFER_MASK; /* Calculate the buffer index */
-    rx_count--;
     return received_byte; /* Return the received byte from the buffer */
 }
 
@@ -263,7 +261,7 @@ void UsiOverflowHandler(uint8_t twi_address) {
         // else reset USI
         case USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA: {
             if (USIDR) {
-                // if NACK, the master does not want more data
+                // If NACK, the master does not want more data
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 return;
             }
@@ -274,10 +272,9 @@ void UsiOverflowHandler(uint8_t twi_address) {
         // Next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
         case USI_SLAVE_SEND_DATA: {
             // Get data from Buffer
-            if (tx_count) {
+            if (tx_count--) {
                 USIDR = tx_buffer[tx_tail];
                 tx_tail = (tx_tail + 1) & TWI_TX_BUFFER_MASK;
-                tx_count--;
             } else {
                 // The buffer is empty
                 SET_USI_TO_WAIT_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
@@ -307,13 +304,11 @@ void UsiOverflowHandler(uint8_t twi_address) {
         case USI_SLAVE_GET_DATA_AND_SEND_ACK: {
             // put data into buffer
             // check buffer size
-            if (rx_count < TWI_RX_BUFFER_SIZE) {
+            if (rx_count++ < TWI_RX_BUFFER_SIZE) {
                 rx_buffer[rx_head] = USIDR;
                 rx_head = (rx_head + 1) & TWI_RX_BUFFER_MASK;
-                rx_count++;
             } else {
-                // Overrun
-                // Drop data
+                /* Overrun, drop data */
             }
             // Next USI_SLAVE_REQUEST_DATA
             device_state = USI_SLAVE_REQUEST_DATA;
