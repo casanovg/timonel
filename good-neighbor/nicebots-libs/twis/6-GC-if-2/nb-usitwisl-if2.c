@@ -35,6 +35,7 @@ inline void DATA_RECEIVED_FROM_MASTER_CALLBACK() __attribute__((always_inline));
 inline void DATA_REQUESTED_BY_MASTER_CALLBACK() __attribute__((always_inline));
 inline void STOP_CONDITION_RECEIVED_CALLBACK() __attribute__((always_inline));
 
+// -----------------------------------------------------
 // USI direction setting functions
 // -----------------------------------------------------
 inline void SET_USI_SDA_AS_OUTPUT() {
@@ -60,6 +61,7 @@ inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() {
 inline void SET_USI_SDA_AND_SCL_AS_INPUT() {
 	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
 }
+
 // -----------------------------------------------------
 // USI basic TWI operations functions
 // -----------------------------------------------------
@@ -96,7 +98,7 @@ inline void SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS() {
 			(1 << USI_OVERFLOW_FLAG) |
 			(1 << TWI_STOP_COND_FLAG) |
 			(1 << TWI_COLLISION_FLAG) |
-			(0x0 << USICNT0); /* Set status register 4-bit counter to shift 8 bits (address byte to be received) */	 		
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (address byte to be received) */	 		
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_SEND_DATA() {
@@ -106,7 +108,7 @@ inline void SET_USI_TO_SEND_DATA() {
 			(1 << USI_OVERFLOW_FLAG) |
 			(1 << TWI_STOP_COND_FLAG) |
 			(1 << TWI_COLLISION_FLAG) |
-			(0x0 << USICNT0); /* Set status register 4-bit counter to shift 8 bits (data byte to be transmitted) */		
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be transmitted) */		
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_RECEIVE_DATA() {
@@ -116,7 +118,7 @@ inline void SET_USI_TO_RECEIVE_DATA() {
 			(1 << USI_OVERFLOW_FLAG) |
 			(1 << TWI_STOP_COND_FLAG) |
 			(1 << TWI_COLLISION_FLAG) |
-			(0x0 << USICNT0); /* Set status register 4-bit counter to shift 8 bits (data byte to be received) */		
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */		
 	
 }
 
@@ -145,169 +147,97 @@ inline void STOP_CONDITION_RECEIVED_CALLBACK() {
 
 // Function FlushTwiBuffers
 static void FlushTwiBuffers(void) {
-    rxTail = 0;
-    rxHead = 0;
-    rxCount = 0;
-    txTail = 0;
-    txHead = 0;
-    txCount = 0;
+    rx_tail = 0;
+    rx_head = 0;
+    rx_count = 0;
+    tx_tail = 0;
+    tx_head = 0;
+    tx_count = 0;
 }
 
 // Function UsiTwiSlaveInit
-//void UsiTwiSlaveInit(uint8_t twi_addr) {
 void UsiTwiSlaveInit(void) {
+	/* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
+       low when a start condition is detected or a counter overflow (only
+       for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
+       by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
+	*/
     FlushTwiBuffers();
-    //twi_address = twi_addr;
-
-    // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
-    // low when a start condition is detected or a counter overflow (only
-    // for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
-    // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
-
-    // Set SCL and SDA as output
-	SET_USI_SDA_AND_SCL_AS_OUTPUT();
-
-    // set SCL high
-    PORT_USI |= (1 << PORT_USI_SCL);
-
-    // set SDA high
-    PORT_USI |= (1 << PORT_USI_SDA);
-
-    // Set SDA as input
-	SET_USI_SDA_AS_INPUT();
-
-    USICR =
-        // enable Start Condition Interrupt
-        (1 << USISIE) |
-        // disable Overflow Interrupt
-        (0 << USIOIE) |
-        // set USI in Two-wire mode, no USI Counter overflow hold
-        (1 << USIWM1) | (0 << USIWM0) |
-        // Shift Register Clock Source = external, positive edge
-        // 4-Bit Counter Source = external, both edges
-        (1 << USICS1) | (0 << USICS0) | (0 << USICLK) |
-        // no toggle clock-port pin
-        (0 << USITC);
-
-    // Clear all interrupt flags and reset overflow counter
-    USISR = (1 << TWI_START_COND_FLAG) |
-			(1 << USI_OVERFLOW_FLAG) |
-			(1 << TWI_STOP_COND_FLAG) |
-			(1 << TWI_COLLISION_FLAG);
+	SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
+    PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
+    PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
+	SET_USI_SDA_AS_INPUT(); 		 /* Set SDA as input */
+	SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS(); /* Wait for TWI start condition and address from master */
 }
 
 // Function UsiTwiDataInTransmitBuffer
-bool UsiTwiDataInTransmitBuffer(void) {
-    // return 0 (false) if the receive buffer is empty
-    return txCount;
+bool UsiTwiDataInTransmitBuffer(void) { 
+    return tx_count; /* Return 0 (false) if the receive buffer is empty */
 }
 
 // Function UsiTwiTransmitByte
-void UsiTwiTransmitByte(uint8_t data) {
-    // Wait for free space in buffer
-    while (txCount == TWI_TX_BUFFER_SIZE) {
-        // Nothing
+void UsiTwiTransmitByte(uint8_t data_byte) {
+    while (tx_count == TWI_TX_BUFFER_SIZE) {
+		/* Wait until there is free space in the TX buffer */
     };
-    // Store data in buffer
-    tx_buffer[txHead] = data;
-    txHead = (txHead + 1) & TWI_TX_BUFFER_MASK;
-    txCount++;
+    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
+    tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
+    tx_count++;
 }
 
 // Function UsiTwiReceiveByte
 uint8_t UsiTwiReceiveByte(void) {
-    uint8_t rtn_byte;
-    // wait for Rx data
-    while (!rxCount) {
-        // Nothing
+    uint8_t received_byte;
+    while (!rx_count) {
+        /* Wait until a byte is received into the RX buffer */
     };
-    rtn_byte = rx_buffer[rxTail];
-    // calculate buffer index
-    rxTail = (rxTail + 1) & TWI_RX_BUFFER_MASK;
-    rxCount--;
-    // return data from the buffer.
-    return rtn_byte;
+    received_byte = rx_buffer[rx_tail];
+    rx_tail = (rx_tail + 1) & TWI_RX_BUFFER_MASK; /* Calculate the buffer index */
+    rx_count--;
+    return received_byte; /* Return the received byte from the buffer */
 }
 
 // Function UsiTwiAmountDataInReceiveBuffer
 uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
-    return rxCount;
+    return rx_count;
 }
 
-// Function UsiStartHandler
-// GC: Interrupt-like function
+// Function UsiStartHandler (GC: Interrupt-like handler function)
 void UsiStartHandler() {
-    // This triggers on second write, but claims to the callback there is only *one* byte in buffer
-    //STOP_CONDITION_RECEIVED_CALLBACK();
-
-    // This triggers on second write, but claims to the callback there is only *one* byte in buffer
-    //DATA_RECEIVED_FROM_MASTER_CALLBACK();
-
-    // set default starting conditions for new TWI package
-    current_state = USI_SLAVE_CHECK_ADDRESS;
-
-    // set SDA as input
-    DDR_USI &= ~(1 << PORT_USI_SDA);
-
-    // Wait for SCL to go low to ensure the Start Condition has completed (the
-    // start detector will hold SCL low ) - if a Stop Condition arises then leave
-    // the interrupt to prevent waiting forever - don't use USISR to test for Stop
-    // Condition as in Application Note AVR312 because the Stop Condition Flag is
-    // going to be set from the last TWI sequence
+    device_state = USI_SLAVE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
+	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
-        // SCL his high
-        // (PIN_USI & (1 << PIN_USI_SCL)) &&
-        // // and SDA is low
-        // !((PIN_USI & (1 << PIN_USI_SDA))))
-        // ;
+		/* Wait for SCL to go low to ensure the start condition has completed (the
+		   start detector will hold SCL low ).
+		*/
 	}
-
-    if (!(PIN_USI & (1 << PIN_USI_SDA))) {
-        // a Stop Condition did not occur
-
-        USICR =
-            // keep Start Condition Interrupt enabled to detect RESTART
-            (1 << USISIE) |
-            // enable Overflow Interrupt
-            (1 << USIOIE) |
-            // set USI in Two-wire mode, hold SCL low on USI Counter overflow
-            (1 << USIWM1) | (1 << USIWM0) |
-            // Shift Register Clock Source = External, positive edge
-            // 4-Bit Counter Source = external, both edges
-            (1 << USICS1) | (0 << USICS0) | (0 << USICLK) |
-            // no toggle clock-port pin
-            (0 << USITC);
-    } else {
-        // a Stop Condition did occur
-
-        USICR =
-            // enable Start Condition Interrupt
-            (1 << USISIE) |
-            // disable Overflow Interrupt
-            (0 << USIOIE) |
-            // set USI in Two-wire mode, no USI Counter overflow hold
-            (1 << USIWM1) | (0 << USIWM0) |
-            // Shift Register Clock Source = external, positive edge
-            // 4-Bit Counter Source = external, both edges
-            (1 << USICS1) | (0 << USICS0) | (0 << USICLK) |
-            // no toggle clock-port pin
-            (0 << USITC);
+	// If a stop condition arises then leave this function to prevent waiting forever.
+	// Don't use USISR to test for stop condition as in application note AVR312
+	// because the stop condition flag is going to be set from the last TWI sequence.
+	if (!(PIN_USI & (1 << PIN_USI_SDA))) {	/*** Stop condition NOT DETECTED ***/
+		// Keep start condition interrupt enabled to detect RESTART
+		USICR = (1 << TWI_START_COND_INT) | (1 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
+				(1 << USIWM1) | (1 << USIWM0) | /* Set USI in Two-wire mode, hold SCL low when the 4-bit counter overflows */
+				(1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
+				(0 << USITC); /* No toggle clock-port pin (SCL) */
+    } else { 								/*** Stop condition DETECTED ***/
+		/* Configure USI control register */
+		USICR = (1 << TWI_START_COND_INT) | (0 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
+				(1 << USIWM1) | (0 << USIWM0) | /* Set USI in Two-wire mode, no SCL hold when the 4-bit counter overflows */
+				(1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
+				(0 << USITC); /* No toggle clock-port pin (SCL) */				
     }
-
-    USISR =
-        // clear interrupt flags - resetting the Start Condition Flag will
-        // release SCL
-        (1 << TWI_START_COND_FLAG) | (1 << USI_OVERFLOW_FLAG) | (1 << TWI_STOP_COND_FLAG) | (1 << TWI_COLLISION_FLAG) |
-        // set USI to sample 8 bits (count 16 external SCL pin toggles)
-        (0x0 << USICNT0);
-
-    USISR |= (1 << TWI_START_COND_FLAG); /* GC: Clear the TWI start condition flag in USI status register to prepare for new ints */
+	/* Clear all USI status register interrupt flags to prepare for new start conditions */
+	USISR = (1 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */  
 }
 
-// Function UsiOverflowHandler
-// GC: Interrupt-like function
+// Function UsiOverflowHandler (GC: Interrupt-like handler function)
 void UsiOverflowHandler(uint8_t twi_address) {
-    switch (current_state) {
+    switch (device_state) {
         // Address mode: check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK,
         // else reset USI
         case USI_SLAVE_CHECK_ADDRESS: {
@@ -318,9 +248,9 @@ void UsiOverflowHandler(uint8_t twi_address) {
             //if (((USIDR >> 1) & 0x3F) == twi_address) {
                 if (USIDR & 0x01) {             /* If 1: Slave sends data to master */
                     DATA_REQUESTED_BY_MASTER_CALLBACK();
-                    current_state = USI_SLAVE_SEND_DATA;
+                    device_state = USI_SLAVE_SEND_DATA;
                 } else {                        /* If 0: Slave receives data from master */
-                    current_state = USI_SLAVE_REQUEST_DATA;
+                    device_state = USI_SLAVE_REQUEST_DATA;
                 }
                 SET_USI_TO_SEND_ACK();
             }
@@ -339,39 +269,36 @@ void UsiOverflowHandler(uint8_t twi_address) {
             }
         }
         // From here we just drop straight into USI_SLAVE_SEND_DATA if the
-        // master sent an ACK
-
+        // master sent an ACK.
         // Copy data from buffer to USIDR and set USI to shift byte
         // Next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
         case USI_SLAVE_SEND_DATA: {
             // Get data from Buffer
-            if (txCount) {
-                USIDR = tx_buffer[txTail];
-                txTail = (txTail + 1) & TWI_TX_BUFFER_MASK;
-                txCount--;
+            if (tx_count) {
+                USIDR = tx_buffer[tx_tail];
+                tx_tail = (tx_tail + 1) & TWI_TX_BUFFER_MASK;
+                tx_count--;
             } else {
                 // The buffer is empty
                 SET_USI_TO_WAIT_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 return;
             }
-            current_state = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
+            device_state = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
             SET_USI_TO_SEND_DATA();
             break;
         }
-
         // Set USI to sample reply from master
         // Next USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA
         case USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA: {
-            current_state = USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA;
+            device_state = USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA;
             SET_USI_TO_WAIT_ACK();
             break;
         }
-
         // Master read data mode: set USI to sample data from master, next
         // USI_SLAVE_GET_DATA_AND_SEND_ACK
         case USI_SLAVE_REQUEST_DATA: {
-            current_state = USI_SLAVE_GET_DATA_AND_SEND_ACK;
+            device_state = USI_SLAVE_GET_DATA_AND_SEND_ACK;
             SET_USI_TO_RECEIVE_DATA();
             break;
         }
@@ -380,20 +307,19 @@ void UsiOverflowHandler(uint8_t twi_address) {
         case USI_SLAVE_GET_DATA_AND_SEND_ACK: {
             // put data into buffer
             // check buffer size
-            if (rxCount < TWI_RX_BUFFER_SIZE) {
-                rx_buffer[rxHead] = USIDR;
-                rxHead = (rxHead + 1) & TWI_RX_BUFFER_MASK;
-                rxCount++;
+            if (rx_count < TWI_RX_BUFFER_SIZE) {
+                rx_buffer[rx_head] = USIDR;
+                rx_head = (rx_head + 1) & TWI_RX_BUFFER_MASK;
+                rx_count++;
             } else {
                 // Overrun
                 // Drop data
             }
             // Next USI_SLAVE_REQUEST_DATA
-            current_state = USI_SLAVE_REQUEST_DATA;
+            device_state = USI_SLAVE_REQUEST_DATA;
             SET_USI_TO_SEND_ACK();
             break;
         }
     }
-
-    USISR |= (1 << USI_OVERFLOW_FLAG); /* GC: Clear the 4-bit counter overflow flag in USI status register to prepare for new ints */
+    USISR |= (1 << USI_OVERFLOW_FLAG); /* GC: Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
 }

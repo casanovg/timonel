@@ -54,15 +54,15 @@ typedef enum {
 
 // Global library variables
 //volatile uint8_t twi_address;
-OperationalState current_state;
+OperationalState device_state;
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-uint8_t rxHead;
-uint8_t rxTail;
-uint8_t rxCount;
+uint8_t rx_head;
+uint8_t rx_tail;
+uint8_t rx_count;
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-uint8_t txHead;
-uint8_t txTail;
-uint8_t txCount;
+uint8_t tx_head;
+uint8_t tx_tail;
+uint8_t tx_count;
 
 // Prototypes
 //void UsiTwiSlaveInit(uint8_t);
