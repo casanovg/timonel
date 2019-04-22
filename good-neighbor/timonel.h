@@ -133,7 +133,7 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define CYCLESTOWAIT    0xFF    /* Main loop counter to allow the I2C replies to complete before  */
+#define CYCLESTOWAIT    0xFF  /* Main loop counter to allow the I2C replies to complete before  */
                                 /* performing the selected actions. Also used as LED toggle delay */
                                 /* before the I2C master initializes the bootloader.              */
 
