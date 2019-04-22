@@ -108,7 +108,7 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    word dlyCounter = CYCLESTOWAIT;
+    byte dlyCounter = CYCLESTOWAIT;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -133,9 +133,10 @@ int main() {
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
             UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
+            dlyCounter = CYCLESTOWAIT;
         }                 
         if (dlyCounter-- <= 0) {
-            dlyCounter = CYCLESTOWAIT;
+            //dlyCounter = CYCLESTOWAIT;
             // Initialization check
 #if !(TWO_STEP_INIT)
             if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {

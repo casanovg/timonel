@@ -8,7 +8,7 @@
  *  gustavo.casanova@nicebots.com
  *  ........................................... 
  *  Based on work by Atmel (AVR312), Don Blake,
- *  Rambo, bHogan, A. Vogel et others
+ *  Rambo, bHogan, A.Vogel et others
  *  ...........................................
  */
 
@@ -202,7 +202,7 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void) {
 
 // Function UsiStartHandler (GC: Interrupt-like handler function)
 void UsiStartHandler() {
-    device_state = USI_SLAVE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
+    device_state = STATE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
 	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
 		/* Wait for SCL to go low to ensure the start condition has completed (the
@@ -236,19 +236,15 @@ void UsiStartHandler() {
 // Function UsiOverflowHandler (GC: Interrupt-like handler function)
 void UsiOverflowHandler(uint8_t twi_address) {
     switch (device_state) {
-        // Address mode: check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK,
+        // Check address mode: check received address and send ACK (and next STATE_SEND_DATA) if OK,
         // else reset USI
-        case USI_SLAVE_CHECK_ADDRESS: {
-            // #############################################################
-            // # GC: Re-enable this device answers to "general calls"
-            // #############################################################
+        case STATE_CHECK_ADDRESS: {
             if ((USIDR == 0) || ((USIDR >> 1) == twi_address)) {
-            //if (((USIDR >> 1) & 0x3F) == twi_address) {
-                if (USIDR & 0x01) {             /* If 1: Slave sends data to master */
+                if (USIDR & 0x01) {             /* If lsbit = 1: Send data to master */
                     DATA_REQUESTED_BY_MASTER_CALLBACK();
-                    device_state = USI_SLAVE_SEND_DATA;
-                } else {                        /* If 0: Slave receives data from master */
-                    device_state = USI_SLAVE_REQUEST_DATA;
+                    device_state = STATE_SEND_DATA;
+                } else {                        /* If lsbit = 0: Receive data from master */
+                    device_state = STATE_WAIT_DATA_RECEPTION;
                 }
                 SET_USI_TO_SEND_ACK();
             }
@@ -257,20 +253,20 @@ void UsiOverflowHandler(uint8_t twi_address) {
             }
             break;
         }
-        // Master write data mode: check reply and goto USI_SLAVE_SEND_DATA if OK,
+        // Master write data mode: check reply and goto STATE_SEND_DATA if OK,
         // else reset USI
-        case USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA: {
+        case STATE_CHECK_ACK_AFTER_SEND_DATA: {
             if (USIDR) {
                 // If NACK, the master does not want more data
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 return;
             }
         }
-        // From here we just drop straight into USI_SLAVE_SEND_DATA if the
+        // From here we just drop straight into STATE_SEND_DATA if the
         // master sent an ACK.
         // Copy data from buffer to USIDR and set USI to shift byte
-        // Next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
-        case USI_SLAVE_SEND_DATA: {
+        // Next STATE_WAIT_ACK_AFTER_SEND_DATA
+        case STATE_SEND_DATA: {
             // Get data from Buffer
             if (tx_count--) {
                 USIDR = tx_buffer[tx_tail];
@@ -281,27 +277,27 @@ void UsiOverflowHandler(uint8_t twi_address) {
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 return;
             }
-            device_state = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
+            device_state = STATE_WAIT_ACK_AFTER_SEND_DATA;
             SET_USI_TO_SEND_DATA();
             break;
         }
-        // Set USI to sample reply from master
-        // Next USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA
-        case USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA: {
-            device_state = USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA;
+        // Set USI to sample ACK/NACK reply from master
+        // Next STATE_CHECK_ACK_AFTER_SEND_DATA
+        case STATE_WAIT_ACK_AFTER_SEND_DATA: {
+            device_state = STATE_CHECK_ACK_AFTER_SEND_DATA;
             SET_USI_TO_WAIT_ACK();
             break;
         }
-        // Master read data mode: set USI to sample data from master, next
-        // USI_SLAVE_GET_DATA_AND_SEND_ACK
-        case USI_SLAVE_REQUEST_DATA: {
-            device_state = USI_SLAVE_GET_DATA_AND_SEND_ACK;
+        // Read data mode: set USI to sample data from master, next
+        // STATE_RECEIVE_DATA_AND_SEND_ACK
+        case STATE_WAIT_DATA_RECEPTION: {
+            device_state = STATE_RECEIVE_DATA_AND_SEND_ACK;
             SET_USI_TO_RECEIVE_DATA();
             break;
         }
-        // Copy data from USIDR and send ACK
-        // Next USI_SLAVE_REQUEST_DATA
-        case USI_SLAVE_GET_DATA_AND_SEND_ACK: {
+        // Take data from USIDR and send ACK
+        // Next STATE_WAIT_DATA_RECEPTION
+        case STATE_RECEIVE_DATA_AND_SEND_ACK: {
             // put data into buffer
             // check buffer size
             if (rx_count++ < TWI_RX_BUFFER_SIZE) {
@@ -310,8 +306,8 @@ void UsiOverflowHandler(uint8_t twi_address) {
             } else {
                 /* Overrun, drop data */
             }
-            // Next USI_SLAVE_REQUEST_DATA
-            device_state = USI_SLAVE_REQUEST_DATA;
+            // Next STATE_WAIT_DATA_RECEPTION
+            device_state = STATE_WAIT_DATA_RECEPTION;
             SET_USI_TO_SEND_ACK();
             break;
         }
