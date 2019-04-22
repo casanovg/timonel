@@ -8,7 +8,7 @@
  *  gustavo.casanova@nicebots.com
  *  ........................................... 
  *  Based on work by Atmel (AVR312), Don Blake,
- *  Rambo, bHogan, A. Vogel et others
+ *  Rambo, bHogan, A.Vogel et others
  *  ...........................................
  */
 
@@ -44,16 +44,16 @@
 
 // Data Type definitions
 typedef enum {
-	USI_SLAVE_CHECK_ADDRESS,
-    USI_SLAVE_SEND_DATA,
-    USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA,
-    USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA,
-    USI_SLAVE_REQUEST_DATA,
-    USI_SLAVE_GET_DATA_AND_SEND_ACK
+	STATE_CHECK_ADDRESS,
+    STATE_SEND_DATA,
+    STATE_WAIT_ACK_AFTER_SEND_DATA,
+    STATE_CHECK_ACK_AFTER_SEND_DATA,
+    STATE_WAIT_DATA_RECEPTION,
+    STATE_RECEIVE_DATA_AND_SEND_ACK   
+    
 } OperationalState;
 
 // Global library variables
-//volatile uint8_t twi_address;
 OperationalState device_state;
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t rx_head;
@@ -74,9 +74,7 @@ uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
 void (*Usi_onReceivePtr)(uint8_t);
 
-
-// I2C handlers prototypes
-// GC: These functions replace the USI hardware interrupts
+// I2C handlers prototypes (GC: These functions replace the USI hardware interrupts)
 void UsiStartHandler(void);
 void UsiOverflowHandler(uint8_t);
 
