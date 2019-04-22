@@ -42,7 +42,7 @@
 #error TWI TX buffer size is not a power of 2
 #endif
 
-// Data Type definitions
+// Device modes
 typedef enum {
 	STATE_CHECK_ADDRESS,
     STATE_SEND_DATA,
@@ -50,7 +50,6 @@ typedef enum {
     STATE_CHECK_ACK_AFTER_SEND_DATA,
     STATE_WAIT_DATA_RECEPTION,
     STATE_RECEIVE_DATA_AND_SEND_ACK   
-    
 } OperationalState;
 
 // Global library variables
