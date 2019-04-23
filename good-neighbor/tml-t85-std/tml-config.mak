@@ -2,7 +2,7 @@
 # File: tml-config.mak
 # Project: Timonel - TWI Bootloader for TinyX5 MCUs
 # .......................................................
-# 2018-08-28 gustavo.casanova@nicebots.com (PORCELLANATO)
+# 2019-04-22 gustavo.casanova@nicebots.com (GOOD-NEIGHBOR)
 # .......................................................
 
 # Controller type: ATtiny 85 - 16.5 MHz

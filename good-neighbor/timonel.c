@@ -101,14 +101,13 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-	UsiTwiSlaveInit();              		/* Initialize TWI */
-	//UsiTwiSlaveInit(TWI_ADDR);            /* Initialize TWI */
-    Usi_onReceivePtr = ReceiveEvent;        /* TWI Receive Event */
-    Usi_onRequestPtr = RequestEvent;        /* TWI Request Event */
+	UsiTwiSlaveInit();              		/* Initialize TWI driver */
+    Usi_onReceivePtr = ReceiveEvent;        /* Pointer to TWI receive event callback function */
+    Usi_onRequestPtr = RequestEvent;        /* Pointer to TWI request event callback function */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    byte dlyCounter = CYCLESTOWAIT;
+    byte dlyCounter = CYCLESTOWAIT;         /* Main loop counter to allow the TWI replies to complete */
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
