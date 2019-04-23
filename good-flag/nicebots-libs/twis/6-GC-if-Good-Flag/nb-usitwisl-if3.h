@@ -2,7 +2,7 @@
  *  Timonel USI TWI Interrupt-Free Driver
  *  Author: Gustavo Casanova
  *  ...........................................
- *  File: nb-usitwisl.c (Driver headers)
+ *  File: nb-usitwisl.h (Driver headers)
  *  ........................................... 
  *  Version: 1.0 / 2019-04-19
  *  gustavo.casanova@nicebots.com
