@@ -237,7 +237,6 @@ inline uint8_t UsiOverflowHandler() {
             if (USIDR) {
                 // If NACK, the master does not want more data
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
-
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                >>
                 return(true); // Enable slow operations in main!    >>
