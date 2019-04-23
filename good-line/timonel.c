@@ -58,14 +58,12 @@
 #endif
 
 // Type definitions
-//typedef uint8_t byte;
-typedef uint16_t word;
 typedef void (* const fptr_t)(void);
 
 // Global variables
 //uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
-word flashPageAddr = 0x0000;                /* Flash memory page address */
+uint16_t flashPageAddr = 0x0000;                /* Flash memory page address */
 uint8_t pageIX = 0;                            /* Flash memory page index */
 #if AUTO_TPL_CALC
 uint8_t appResetLSB = 0xFF;                    /* Application first byte */
@@ -109,7 +107,10 @@ int main() {
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
     uint8_t enable_slow_ops = 0;
-    uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
+    //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t exitDly = 0xFFF;         /* Delay to exit bootloader and run the application if not initialized */
+    uint8_t boogie = 0xFF;
+    
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -134,8 +135,9 @@ int main() {
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
             enable_slow_ops = UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
         }
-        if (enable_slow_ops == true) {
-            enable_slow_ops = false;
+        
+        //if (enable_slow_ops == true) {
+        //    enable_slow_ops = false;
             // Initialization check
 #if !(TWO_STEP_INIT)
             if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
@@ -150,11 +152,18 @@ int main() {
 #if ENABLE_LED_UI               
                 LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */
-                if (exitDly-- == 0) {
-                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+
+                if (boogie-- == 0) {
+                    if (exitDly-- == 0) {
+                        RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                    }
                 }
             }
             else {
+                
+            if (enable_slow_ops == true) {
+                enable_slow_ops = false;
+                
                 // =======================================
                 // = Exit bootloader and run application =
                 // =======================================
@@ -169,7 +178,7 @@ int main() {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
-                    word pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    uint16_t pageAddress = TIMONEL_START;       /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
@@ -198,7 +207,7 @@ int main() {
                     boot_page_write(flashPageAddr);
 #if AUTO_TPL_CALC
                     if (flashPageAddr == RESET_PAGE) {    /* Calculate and write trampoline */
-                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
                         }
@@ -207,18 +216,18 @@ int main() {
                     }
 #if APP_USE_TPL_PG
                     if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
-                        word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
                         for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
-                            word pgData = (*flashAddr & 0xFF);
+                            uint16_t pgData = (*flashAddr & 0xFF);
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
                         }
                         // - Check if the last two bytes of the trampoline page are 0xFF.
                         flashAddr = (void *)(TIMONEL_START - 2);
-                        word pgData = (*flashAddr & 0xFF);
+                        uint16_t pgData = (*flashAddr & 0xFF);
                         pgData += ((*(++flashAddr) & 0xFF) << 8);
                         if (pgData == 0xFFFF) {
                             // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
@@ -239,7 +248,10 @@ int main() {
                     pageIX = 0;
                 }
             }
-        }      
+            
+            }
+            
+        //}      
     }
     return(0);
 }
@@ -277,7 +289,7 @@ void RequestEvent(void) {
             reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
             reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
 #if CHECK_EMPTY_FL
-            for (word mPos = 0; mPos < 100; mPos++) {               /* Check the first 100 memory positions to determine if  */
+            for (uint16_t mPos = 0; mPos < 100; mPos++) {               /* Check the first 100 memory positions to determine if  */
                 flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
                 reply[9] += (uint8_t)~(*flashAddr);                    
             }
