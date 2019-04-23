@@ -1,10 +1,10 @@
 /*
- *  Timonel - TWI Bootloader for TinyX5 MCUs
+ *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
  *  File: timonel.h (Main bootloader headers)
  *  ........................................... 
- *  Version: 1.3 "Sandra" / 2019-04-19 (GOOD-NEIGHBOR)
+ *  Version: 1.2 / 2019-03-15
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
@@ -23,37 +23,12 @@
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
 #endif
 
-/* TWI libraries tests selection 
-               1) GC-if,
-               2) dblake
-               3) AVR312
-               4) eriksl
-               5) Rmb-Mast
-               6) GC-if-2
-			   7) Stepper */
-#define TWILIB 6
-
 /* Includes */
 #include <avr/boot.h>
 #include <avr/wdt.h>
 #include <stdbool.h>
-
-/* Various TWI libraries tests */
-#if (TWILIB == 1)
-	#include "./nicebots-libs/twis/1-GC-if/nb-usitwisl-if.h"
-#elif (TWILIB == 2)
-	#include "./nicebots-libs/twis/2-Blake/USI_TWI_Slave.h"
-#elif (TWILIB == 3)
-    #include "./nicebots-libs/twis/3-AVR312/USI_TWI_Slave.h"
-#elif (TWILIB == 4)
-    //#include "./nicebots-libs/twis/4-eriksl/USI_TWI_Slave.h"
-#elif (TWILIB == 5)
-    #include "./nicebots-libs/twis/5-RmbMst/usiTwiSlave.h"
-#elif (TWILIB == 6)
-	#include "./nicebots-libs/twis/6-GC-if-2/nb-usitwisl-if2.h"
-#endif
-
-#include "../nicebots-libs/cmd/nb-twi-cmd.h"
+#include "nb-usitwisl-if.h"
+#include "nb-twi-cmd.h"
 
 /* -------------------------------------- */
 /* Timonel settings and optional features */
@@ -95,7 +70,7 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true   /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   false   /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
@@ -133,28 +108,28 @@
 #define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
 
 // Operation delays
-#define CYCLESTOWAIT    0xAF    /* Main loop counter to allow the TWI replies to complete before   */
-                                /* performing the selected actions. Also used as LED toggle before */
-                                /* the TWI master initializes the bootloader. Use ~0xAF.           */
+#define CYCLESTOWAIT    0xFFFF  /* Main loop counter to allow the I2C replies to complete before  */
+                                /* performing the selected actions. Also used as LED toggle delay */
+                                /* before the I2C master initializes the bootloader.              */
 
 // Timonel ID characters
 #define ID_CHAR_1       78      /* N */
 #define ID_CHAR_2       66      /* B */
 #define ID_CHAR_3       84      /* T */
 
-// TWI Commands Xmit data block size
-#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+// I2C TX-RX commands data size
+#define TXDATASIZE      10      /* TX data size: always even values, min = 2, max = 10 */
+#define RXDATASIZE      8       /* RX data size: always even values, min = 2, max = 8 */
 
 // Status byte
-#define ST_INIT_1       0       /* Flag Bit 1 (1)  : Two-Step Initialization STEP 1 */
-#define ST_INIT_2       1       /* Flag Bit 2 (2)  : Two-Step Initialization STEP 2 */
-#define ST_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
-#define ST_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Flag Bit 5 (16) : Not used */
-#define ST_BIT_6        5       /* Flag Bit 6 (32) : Not used */
-#define ST_BIT_7        6       /* Flag Bit 7 (64) : Not used */
-#define ST_BIT_8        7       /* Flag Bit 8 (128): Not used */
+#define ST_INIT_1       0       /* Status Bit 1 (1)  : Two-Step Initialization STEP 1 */
+#define ST_INIT_2       1       /* Status Bit 2 (2)  : Two-Step Initialization STEP 2 */
+#define ST_DEL_FLASH    2       /* Status Bit 3 (4)  : Delete flash memory            */
+#define ST_EXIT_TML     3       /* Status Bit 4 (8)  : Exit Timonel & Run Application */
+#define ST_BIT_4        4       /* Status Bit 5 (16) : Not used */
+#define ST_BIT_6        5       /* Status Bit 6 (32) : Not used */
+#define ST_BIT_7        6       /* Status Bit 7 (64) : Not used */
+#define ST_BIT_8        7       /* Status Bit 8 (128): Not used */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
