@@ -2,7 +2,7 @@
 # File: tml-config.mak
 # Project: Timonel - TWI Bootloader for TinyX5 MCUs
 # .......................................................
-# 2019-04-22 gustavo.casanova@nicebots.com (GOOD-NEIGHBOR)
+# 2019-04-23 gustavo.casanova@nicebots.com (GOOD-FLAG)
 # .......................................................
 
 # Controller type: ATtiny 85 - 16.5 MHz
@@ -55,7 +55,7 @@ TARGET = timonel
 #LIBDIR = ./nicebots-libs/twis/3-AVR312
 #LIBDIR = ./nicebots-libs/twis/4-eriksl
 #LIBDIR = ./nicebots-libs/twis/5-RmbMst
-LIBDIR = ./nicebots-libs/twis/6-GC-if-2
+LIBDIR = ./nicebots-libs/twis/6-GC-if-Good-Flag
 CMDDIR = ./nicebots-libs/cmd
 
 # Settings for running at 8 Mhz starting from Timonel v1.1

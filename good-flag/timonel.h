@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: timonel.h (Main bootloader headers)
  *  ........................................... 
- *  Version: 1.3 "Sandra" / 2019-04-19 (GOOD-NEIGHBOR)
+ *  Version: 1.3 "Sandra" / 2019-04-23 (GOOD-FLAG)
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
@@ -29,7 +29,7 @@
                3) AVR312
                4) eriksl
                5) Rmb-Mast
-               6) GC-if-2
+               6) GC-if-Good-Flag
 			   7) Stepper */
 #define TWILIB 6
 
@@ -50,7 +50,7 @@
 #elif (TWILIB == 5)
     #include "./nicebots-libs/twis/5-RmbMst/usiTwiSlave.h"
 #elif (TWILIB == 6)
-	#include "./nicebots-libs/twis/6-GC-if-2/nb-usitwisl-if2.h"
+	#include "./nicebots-libs/twis/6-GC-if-Good-Flag/nb-usitwisl-if3.h"
 #endif
 
 #include "../nicebots-libs/cmd/nb-twi-cmd.h"

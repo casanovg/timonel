@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-04-19 (GOOD-NEIGHBOR)
+ *  Version: 1.3 "Sandra" / 2019-04-23 (GOOD-FLAG)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -108,7 +108,6 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    //byte dlyCounter = CYCLESTOWAIT;         /* Main loop counter to allow the TWI replies to complete */
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -133,9 +132,7 @@ int main() {
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
             UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
-            //dlyCounter = CYCLESTOWAIT;      /* After a 4-bit counter overflow, delay any time-consuming  */
-        }                                   /* memory operation until the USI complete the TWI handshake */
-        //if (dlyCounter-- <= 0) {
+        }
         if ((*p_flags & 0x80) == 0x80) {
             *p_flags &= ~(0x80);
             // Initialization check

@@ -13,7 +13,7 @@
  */
 
 // Includes
-#include "nb-usitwisl-if2.h"
+#include "nb-usitwisl-if3.h"
 
 // USI direction setting prototypes
 inline void SET_USI_SDA_AS_OUTPUT() __attribute__((always_inline));
@@ -261,7 +261,9 @@ void UsiOverflowHandler(uint8_t twi_address) {
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 
                 // Set bit 8 in flags byte to enable slow memory operations ...
-                *p_flags |= 0x80;
+                // ************************************************************
+                *p_flags |= 0x80; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                // ************************************************************
                 
                 return;
             }
