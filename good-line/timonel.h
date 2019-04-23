@@ -80,7 +80,7 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    255      /* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
@@ -113,10 +113,6 @@
 #define ID_CHAR_1       78      /* N */
 #define ID_CHAR_2       66      /* B */
 #define ID_CHAR_3       84      /* T */
-
-// TWI Commands Xmit data block size
-#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 // Status byte
 #define ST_INIT_1       0       /* Flag Bit 1 (1)  : Two-Step Initialization STEP 1 */

@@ -58,18 +58,18 @@
 #endif
 
 // Type definitions
-typedef uint8_t byte;
+//typedef uint8_t byte;
 typedef uint16_t word;
 typedef void (* const fptr_t)(void);
 
 // Global variables
-byte command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
-byte flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
+//uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
+uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 word flashPageAddr = 0x0000;                /* Flash memory page address */
-byte pageIX = 0;                            /* Flash memory page index */
+uint8_t pageIX = 0;                            /* Flash memory page index */
 #if AUTO_TPL_CALC
-byte appResetLSB = 0xFF;                    /* Application first byte  */
-byte appResetMSB = 0xFF;                    /* Application second byte*/
+uint8_t appResetLSB = 0xFF;                    /* Application first byte */
+uint8_t appResetMSB = 0xFF;                    /* Application second byte */
 #endif /* AUTO_TPL_CALC */
 
 // Jump to trampoline
@@ -80,8 +80,8 @@ static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 #endif /* !USE_WDT_RESET */
 
 // Prototypes
-//void ReceiveEvent(byte commandBytes);
-//void RequestEvent(void);
+//void ReceiveEvent(uint8_t commandBytes);
+void RequestEvent(void);
 
 // Function Main
 int main() {
@@ -108,8 +108,8 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    byte enable_slow_ops = 0;
-    byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
+    uint8_t enable_slow_ops = 0;
+    uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -210,7 +210,7 @@ int main() {
                         word tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
-                        for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
+                        for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
                             word pgData = (*flashAddr & 0xFF);
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
@@ -245,15 +245,15 @@ int main() {
 }
 
 // TWI Receive Event
-void ReceiveEvent(byte commandBytes) {
-    for (byte i = 0; i < commandBytes; i++) {
-        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
-    }
-}
+//void ReceiveEvent(uint8_t commandBytes) {
+//    for (uint8_t i = 0; i < commandBytes; i++) {
+//        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+//    }
+//}
 
 // TWI Request Event
 void RequestEvent(void) {
-    byte opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
+    uint8_t opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -266,7 +266,7 @@ void RequestEvent(void) {
 #endif /* CHECK_EMPTY_FL */
             const __flash unsigned char * flashAddr;
             flashAddr = (void *)(TIMONEL_START - 1); 
-            byte reply[GETTMNLV_RPLYLN] = { 0 };
+            uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             reply[1] = ID_CHAR_3;                                   /* T */            
             reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
@@ -279,7 +279,7 @@ void RequestEvent(void) {
 #if CHECK_EMPTY_FL
             for (word mPos = 0; mPos < 100; mPos++) {               /* Check the first 100 memory positions to determine if  */
                 flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
-                reply[9] += (byte)~(*flashAddr);                    
+                reply[9] += (uint8_t)~(*flashAddr);                    
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
@@ -292,7 +292,7 @@ void RequestEvent(void) {
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
-            for (byte i = 0; i < GETTMNLV_RPLYLN; i++) {
+            for (uint8_t i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
@@ -319,12 +319,12 @@ void RequestEvent(void) {
         // ******************
         case STPGADDR: {
             #define STPGADDR_RPLYLN 2
-            byte reply[STPGADDR_RPLYLN] = { 0 };
+            uint8_t reply[STPGADDR_RPLYLN] = { 0 };
             flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
             flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
             reply[0] = opCodeAck;
-            reply[1] = (byte)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
-            for (byte i = 0; i < STPGADDR_RPLYLN; i++) {
+            reply[1] = (uint8_t)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
+            for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
@@ -335,7 +335,7 @@ void RequestEvent(void) {
         // ******************
         case WRITPAGE: {
             #define WRITPAGE_RPLYLN 2
-            byte reply[WRITPAGE_RPLYLN] = { 0 };
+            uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = opCodeAck;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
 #if AUTO_TPL_CALC
@@ -347,18 +347,18 @@ void RequestEvent(void) {
                 // the reset vector modification MUST BE done by the TWI master's upload program.
                 // Otherwise, Timonel won't have the execution control after power on reset.
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (byte)((command[2]) + command[1]);    	/* Reply checksum accumulator */
+                reply[1] += (uint8_t)((command[2]) + command[1]);    	/* Reply checksum accumulator */
                 pageIX += 2;
-                for (byte i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
+                for (uint8_t i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (byte)((command[i + 1]) + command[i]);
+                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }                
             }
             else {
-                for (byte i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
+                for (uint8_t i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
                     boot_page_fill((flashPageAddr + pageIX), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (byte)((command[i + 1]) + command[i]);
+                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     pageIX += 2;
                 }
             }
@@ -366,7 +366,7 @@ void RequestEvent(void) {
                 flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
-            for (byte i = 0; i < WRITPAGE_RPLYLN; i++) {
+            for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
             break;
@@ -376,19 +376,19 @@ void RequestEvent(void) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const byte ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
-            byte reply[ackLng];
-            if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((byte)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
+            const uint8_t ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
+            uint8_t reply[ackLng];
+            if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = opCodeAck;
                 flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;                              /* Checksum initialization */
                 const __flash unsigned char * flashAddr;
                 flashAddr = (void *)flashPageAddr; 
-                for (byte i = 1; i < command[3] + 1; i++) {
+                for (uint8_t i = 1; i < command[3] + 1; i++) {
                     reply[i] = (*(flashAddr++) & 0xFF);             /* Actual flash data */
-                    reply[ackLng - 1] += (byte)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[ackLng - 1] += (uint8_t)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
-                for (byte i = 0; i < ackLng; i++) {
+                for (uint8_t i = 0; i < ackLng; i++) {
                     UsiTwiTransmitByte(reply[i]);
                 }
             }

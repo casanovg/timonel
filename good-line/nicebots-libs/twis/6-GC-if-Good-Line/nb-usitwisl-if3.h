@@ -17,6 +17,7 @@
 // Includes
 #include <avr/interrupt.h>
 #include <stdbool.h>
+#include "../../nicebots-libs/cmd/nb-twi-cmd.h"
 
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
@@ -40,6 +41,11 @@
 #if (TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK)
 #error TWI TX buffer size is not a power of 2
 #endif
+
+// TWI Commands Xmit data block size
+#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+
 
 // Device Dependent Defines
 #if defined(__AVR_ATtiny25__) | \
@@ -83,11 +89,15 @@ uint8_t tx_head;
 uint8_t tx_tail;
 uint8_t tx_count;
 
+uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
+
 // Prototypes
 void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
 void ReceiveEvent(uint8_t);
 void RequestEvent(void);
+
+inline void ReceiveEvent(uint8_t) __attribute__((always_inline));
 
 // Helper function prototypes
 inline void UsiTwiSlaveInit(void) __attribute__((always_inline));
@@ -122,6 +132,13 @@ inline void STOP_CONDITION_RECEIVED_CALLBACK() __attribute__((always_inline));
 /////////////////////////////////////////////////////////////////////////////
 //////////////////////// ALL ALL ALL ALL ALL ALL ALL ////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+
+// TWI Receive Event
+inline void ReceiveEvent(uint8_t commandBytes) {
+    for (uint8_t i = 0; i < commandBytes; i++) {
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+    }
+}
 
 // Function FlushTwiBuffers
 inline void FlushTwiBuffers(void) {
