@@ -13,7 +13,6 @@ ARG2=${2:-8}
 
 FIRMWARE=".\\releases\\$ARG1.hex"
 
-clear;
 if [ -f "$FIRMWARE" ]
 then
     echo ""
