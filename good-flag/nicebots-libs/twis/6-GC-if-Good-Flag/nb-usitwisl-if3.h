@@ -7,8 +7,7 @@
  *  Version: 1.0 / 2019-04-19
  *  gustavo.casanova@nicebots.com
  *  ........................................... 
- *  Based on work by Atmel (AVR312), Don Blake,
- *  Rambo, bHogan, A.Vogel et others
+ *  Based on work by Atmel (AVR312) et others
  *  ...........................................
  */
 
@@ -72,9 +71,8 @@ bool UsiTwiDataInTransmitBuffer(void);
 uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
 void (*Usi_onReceivePtr)(uint8_t);
-//uint8_t *p_flags; /* Pointer to flags byte in main code */
 
-// I2C handlers prototypes (GC: These functions replace the USI hardware interrupts)
+// I2C handlers prototypes (These functions replace the USI hardware interrupts)
 void UsiStartHandler(void);
 uint8_t UsiOverflowHandler(uint8_t twi_address);
 

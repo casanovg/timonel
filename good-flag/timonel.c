@@ -108,7 +108,7 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    byte allow_slow_ops = 0;
+    byte enable_slow_ops = 0;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -132,10 +132,10 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
-            allow_slow_ops = UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
+            enable_slow_ops = UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
         }
-        if (allow_slow_ops == true) {
-            allow_slow_ops = false;
+        if (enable_slow_ops == true) {
+            enable_slow_ops = false;
             // Initialization check
 #if !(TWO_STEP_INIT)
             if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
