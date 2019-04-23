@@ -72,11 +72,11 @@ bool UsiTwiDataInTransmitBuffer(void);
 uint8_t UsiTwiAmountDataInReceiveBuffer(void);
 void (*Usi_onRequestPtr)(void);
 void (*Usi_onReceivePtr)(uint8_t);
-uint8_t *p_flags; /* Pointer to flags byte in main code */
+//uint8_t *p_flags; /* Pointer to flags byte in main code */
 
 // I2C handlers prototypes (GC: These functions replace the USI hardware interrupts)
 void UsiStartHandler(void);
-void UsiOverflowHandler(uint8_t);
+uint8_t UsiOverflowHandler(uint8_t twi_address);
 
 // -------- Internals ---------
 

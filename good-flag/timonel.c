@@ -104,10 +104,11 @@ int main() {
 	UsiTwiSlaveInit();              		/* Initialize TWI driver */
     Usi_onReceivePtr = ReceiveEvent;        /* Pointer to TWI receive event callback function */
     Usi_onRequestPtr = RequestEvent;        /* Pointer to TWI request event callback function */
-    p_flags = &flags;
+    //p_flags = &flags;
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
+    byte allow_slow_ops = 0;
     byte exitDly = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     /*  ___________________
        |                   | 
@@ -131,10 +132,10 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
-            UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
+            allow_slow_ops = UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
         }
-        if ((*p_flags & 0x80) == 0x80) {
-            *p_flags &= ~(0x80);
+        if (allow_slow_ops == true) {
+            allow_slow_ops = false;
             // Initialization check
 #if !(TWO_STEP_INIT)
             if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {

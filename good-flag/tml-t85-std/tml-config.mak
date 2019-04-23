@@ -31,13 +31,13 @@ TIMONEL_TWI_ADDR = 8
 # This options are commented in the "tmc-config.h" file
 
 ENABLE_LED_UI  = false
-AUTO_TPL_CALC  = true
+AUTO_TPL_CALC  = flase
 APP_USE_TPL_PG = false
-CMD_STPGADDR   = false
+CMD_STPGADDR   = true
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = true
+USE_WDT_RESET  = false
 CHECK_EMPTY_FL = false
-CMD_READFLASH  = true
+CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!
 LED_UI_PIN     = PB1
 CYCLESTOEXIT   = 40

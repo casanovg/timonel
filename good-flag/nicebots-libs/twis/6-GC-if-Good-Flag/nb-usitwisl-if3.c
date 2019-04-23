@@ -234,7 +234,7 @@ void UsiStartHandler() {
 }
 
 // Function UsiOverflowHandler (GC: Interrupt-like handler function)
-void UsiOverflowHandler(uint8_t twi_address) {
+uint8_t UsiOverflowHandler(uint8_t twi_address) {
     switch (device_state) {
         // Check address mode: check received address and send ACK (and next STATE_SEND_DATA) if OK,
         // else reset USI
@@ -261,11 +261,11 @@ void UsiOverflowHandler(uint8_t twi_address) {
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 
                 // Set bit 8 in flags byte to enable slow memory operations ...
-                // ************************************************************
-                *p_flags |= 0x80; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                // ************************************************************
+                // **************************************************************
+                //flags |= 0x80; // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                return(true);
+                // **************************************************************
                 
-                return;
             }
         }
         // From here we just drop straight into STATE_SEND_DATA if the
@@ -281,7 +281,7 @@ void UsiOverflowHandler(uint8_t twi_address) {
                 // The buffer is empty
                 SET_USI_TO_WAIT_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
-                return;
+                return(false);
             }
             device_state = STATE_WAIT_ACK_AFTER_SEND_DATA;
             SET_USI_TO_SEND_DATA();
@@ -319,4 +319,5 @@ void UsiOverflowHandler(uint8_t twi_address) {
         }
     }
     USISR |= (1 << USI_OVERFLOW_FLAG); /* GC: Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
+    return(false);
 }
