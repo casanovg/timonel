@@ -123,7 +123,7 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << TWI_START_COND_FLAG)) && (USICR & (1 << TWI_START_COND_INT))) {
-            UsiStartHandler();      /* If so, run the USI start handler ... */
+            UsiStartHandler();              /* If so, run the USI start handler ... */
         } 		
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
@@ -133,10 +133,9 @@ int main() {
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
             UsiOverflowHandler(TWI_ADDR);   /* If so, run the USI overflow handler ... */
-            dlyCounter = CYCLESTOWAIT;
-        }                 
+            dlyCounter = CYCLESTOWAIT;      /* After a 4-bit counter overflow, delay any time-consuming  */
+        }                                   /* memory operation until the USI complete the TWI handshake */
         if (dlyCounter-- <= 0) {
-            //dlyCounter = CYCLESTOWAIT;
             // Initialization check
 #if !(TWO_STEP_INIT)
             if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
