@@ -58,9 +58,7 @@
 #endif
 
 // Type definitions
-/* Pointer-to-address type */
-typedef void (* const fptr_t)(void);
-/* TWI driver operational modes */
+typedef void (* const fptr_t)(void); /* Pointer-to-address type */
 typedef enum {
 	STATE_CHECK_ADDRESS,
     STATE_SEND_DATA,
@@ -68,7 +66,7 @@ typedef enum {
     STATE_CHECK_ACK_AFTER_SEND_DATA,
     STATE_WAIT_DATA_RECEPTION,
     STATE_RECEIVE_DATA_AND_SEND_ACK   
-} OperationalState;
+} OperationalState; /* TWI driver operational modes */
 
 // Global variables
 uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
@@ -76,10 +74,10 @@ uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exi
 uint16_t flashPageAddr = 0x0000;               /* Flash memory page address */
 uint8_t pageIX = 0;                            /* Flash memory page index */
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
+uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t rx_head;
 uint8_t rx_tail;
 uint8_t rx_count;
-uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t tx_head;
 uint8_t tx_tail;
 uint8_t tx_count;
@@ -97,36 +95,31 @@ static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 #endif /* !USE_WDT_RESET */
 
-// Prototypes
+// Bootloader prototypes
 inline void ReceiveEvent(uint8_t) __attribute__((always_inline));
-static inline void RequestEvent(void) __attribute__((always_inline));
+inline void RequestEvent(void) __attribute__((always_inline));
 
+// USI TWI driver prototypes
 uint8_t UsiTwiReceiveByte(void);
-static void UsiTwiTransmitByte(uint8_t);
+void UsiTwiTransmitByte(uint8_t);
+inline void UsiTwiSlaveInit(void) __attribute__((always_inline));    /* USI TWI driver initialization */
+inline void TwiStartHandler(void) __attribute__((always_inline));    /* TWI start condition interrupt-like handler */
+inline void UsiOverflowHandler(void) __attribute__((always_inline)); /* USI 4-bit counter overflow interrupt-like handler */
 
-// Helper function prototypes
-static inline void UsiTwiSlaveInit(void) __attribute__((always_inline));
-static inline bool UsiTwiDataInTransmitBuffer(void) __attribute__((always_inline));
-static inline void FlushTwiBuffers(void) __attribute__((always_inline));
+// USI TWI driver basic operations prototypes
+inline void SET_USI_TO_SEND_ACK() __attribute__((always_inline));
+inline void SET_USI_TO_WAIT_ACK() __attribute__((always_inline));
+inline void SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS() __attribute__((always_inline));
+inline void SET_USI_TO_SEND_DATA() __attribute__((always_inline));
+inline void SET_USI_TO_RECEIVE_DATA() __attribute__((always_inline));
 
-// I2C handlers prototypes (These functions replace the USI hardware interrupts)
-static inline void UsiStartHandler(void) __attribute__((always_inline));
-static inline void UsiOverflowHandler(void) __attribute__((always_inline));
-
-// USI direction setting prototypes
-static inline void SET_USI_SDA_AS_OUTPUT() __attribute__((always_inline));
-static inline void SET_USI_SDA_AS_INPUT() __attribute__((always_inline));
-static inline void SET_USI_SCL_AS_OUTPUT() __attribute__((always_inline));
-static inline void SET_USI_SCL_AS_INPUT() __attribute__((always_inline));
-static inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() __attribute__((always_inline));
-static inline void SET_USI_SDA_AND_SCL_AS_INPUT() __attribute__((always_inline));
-
-// USI basic TWI operations prototypes
-static inline void SET_USI_TO_SEND_ACK() __attribute__((always_inline));
-static inline void SET_USI_TO_WAIT_ACK() __attribute__((always_inline));
-static inline void SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS() __attribute__((always_inline));
-static inline void SET_USI_TO_SEND_DATA() __attribute__((always_inline));
-static inline void SET_USI_TO_RECEIVE_DATA() __attribute__((always_inline));
+// USI TWI driver direction setting prototypes
+inline void SET_USI_SDA_AS_OUTPUT() __attribute__((always_inline));
+inline void SET_USI_SDA_AS_INPUT() __attribute__((always_inline));
+inline void SET_USI_SCL_AS_OUTPUT() __attribute__((always_inline));
+inline void SET_USI_SCL_AS_INPUT() __attribute__((always_inline));
+inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() __attribute__((always_inline));
+inline void SET_USI_SDA_AND_SCL_AS_INPUT() __attribute__((always_inline));
 
 // Function Main
 int main() {
@@ -146,13 +139,13 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
+    //OSCCAL -= 3;
 	UsiTwiSlaveInit();              		/* Initialize TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t exitDly = 0xFFF;         /* Delay to exit bootloader and run the application if not initialized */
-    uint8_t boogie = 0xFF;
+    uint16_t exitDly = CYCLESTOEXIT;        /* Delay to exit bootloader and run the application if not initialized */
+    uint8_t boogie = 0xFF;                  /* General delay */
     
     /*  ___________________
        |                   | 
@@ -167,7 +160,7 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << TWI_START_COND_FLAG)) && (USICR & (1 << TWI_START_COND_INT))) {
-            UsiStartHandler();                      /* If so, run the USI start handler ... */
+            TwiStartHandler();                      /* If so, run the USI start handler ... */
         } 		
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
@@ -184,28 +177,22 @@ int main() {
 #if TWO_STEP_INIT
         if ((flags & ((1 << FL_INIT_1) + (1 << FL_INIT_2))) != ((1 << FL_INIT_1) + (1 << FL_INIT_2))) {
 #endif /* TWO_STEP_INIT */
-            /*  ____________________________
-               |                            |
-               | Bootloader not initialized |
-               |____________________________|
-            */
+            // ==============================
+            // = Bootloader not initialized =
+            // ==============================
 #if ENABLE_LED_UI               
             LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */
-            if (boogie-- == 0) {
-                if (exitDly-- == 0) {
+            if (exitDly-- == 0) {
+                if (boogie-- == 0) {
                     RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
         }
         else {
-            /*  _______________________________
-               |                               |
-               |   Bootloader initialized !!!  |
-               |_______________________________|
-            */            
-            //if (enable_slow_ops == true) {
-            //    enable_slow_ops = false;
+            // ==============================
+            // = Bootloader initialized !!! =
+            // ==============================
             if ((flags & (1 << FL_EN_SLOW_OPS)) == (1 << FL_EN_SLOW_OPS)) {
                 flags &= ~(1 << FL_EN_SLOW_OPS);
                 // =================================================
@@ -488,24 +475,19 @@ inline void RequestEvent(void) {
 ////////////       ALL USI TWI DRIVER CODE BELOW THIS LINE       ////////////
 /////////////////////////////////////////////////////////////////////////////
 
-// Function FlushTwiBuffers
-inline void FlushTwiBuffers(void) {
-    rx_tail = 0;
-    rx_head = 0;
-    rx_count = 0;
-    tx_tail = 0;
-    tx_head = 0;
-    tx_count = 0;
-}
-
-// Function UsiTwiSlaveInit
-inline void UsiTwiSlaveInit(void) {
+/*  ______________________________
+   |                              |
+   | USI TWI slave initialization |
+   |______________________________|
+*/
+void UsiTwiSlaveInit(void) {
 	/* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
        low when a start condition is detected or a counter overflow (only
        for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
        by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
 	*/
-    FlushTwiBuffers();
+    rx_tail = rx_head = rx_count = 0; /* Flush TWI RX buffers */
+    tx_tail = tx_head = tx_count = 0; /* Flush TWI TX buffers */
 	SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
     PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
@@ -513,22 +495,12 @@ inline void UsiTwiSlaveInit(void) {
 	SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS(); /* Wait for TWI start condition and address from master */
 }
 
-// Function UsiTwiDataInTransmitBuffer
-inline bool UsiTwiDataInTransmitBuffer(void) { 
-    return tx_count; /* Return 0 (false) if the receive buffer is empty */
-}
-
-// Function UsiTwiTransmitByte
-void UsiTwiTransmitByte(uint8_t data_byte) {
-    while (tx_count++ == TWI_TX_BUFFER_SIZE) {
-		/* Wait until there is free space in the TX buffer */
-    };
-    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
-    tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
-}
-
-// Function UsiTwiReceiveByte
-uint8_t UsiTwiReceiveByte(void) {
+/*  ___________________________
+   |                           |
+   | USI TWI byte reception    |
+   |___________________________|
+*/
+inline uint8_t UsiTwiReceiveByte(void) {
     uint8_t received_byte;
     while (!rx_count--) {
         /* Wait until a byte is received into the RX buffer */
@@ -538,8 +510,25 @@ uint8_t UsiTwiReceiveByte(void) {
     return received_byte; /* Return the received byte from the buffer */
 }
 
-// Function UsiStartHandler (Interrupt-like handler function)
-inline void UsiStartHandler() {
+/*  ___________________________
+   |                           |
+   | USI TWI byte transmission |
+   |___________________________|
+*/
+void UsiTwiTransmitByte(uint8_t data_byte) {
+    while (tx_count++ == TWI_TX_BUFFER_SIZE) {
+		/* Wait until there is free space in the TX buffer */
+    };
+    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
+    tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
+}
+
+/*  _______________________________________________________________
+   |                                                               |
+   | TWI start condition handler (Interrupt-like handler function) |
+   |_______________________________________________________________|
+*/
+inline void TwiStartHandler() {
     device_state = STATE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
 	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
@@ -571,7 +560,11 @@ inline void UsiStartHandler() {
 			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */  
 }
 
-// Function UsiOverflowHandler (Interrupt-like handler function)
+/*  ________________________________________________________
+   |                                                        |
+   | USI overflow handler (Interrupt-like handler function) |
+   |________________________________________________________|
+*/
 inline void UsiOverflowHandler() {
     switch (device_state) {
         // Check address mode: check received address and send ACK (and next STATE_SEND_DATA) if OK,
@@ -661,33 +654,6 @@ inline void UsiOverflowHandler() {
 }
 
 // -----------------------------------------------------
-// USI direction setting functions
-// -----------------------------------------------------
-inline void SET_USI_SDA_AS_OUTPUT() {
-	DDR_USI |=  (1 << PORT_USI_SDA);
-}
-// -----------------------------------------------------
-inline void SET_USI_SDA_AS_INPUT() {
-	DDR_USI &= ~(1 << PORT_USI_SDA);
-}
-// -----------------------------------------------------
-inline void SET_USI_SCL_AS_OUTPUT() {
-	DDR_USI |=  (1 << PORT_USI_SCL);
-}
-// -----------------------------------------------------
-inline void SET_USI_SCL_AS_INPUT() {
-	DDR_USI &= ~(1 << PORT_USI_SCL);
-}
-// -----------------------------------------------------
-inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() {
-	DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
-}
-// -----------------------------------------------------
-inline void SET_USI_SDA_AND_SCL_AS_INPUT() {
-	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
-}
-
-// -----------------------------------------------------
 // USI basic TWI operations functions
 // -----------------------------------------------------
 inline void SET_USI_TO_SEND_ACK() {
@@ -744,5 +710,31 @@ inline void SET_USI_TO_RECEIVE_DATA() {
 			(1 << TWI_STOP_COND_FLAG) |
 			(1 << TWI_COLLISION_FLAG) |
 			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */		
-	
+}
+
+// -----------------------------------------------------
+// USI direction setting functions
+// -----------------------------------------------------
+inline void SET_USI_SDA_AS_OUTPUT() {
+	DDR_USI |=  (1 << PORT_USI_SDA);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AS_INPUT() {
+	DDR_USI &= ~(1 << PORT_USI_SDA);
+}
+// -----------------------------------------------------
+inline void SET_USI_SCL_AS_OUTPUT() {
+	DDR_USI |=  (1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SCL_AS_INPUT() {
+	DDR_USI &= ~(1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() {
+	DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AND_SCL_AS_INPUT() {
+	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
 }

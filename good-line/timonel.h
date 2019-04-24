@@ -30,52 +30,6 @@
 #include <avr/interrupt.h>
 #include "../nicebots-libs/cmd/nb-twi-cmd.h"
 
-// Driver buffer definitions
-// Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
-#ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE (16)
-#endif
-
-#define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
-
-#if (TWI_RX_BUFFER_SIZE & TWI_RX_BUFFER_MASK)
-#error TWI RX buffer size is not a power of 2
-#endif
-
-// Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
-#ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE (16)
-#endif
-
-#define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
-
-#if (TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK)
-#error TWI TX buffer size is not a power of 2
-#endif
-
-// TWI Commands Xmit data block size
-#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
-
-// Device Dependent Defines
-#if defined(__AVR_ATtiny25__) | \
-    defined(__AVR_ATtiny45__) | \
-    defined(__AVR_ATtiny85__)
-#define DDR_USI DDRB
-#define PORT_USI PORTB
-#define PIN_USI PINB
-#define PORT_USI_SDA PB0
-#define PORT_USI_SCL PB2
-#define PIN_USI_SDA PINB0
-#define PIN_USI_SCL PINB2
-#define TWI_START_COND_FLAG	USISIF	/* This status register flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
-#define USI_OVERFLOW_FLAG USIOIF	/* This status register flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
-#define TWI_STOP_COND_FLAG USIPF	/* This status register flag indicates that an I2C STOP condition occurred on the bus */
-#define TWI_COLLISION_FLAG USIDC	/* This status register flag indicates that a data output collision occurred on the bus */
-#define TWI_START_COND_INT USISIE	/* This control register bit defines whether an I2C START condition will trigger an interrupt */
-#define USI_OVERFLOW_INT USIOIE		/* This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt */
-#endif
-
 /* -------------------------------------- */
 /* Timonel settings and optional features */
 /* -------------------------------------- */
@@ -124,7 +78,7 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    255      /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    0xFFF   /* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
@@ -150,8 +104,8 @@
 #define RESET_PAGE      0       /* Interrupt vector table address start location */
 
 // Led UI Port
-#define LED_UI_DDR      DDRB    /* >>> WARNING! This is not for use <<< */
-#define LED_UI_PORT     PORTB   /* >>> in production!               <<< */
+#define LED_UI_DDR      DDRB    /* >>> WARNING!!! This is NOT <<< */
+#define LED_UI_PORT     PORTB   /* >>> for use in production. <<< */
 
 // Timonel ID characters
 #define ID_CHAR_1       78      /* N */
@@ -167,6 +121,10 @@
 #define FL_BIT_6        5       /* Flag Bit 6 (32) : Not used */
 #define FL_BIT_7        6       /* Flag Bit 7 (64) : Not used */
 #define FL_BIT_8        7       /* Flag Bit 8 (128): Not used */
+
+// TWI Commands Xmit data block size
+#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
@@ -187,42 +145,89 @@
     #define FT_BIT_0    1
 #else
     #define FT_BIT_0    0
-#endif
+#endif /* ENABLE_LED_UI */
 #if (AUTO_TPL_CALC == true)
     #define FT_BIT_1    2
 #else
     #define FT_BIT_1    0
-#endif
+#endif /* AUTO_TPL_CALC */
 #if (APP_USE_TPL_PG == true)
     #define FT_BIT_2    4
 #else
     #define FT_BIT_2    0
-#endif
+#endif /* APP_USE_TPL_PG */
 #if (CMD_STPGADDR == true)
     #define FT_BIT_3    8
 #else
     #define FT_BIT_3    0
-#endif
+#endif /* CMD_STPGADDR */
 #if (TWO_STEP_INIT == true)
     #define FT_BIT_4    16
 #else
     #define FT_BIT_4    0
-#endif
+#endif /* TWO_STEP_INIT */
 #if (USE_WDT_RESET == true)
     #define FT_BIT_5    32
 #else
     #define FT_BIT_5    0
-#endif
+#endif /* USE_WDT_RESET */
 #if (CHECK_EMPTY_FL == true)
     #define FT_BIT_6    64
 #else
     #define FT_BIT_6    0
-#endif
+#endif /* CHECK_EMPTY_FL */
 #if (CMD_READFLASH == true)
     #define FT_BIT_7    128
 #else
     #define FT_BIT_7    0
-#endif
+#endif /* CMD_READFLASH */
+
 #define TML_FEATURES (FT_BIT_7 + FT_BIT_6 + FT_BIT_5 + FT_BIT_4 + FT_BIT_3 + FT_BIT_2 + FT_BIT_1 + FT_BIT_0)
+
+/////////////////////////////////////////////////////////////////////////////
+////////////      ALL USI TWI DRIVER CONFIG BELOW THIS LINE      ////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// Driver buffer definitions
+// Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
+#ifndef TWI_RX_BUFFER_SIZE
+#define TWI_RX_BUFFER_SIZE (16)
+#endif /* TWI_RX_BUFFER_SIZE */
+
+#define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
+
+#if (TWI_RX_BUFFER_SIZE & TWI_RX_BUFFER_MASK)
+#error TWI RX buffer size is not a power of 2
+#endif /* TWI_RX_BUFFER_SIZE & TWI_RX_BUFFER_MASK */
+
+// Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
+#ifndef TWI_TX_BUFFER_SIZE
+#define TWI_TX_BUFFER_SIZE (16)
+#endif /* TWI_TX_BUFFER_SIZE */
+
+#define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
+
+#if (TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK)
+#error TWI TX buffer size is not a power of 2
+#endif /* TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK */
+
+// Device Dependent Defines
+#if defined(__AVR_ATtiny25__) | \
+    defined(__AVR_ATtiny45__) | \
+    defined(__AVR_ATtiny85__)
+#define DDR_USI DDRB
+#define PORT_USI PORTB
+#define PIN_USI PINB
+#define PORT_USI_SDA PB0
+#define PORT_USI_SCL PB2
+#define PIN_USI_SDA PINB0
+#define PIN_USI_SCL PINB2
+#define TWI_START_COND_FLAG	USISIF	/* This status register flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
+#define USI_OVERFLOW_FLAG USIOIF	/* This status register flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
+#define TWI_STOP_COND_FLAG USIPF	/* This status register flag indicates that an I2C STOP condition occurred on the bus */
+#define TWI_COLLISION_FLAG USIDC	/* This status register flag indicates that a data output collision occurred on the bus */
+#define TWI_START_COND_INT USISIE	/* This control register bit defines whether an I2C START condition will trigger an interrupt */
+#define USI_OVERFLOW_INT USIOIE		/* This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt */
+#endif /* ATtinyX5 */
 
 #endif /* _TML_CONFIG_H_ */
