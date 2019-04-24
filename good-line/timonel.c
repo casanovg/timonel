@@ -58,13 +58,33 @@
 #endif
 
 // Type definitions
+/* Pointer-to-address type */
 typedef void (* const fptr_t)(void);
+/* TWI driver operational modes */
+typedef enum {
+	STATE_CHECK_ADDRESS,
+    STATE_SEND_DATA,
+    STATE_WAIT_ACK_AFTER_SEND_DATA,
+    STATE_CHECK_ACK_AFTER_SEND_DATA,
+    STATE_WAIT_DATA_RECEPTION,
+    STATE_RECEIVE_DATA_AND_SEND_ACK   
+} OperationalState;
 
 // Global variables
-//uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
+uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
-uint16_t flashPageAddr = 0x0000;                /* Flash memory page address */
+uint16_t flashPageAddr = 0x0000;               /* Flash memory page address */
 uint8_t pageIX = 0;                            /* Flash memory page index */
+uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
+uint8_t rx_head;
+uint8_t rx_tail;
+uint8_t rx_count;
+uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+uint8_t tx_head;
+uint8_t tx_tail;
+uint8_t tx_count;
+OperationalState device_state;
+
 #if AUTO_TPL_CALC
 uint8_t appResetLSB = 0xFF;                    /* Application first byte */
 uint8_t appResetMSB = 0xFF;                    /* Application second byte */
@@ -78,8 +98,35 @@ static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);
 #endif /* !USE_WDT_RESET */
 
 // Prototypes
-//void ReceiveEvent(uint8_t commandBytes);
-void RequestEvent(void);
+inline void ReceiveEvent(uint8_t) __attribute__((always_inline));
+static inline void RequestEvent(void) __attribute__((always_inline));
+
+uint8_t UsiTwiReceiveByte(void);
+static void UsiTwiTransmitByte(uint8_t);
+
+// Helper function prototypes
+static inline void UsiTwiSlaveInit(void) __attribute__((always_inline));
+static inline bool UsiTwiDataInTransmitBuffer(void) __attribute__((always_inline));
+static inline void FlushTwiBuffers(void) __attribute__((always_inline));
+
+// I2C handlers prototypes (These functions replace the USI hardware interrupts)
+static inline void UsiStartHandler(void) __attribute__((always_inline));
+static inline uint8_t UsiOverflowHandler(void) __attribute__((always_inline));
+
+// USI direction setting prototypes
+static inline void SET_USI_SDA_AS_OUTPUT() __attribute__((always_inline));
+static inline void SET_USI_SDA_AS_INPUT() __attribute__((always_inline));
+static inline void SET_USI_SCL_AS_OUTPUT() __attribute__((always_inline));
+static inline void SET_USI_SCL_AS_INPUT() __attribute__((always_inline));
+static inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() __attribute__((always_inline));
+static inline void SET_USI_SDA_AND_SCL_AS_INPUT() __attribute__((always_inline));
+
+// USI basic TWI operations prototypes
+static inline void SET_USI_TO_SEND_ACK() __attribute__((always_inline));
+static inline void SET_USI_TO_WAIT_ACK() __attribute__((always_inline));
+static inline void SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS() __attribute__((always_inline));
+static inline void SET_USI_TO_SEND_DATA() __attribute__((always_inline));
+static inline void SET_USI_TO_RECEIVE_DATA() __attribute__((always_inline));
 
 // Function Main
 int main() {
@@ -100,9 +147,6 @@ int main() {
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
 	UsiTwiSlaveInit();              		/* Initialize TWI driver */
-    //Usi_onReceivePtr = ReceiveEvent;        /* Pointer to TWI receive event callback function */
-    //Usi_onRequestPtr = RequestEvent;        /* Pointer to TWI request event callback function */
-    //p_flags = &flags;
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
@@ -124,7 +168,7 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << TWI_START_COND_FLAG)) && (USICR & (1 << TWI_START_COND_INT))) {
-            UsiStartHandler();              /* If so, run the USI start handler ... */
+            UsiStartHandler();                      /* If so, run the USI start handler ... */
         } 		
         /* .....................................................
            . TWI Interrupt Emulation ......................... .
@@ -133,67 +177,66 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
-            enable_slow_ops = UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
+            enable_slow_ops = UsiOverflowHandler(); /* If so, run the USI overflow handler ... */
         }
-        
-        //if (enable_slow_ops == true) {
-        //    enable_slow_ops = false;
-            // Initialization check
 #if !(TWO_STEP_INIT)
-            if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+        if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != \
-            ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
+        if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
 #endif /* TWO_STEP_INIT */
-                // ===========================================
-                // = Run this until is initialized by master =
-                // ===========================================
+            /*  ____________________________
+               |                            |
+               | Bootloader not initialized |
+               |____________________________|
+            */
 #if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+            LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */
-
-                if (boogie-- == 0) {
-                    if (exitDly-- == 0) {
-                        RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
-                    }
+            if (boogie-- == 0) {
+                if (exitDly-- == 0) {
+                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
-            else {
-                
+        }
+        else {
+            /*  _______________________________
+               |                               |
+               |   Bootloader initialized !!!  |
+               |_______________________________|
+            */            
             if (enable_slow_ops == true) {
                 enable_slow_ops = false;
-                
-                // =======================================
-                // = Exit bootloader and run application =
-                // =======================================
+                // =================================================
+                // = Exit bootloader and run application (Slow Op) =
+                // =================================================
                 if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
-                // ========================================
-                // = Delete application from flash memory =
-                // ========================================
+                // ==================================================
+                // = Delete application from flash memory (Slow Op) =
+                // ==================================================
                 if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
-                    uint16_t pageAddress = TIMONEL_START;       /* Erase flash ... */
+                    uint16_t pageAddress = TIMONEL_START;   /* Erase flash ... */
                     while (pageAddress != RESET_PAGE) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
 #if !(USE_WDT_RESET)
-                    RestartTimonel();                       /* Exit to the application, in this case restarts the bootloader */
+                    RestartTimonel();                       /* Restart the bootloader by jumping to Timonel start */
 #else
-                    wdt_enable(WDTO_15MS);                  /* RESETTING ... WARNING!!! */
+                    wdt_enable(WDTO_15MS);                  /* Restart the bootloader by activating the watchdog timer */
                     for (;;) {};
 #endif /* !USE_WDT_RESET */                    
                 }
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
                 // ========================================================================
                 // = Write received page to flash memory and prepare to receive a new one =
-                // ========================================================================
-#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
+                // ========================================================================    
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
@@ -219,9 +262,9 @@ int main() {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
-                        for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
+                        for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
-                            uint16_t pgData = (*flashAddr & 0xFF);
+                            word pgData = (*flashAddr & 0xFF);
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
                         }
@@ -248,24 +291,29 @@ int main() {
                     pageIX = 0;
                 }
             }
-            
-            }
-            
-        //}      
+        }      
     }
     return(0);
 }
 
-// TWI Receive Event
-//void ReceiveEvent(uint8_t commandBytes) {
-//    for (uint8_t i = 0; i < commandBytes; i++) {
-//        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
-//    }
-//}
+/*  ________________________
+   |                        |
+   | TWI data receive event |
+   |________________________|
+*/
+inline void ReceiveEvent(uint8_t commandBytes) {
+    for (uint8_t i = 0; i < commandBytes; i++) {
+        command[i] = UsiTwiReceiveByte();                           /* Store the data sent by the TWI master in the data buffer */
+    }
+}
 
-// TWI Request Event
-void RequestEvent(void) {
-    uint8_t opCodeAck = ~command[0];                                   /* Command code reply => Command Bitwise "Not" */
+/*  ________________________
+   |                        |
+   | TWI data request event |
+   |________________________|
+*/
+inline void RequestEvent(void) {
+    //uint8_t opCodeAck = ~command[0];                                /* Command code reply => Command Bitwise "Not" */
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -279,7 +327,7 @@ void RequestEvent(void) {
             const __flash unsigned char * flashAddr;
             flashAddr = (void *)(TIMONEL_START - 1); 
             uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
-            reply[0] = opCodeAck;
+            reply[0] = ACKTMNLV;
             reply[1] = ID_CHAR_3;                                   /* T */            
             reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
             reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
@@ -289,7 +337,7 @@ void RequestEvent(void) {
             reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
             reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
 #if CHECK_EMPTY_FL
-            for (uint16_t mPos = 0; mPos < 100; mPos++) {               /* Check the first 100 memory positions to determine if  */
+            for (uint16_t mPos = 0; mPos < 100; mPos++) {           /* Check the first 100 memory positions to determine if  */
                 flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
                 reply[9] += (uint8_t)~(*flashAddr);                    
             }
@@ -307,23 +355,26 @@ void RequestEvent(void) {
             for (uint8_t i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
         // ******************
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
-            UsiTwiTransmitByte(opCodeAck);
+            UsiTwiTransmitByte(ACKEXITT);
             flags |= (1 << ST_EXIT_TML);
-            break;
+            //break;
+            return;
         }
         // ******************
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
-            UsiTwiTransmitByte(opCodeAck);
+            UsiTwiTransmitByte(ACKDELFL);
             flags |= (1 << ST_DEL_FLASH);
-            break;
+            //break;
+            return;
         }
 #if (CMD_STPGADDR || !(AUTO_TPL_CALC))
         // ******************
@@ -334,12 +385,13 @@ void RequestEvent(void) {
             uint8_t reply[STPGADDR_RPLYLN] = { 0 };
             flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
             flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
-            reply[0] = opCodeAck;
+            reply[0] = AKPGADDR;
             reply[1] = (uint8_t)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
 #endif /* CMD_STPGADDR || !AUTO_TPL_CALC */
         // ******************
@@ -348,7 +400,7 @@ void RequestEvent(void) {
         case WRITPAGE: {
             #define WRITPAGE_RPLYLN 2
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
-            reply[0] = opCodeAck;
+            reply[0] = ACKWTPAG;
             if ((flashPageAddr + pageIX) == RESET_PAGE) {
 #if AUTO_TPL_CALC
                 appResetLSB = command[1];
@@ -381,7 +433,8 @@ void RequestEvent(void) {
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
 #if CMD_READFLASH
         // ******************
@@ -391,7 +444,7 @@ void RequestEvent(void) {
             const uint8_t ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
             uint8_t reply[ackLng];
             if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
-                reply[0] = opCodeAck;
+                reply[0] = ACKRDFSH;
                 flashPageAddr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;                              /* Checksum initialization */
                 const __flash unsigned char * flashAddr;
@@ -407,7 +460,8 @@ void RequestEvent(void) {
             else {
                 UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
             }
-            break;
+            //break;
+            return;
         }   
 #endif /* CMD_READFLASH */
 #if TWO_STEP_INIT
@@ -416,13 +470,278 @@ void RequestEvent(void) {
         // ******************
         case INITSOFT: {
             flags |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
-            UsiTwiTransmitByte(opCodeAck);
-            break;
+            UsiTwiTransmitByte(ACKINITS);
+            //break;
+            return;
         }
 #endif /* TWO_STEP_INIT */
         default: {
             UsiTwiTransmitByte(UNKNOWNC);
+            //break;
+            return;
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+////////////       ALL USI TWI DRIVER CODE BELOW THIS LINE       ////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// Function FlushTwiBuffers
+inline void FlushTwiBuffers(void) {
+    rx_tail = 0;
+    rx_head = 0;
+    rx_count = 0;
+    tx_tail = 0;
+    tx_head = 0;
+    tx_count = 0;
+}
+
+// Function UsiTwiSlaveInit
+inline void UsiTwiSlaveInit(void) {
+	/* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
+       low when a start condition is detected or a counter overflow (only
+       for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
+       by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
+	*/
+    FlushTwiBuffers();
+	SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
+    PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
+    PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
+	SET_USI_SDA_AS_INPUT(); 		 /* Set SDA as input */
+	SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS(); /* Wait for TWI start condition and address from master */
+}
+
+// Function UsiTwiDataInTransmitBuffer
+inline bool UsiTwiDataInTransmitBuffer(void) { 
+    return tx_count; /* Return 0 (false) if the receive buffer is empty */
+}
+
+// Function UsiTwiTransmitByte
+void UsiTwiTransmitByte(uint8_t data_byte) {
+    while (tx_count++ == TWI_TX_BUFFER_SIZE) {
+		/* Wait until there is free space in the TX buffer */
+    };
+    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
+    tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
+}
+
+// Function UsiTwiReceiveByte
+uint8_t UsiTwiReceiveByte(void) {
+    uint8_t received_byte;
+    while (!rx_count--) {
+        /* Wait until a byte is received into the RX buffer */
+    };
+    received_byte = rx_buffer[rx_tail];
+    rx_tail = (rx_tail + 1) & TWI_RX_BUFFER_MASK; /* Calculate the buffer index */
+    return received_byte; /* Return the received byte from the buffer */
+}
+
+// Function UsiStartHandler (Interrupt-like handler function)
+inline void UsiStartHandler() {
+    device_state = STATE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
+	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+    while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
+		/* Wait for SCL to go low to ensure the start condition has completed (the
+		   start detector will hold SCL low ).
+		*/
+	}
+	// If a stop condition arises then leave this function to prevent waiting forever.
+	// Don't use USISR to test for stop condition as in application note AVR312
+	// because the stop condition flag is going to be set from the last TWI sequence.
+	if (!(PIN_USI & (1 << PIN_USI_SDA))) {	/*** Stop condition NOT DETECTED ***/
+		// Keep start condition interrupt enabled to detect RESTART
+		USICR = (1 << TWI_START_COND_INT) | (1 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
+				(1 << USIWM1) | (1 << USIWM0) | /* Set USI in Two-wire mode, hold SCL low when the 4-bit counter overflows */
+				(1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
+				(0 << USITC); /* No toggle clock-port pin (SCL) */
+    } else { 								/*** Stop condition DETECTED ***/
+		/* Configure USI control register */
+		USICR = (1 << TWI_START_COND_INT) | (0 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
+				(1 << USIWM1) | (0 << USIWM0) | /* Set USI in Two-wire mode, no SCL hold when the 4-bit counter overflows */
+				(1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
+				(0 << USITC); /* No toggle clock-port pin (SCL) */				
+    }
+	/* Clear all USI status register interrupt flags to prepare for new start conditions */
+	USISR = (1 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */  
+}
+
+// Function UsiOverflowHandler (Interrupt-like handler function)
+inline uint8_t UsiOverflowHandler() {
+    switch (device_state) {
+        // Check address mode: check received address and send ACK (and next STATE_SEND_DATA) if OK,
+        // else reset USI
+        case STATE_CHECK_ADDRESS: {
+            if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
+                if (USIDR & 0x01) {             /* If lsbit = 1: Send data to master */
+                    //DATA_REQUESTED_BY_MASTER_CALLBACK();
+                    ReceiveEvent(rx_count);
+                    RequestEvent();
+                    device_state = STATE_SEND_DATA;
+                } else {                        /* If lsbit = 0: Receive data from master */
+                    device_state = STATE_WAIT_DATA_RECEPTION;
+                }
+                SET_USI_TO_SEND_ACK();
+            }
+            else {
+                SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
+            }
+            break;
+        }
+        // Master write data mode: check reply and goto STATE_SEND_DATA if OK,
+        // else reset USI
+        case STATE_CHECK_ACK_AFTER_SEND_DATA: {
+            if (USIDR) {
+                // If NACK, the master does not want more data
+                SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                //                                                >>
+                return(true); // Enable slow operations in main!    >>
+                //                                                >> 
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+             }
+        }
+        // From here we just drop straight into STATE_SEND_DATA if the
+        // master sent an ACK.
+        // Copy data from buffer to USIDR and set USI to shift byte
+        // Next STATE_WAIT_ACK_AFTER_SEND_DATA
+        case STATE_SEND_DATA: {
+            // Get data from Buffer
+            if (tx_count--) {
+                USIDR = tx_buffer[tx_tail];
+                tx_tail = (tx_tail + 1) & TWI_TX_BUFFER_MASK;
+            } else {
+                // The buffer is empty
+                SET_USI_TO_WAIT_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
+                SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
+                return(false);
+            }
+            device_state = STATE_WAIT_ACK_AFTER_SEND_DATA;
+            SET_USI_TO_SEND_DATA();
+            break;
+        }
+        // Set USI to sample ACK/NACK reply from master
+        // Next STATE_CHECK_ACK_AFTER_SEND_DATA
+        case STATE_WAIT_ACK_AFTER_SEND_DATA: {
+            device_state = STATE_CHECK_ACK_AFTER_SEND_DATA;
+            SET_USI_TO_WAIT_ACK();
+            break;
+        }
+        // Read data mode: set USI to sample data from master, next
+        // STATE_RECEIVE_DATA_AND_SEND_ACK
+        case STATE_WAIT_DATA_RECEPTION: {
+            device_state = STATE_RECEIVE_DATA_AND_SEND_ACK;
+            SET_USI_TO_RECEIVE_DATA();
+            break;
+        }
+        // Take data from USIDR and send ACK
+        // Next STATE_WAIT_DATA_RECEPTION
+        case STATE_RECEIVE_DATA_AND_SEND_ACK: {
+            // put data into buffer
+            // check buffer size
+            if (rx_count++ < TWI_RX_BUFFER_SIZE) {
+                rx_buffer[rx_head] = USIDR;
+                rx_head = (rx_head + 1) & TWI_RX_BUFFER_MASK;
+            } else {
+                /* Overrun, drop data */
+            }
+            // Next STATE_WAIT_DATA_RECEPTION
+            device_state = STATE_WAIT_DATA_RECEPTION;
+            SET_USI_TO_SEND_ACK();
             break;
         }
     }
+    USISR |= (1 << USI_OVERFLOW_FLAG); /* Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
+    return(false);
+}
+
+// -----------------------------------------------------
+// USI direction setting functions
+// -----------------------------------------------------
+inline void SET_USI_SDA_AS_OUTPUT() {
+	DDR_USI |=  (1 << PORT_USI_SDA);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AS_INPUT() {
+	DDR_USI &= ~(1 << PORT_USI_SDA);
+}
+// -----------------------------------------------------
+inline void SET_USI_SCL_AS_OUTPUT() {
+	DDR_USI |=  (1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SCL_AS_INPUT() {
+	DDR_USI &= ~(1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AND_SCL_AS_OUTPUT() {
+	DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
+}
+// -----------------------------------------------------
+inline void SET_USI_SDA_AND_SCL_AS_INPUT() {
+	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
+}
+
+// -----------------------------------------------------
+// USI basic TWI operations functions
+// -----------------------------------------------------
+inline void SET_USI_TO_SEND_ACK() {
+	USIDR = 0;	/* Set the USI data register for sending an ACK (TWI ACK = low) */
+	SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
+	/* Clear all USI status register interrupt flags, except start condition (so SCL clock line is NOT released???) */
+	USISR = (0 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0E << USICNT0); /* Set status register 4-bit counter to shift 1 bit (ACK bit) */
+}
+// -----------------------------------------------------
+inline void SET_USI_TO_WAIT_ACK() {
+	USIDR = 0;	/* Clear the USI data register to receive an ACK */
+	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+	/* Clear all USI status register interrupt flags, except start condition */
+	USISR = (0 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0E << USICNT0); /* Set status register 4-bit counter to shift 1 bit (ACK bit) */	
+}
+// -----------------------------------------------------
+inline void SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS() {
+	/* Configure USI control register */
+	USICR = (1 << TWI_START_COND_INT) | (0 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
+		    (1 << USIWM1) | (0 << USIWM0) | /* Set USI in Two-wire mode, no SCL hold when the 4-bit counter overflows */
+			(1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
+			(0 << USITC); /* No toggle clock-port pin (SCL) */
+	/* Clear all USI status register interrupt flags, except start condition */
+	USISR = (0 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (address byte to be received) */	 		
+}
+// -----------------------------------------------------
+inline void SET_USI_TO_SEND_DATA() {
+	SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
+	/* Clear all USI status register interrupt flags, except start condition */
+	USISR = (0 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be transmitted) */		
+}
+// -----------------------------------------------------
+inline void SET_USI_TO_RECEIVE_DATA() {
+	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+	/* Clear all USI status register interrupt flags, except start condition */
+	USISR = (0 << TWI_START_COND_FLAG) |
+			(1 << USI_OVERFLOW_FLAG) |
+			(1 << TWI_STOP_COND_FLAG) |
+			(1 << TWI_COLLISION_FLAG) |
+			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */		
+	
 }
