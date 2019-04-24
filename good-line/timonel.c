@@ -111,7 +111,7 @@ static inline void FlushTwiBuffers(void) __attribute__((always_inline));
 
 // I2C handlers prototypes (These functions replace the USI hardware interrupts)
 static inline void UsiStartHandler(void) __attribute__((always_inline));
-static inline uint8_t UsiOverflowHandler(void) __attribute__((always_inline));
+static inline void UsiOverflowHandler(void) __attribute__((always_inline));
 
 // USI direction setting prototypes
 static inline void SET_USI_SDA_AS_OUTPUT() __attribute__((always_inline));
@@ -150,7 +150,6 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    uint8_t enable_slow_ops = 0;
     //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
     uint16_t exitDly = 0xFFF;         /* Delay to exit bootloader and run the application if not initialized */
     uint8_t boogie = 0xFF;
@@ -177,13 +176,13 @@ int main() {
            .....................................................
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
-            enable_slow_ops = UsiOverflowHandler(); /* If so, run the USI overflow handler ... */
+            UsiOverflowHandler(); /* If so, run the USI overflow handler ... */
         }
 #if !(TWO_STEP_INIT)
-        if ((flags & (1 << ST_INIT_1)) != (1 << ST_INIT_1)) {
+        if ((flags & (1 << FL_INIT_1)) != (1 << FL_INIT_1)) {
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-        if ((flags & ((1 << ST_INIT_1) + (1 << ST_INIT_2))) != ((1 << ST_INIT_1) + (1 << ST_INIT_2))) {
+        if ((flags & ((1 << FL_INIT_1) + (1 << FL_INIT_2))) != ((1 << FL_INIT_1) + (1 << FL_INIT_2))) {
 #endif /* TWO_STEP_INIT */
             /*  ____________________________
                |                            |
@@ -205,19 +204,21 @@ int main() {
                |   Bootloader initialized !!!  |
                |_______________________________|
             */            
-            if (enable_slow_ops == true) {
-                enable_slow_ops = false;
+            //if (enable_slow_ops == true) {
+            //    enable_slow_ops = false;
+            if ((flags & (1 << FL_EN_SLOW_OPS)) == (1 << FL_EN_SLOW_OPS)) {
+                flags &= ~(1 << FL_EN_SLOW_OPS);
                 // =================================================
                 // = Exit bootloader and run application (Slow Op) =
                 // =================================================
-                if ((flags & (1 << ST_EXIT_TML)) == (1 << ST_EXIT_TML) ) {
+                if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ==================================================
                 // = Delete application from flash memory (Slow Op) =
                 // ==================================================
-                if ((flags & (1 << ST_DEL_FLASH)) == (1 << ST_DEL_FLASH)) {
+                if ((flags & (1 << FL_DEL_FLASH)) == (1 << FL_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
@@ -280,7 +281,7 @@ int main() {
                         }
                         else {
                             // -- If no, it means that the application is too big for this setup, erase it! 
-                            flags |= (1 << ST_DEL_FLASH);
+                            flags |= (1 << FL_DEL_FLASH);
                         }
                     }
 #endif /* APP_USE_TPL_PG */
@@ -343,11 +344,11 @@ inline void RequestEvent(void) {
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
-            //flags |= (1 << (ST_INIT_1)) | (1 << (ST_INIT_2));     /* Single-step init */
-            flags |= (1 << ST_INIT_1);                              /* Single-step init */
+            //flags |= (1 << (FL_INIT_1)) | (1 << (FL_INIT_2));     /* Single-step init */
+            flags |= (1 << FL_INIT_1);                              /* Single-step init */
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            flags |= (1 << ST_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
+            flags |= (1 << FL_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
 #endif /* TWO_STEP_INIT */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
@@ -363,7 +364,7 @@ inline void RequestEvent(void) {
         // ******************
         case EXITTMNL: {
             UsiTwiTransmitByte(ACKEXITT);
-            flags |= (1 << ST_EXIT_TML);
+            flags |= (1 << FL_EXIT_TML);
             //break;
             return;
         }
@@ -372,7 +373,7 @@ inline void RequestEvent(void) {
         // ******************
         case DELFLASH: {
             UsiTwiTransmitByte(ACKDELFL);
-            flags |= (1 << ST_DEL_FLASH);
+            flags |= (1 << FL_DEL_FLASH);
             //break;
             return;
         }
@@ -427,7 +428,7 @@ inline void RequestEvent(void) {
                 }
             }
             if ((reply[1] != command[MST_DATA_SIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                flags |= (1 << ST_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
+                flags |= (1 << FL_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
@@ -469,7 +470,7 @@ inline void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            flags |= (1 << ST_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
+            flags |= (1 << FL_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
             //break;
             return;
@@ -571,7 +572,7 @@ inline void UsiStartHandler() {
 }
 
 // Function UsiOverflowHandler (Interrupt-like handler function)
-inline uint8_t UsiOverflowHandler() {
+inline void UsiOverflowHandler() {
     switch (device_state) {
         // Check address mode: check received address and send ACK (and next STATE_SEND_DATA) if OK,
         // else reset USI
@@ -598,11 +599,12 @@ inline uint8_t UsiOverflowHandler() {
             if (USIDR) {
                 // If NACK, the master does not want more data
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                //                                                >>
-                return(true); // Enable slow operations in main!    >>
-                //                                                >> 
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                //                                                                 >>
+                flags |= (1 << FL_EN_SLOW_OPS); // Enable slow operations in main!   >>
+                //                                                                 >> 
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                break;
              }
         }
         // From here we just drop straight into STATE_SEND_DATA if the
@@ -618,7 +620,7 @@ inline uint8_t UsiOverflowHandler() {
                 // The buffer is empty
                 SET_USI_TO_WAIT_ACK();  // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
-                return(false);
+                return;
             }
             device_state = STATE_WAIT_ACK_AFTER_SEND_DATA;
             SET_USI_TO_SEND_DATA();
@@ -656,7 +658,6 @@ inline uint8_t UsiOverflowHandler() {
         }
     }
     USISR |= (1 << USI_OVERFLOW_FLAG); /* Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
-    return(false);
 }
 
 // -----------------------------------------------------

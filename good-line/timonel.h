@@ -159,14 +159,14 @@
 #define ID_CHAR_3       84      /* T */
 
 // Status byte
-#define ST_INIT_1       0       /* Flag Bit 1 (1)  : Two-Step Initialization STEP 1 */
-#define ST_INIT_2       1       /* Flag Bit 2 (2)  : Two-Step Initialization STEP 2 */
-#define ST_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
-#define ST_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Flag Bit 5 (16) : Not used */
-#define ST_BIT_6        5       /* Flag Bit 6 (32) : Not used */
-#define ST_BIT_7        6       /* Flag Bit 7 (64) : Not used */
-#define ST_BIT_8        7       /* Flag Bit 8 (128): Not used */
+#define FL_INIT_1       0       /* Flag Bit 1 (1)  : Two-step initialization STEP 1 */
+#define FL_INIT_2       1       /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
+#define FL_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
+#define FL_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & run application */
+#define FL_EN_SLOW_OPS  4       /* Flag Bit 5 (16) : Enable slow operations         */
+#define FL_BIT_6        5       /* Flag Bit 6 (32) : Not used */
+#define FL_BIT_7        6       /* Flag Bit 7 (64) : Not used */
+#define FL_BIT_8        7       /* Flag Bit 8 (128): Not used */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
