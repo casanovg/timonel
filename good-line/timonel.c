@@ -58,7 +58,9 @@
 #endif
 
 // Type definitions
-typedef void (* const fptr_t)(void); /* Pointer-to-address type */
+/* Pointer-to-address type */
+typedef void (* const fptr_t)(void);
+/* TWI driver operational modes */
 typedef enum {
 	STATE_CHECK_ADDRESS,
     STATE_SEND_DATA,
@@ -66,25 +68,18 @@ typedef enum {
     STATE_CHECK_ACK_AFTER_SEND_DATA,
     STATE_WAIT_DATA_RECEPTION,
     STATE_RECEIVE_DATA_AND_SEND_ACK   
-} OperationalState; /* TWI driver operational modes */
+} OperationalState;
 
 // Global variables
 uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 uint16_t flashPageAddr = 0x0000;               /* Flash memory page address */
 uint8_t pageIX = 0;                            /* Flash memory page index */
-
-uint8_t fl_enable_slow_ops = false;
-uint8_t fl_del_flash = false;
-uint8_t fl_init_1 = false;
-uint8_t fl_init_2 = false;
-uint8_t fl_exit_tml = false;
-
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t rx_head;
 uint8_t rx_tail;
 uint8_t rx_count;
+uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t tx_head;
 uint8_t tx_tail;
 uint8_t tx_count;
@@ -146,14 +141,13 @@ int main() {
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
 #endif /* SET_PRESCALER */
-    //OSCCAL -= 3;
 	UsiTwiSlaveInit();              		/* Initialize TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    //uint16_t exit_delay = CYCLESTOEXIT;   /* Delay to exit bootloader and run the application if not initialized */
-    uint8_t led_delay = 0xFF;                 /* Led blink delay */
-    uint16_t exit_delay = 0x1300;           /* Delay to exit bootloader and run the application if not initialized */
+    //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t exitDly = 0xFFF;         /* Delay to exit bootloader and run the application if not initialized */
+    uint8_t boogie = 0xFF;
     
     /*  ___________________
        |                   | 
@@ -180,33 +174,42 @@ int main() {
             UsiOverflowHandler(); /* If so, run the USI overflow handler ... */
         }
 #if !(TWO_STEP_INIT)
-        //if ((flags & (1 << FL_INIT_1)) != (1 << FL_INIT_1)) {
-        if (fl_init_1 == true) {
+        if ((flags & (1 << FL_INIT_1)) != (1 << FL_INIT_1)) {
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-        //if ((flags & ((1 << FL_INIT_1) + (1 << FL_INIT_2))) != ((1 << FL_INIT_1) + (1 << FL_INIT_2))) {
-        if ((fl_init_1 == true) && (fl_init_2 == true)) {    
+        if ((flags & ((1 << FL_INIT_1) + (1 << FL_INIT_2))) != ((1 << FL_INIT_1) + (1 << FL_INIT_2))) {
 #endif /* TWO_STEP_INIT */
             // ======================================
-            // =   \\\ Bootloader initialized ///   =
+            // = \\\ Bootloader not initialized /// =
             // ======================================
-            //if ((flags & (1 << FL_EN_SLOW_OPS)) == (1 << FL_EN_SLOW_OPS)) {
-            //    flags &= ~(1 << FL_EN_SLOW_OPS);
-            if (fl_enable_slow_ops == true) {
-                fl_enable_slow_ops = false;
+#if ENABLE_LED_UI               
+            LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */
+            if (boogie-- == 0) {
+                if (exitDly-- == 0) {
+                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                }
+            }
+        }
+        else {
+            // ======================================
+            // =   \\\ Bootloader initialized ///   =
+            // ======================================           
+            //if (enable_slow_ops == true) {
+            //    enable_slow_ops = false;
+            if ((flags & (1 << FL_EN_SLOW_OPS)) == (1 << FL_EN_SLOW_OPS)) {
+                flags &= ~(1 << FL_EN_SLOW_OPS);
                 // =================================================
                 // = Exit bootloader and run application (Slow Op) =
                 // =================================================
-                //if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
-                if (fl_exit_tml == true) {     
+                if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ==================================================
                 // = Delete application from flash memory (Slow Op) =
                 // ==================================================
-                //if ((flags & (1 << FL_DEL_FLASH)) == (1 << FL_DEL_FLASH)) {
-                if (fl_del_flash == true) {    
+                if ((flags & (1 << FL_DEL_FLASH)) == (1 << FL_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
@@ -269,8 +272,7 @@ int main() {
                         }
                         else {
                             // -- If no, it means that the application is too big for this setup, erase it! 
-                            //flags |= (1 << FL_DEL_FLASH);
-                            fl_del_flash = true;
+                            flags |= (1 << FL_DEL_FLASH);
                         }
                     }
 #endif /* APP_USE_TPL_PG */
@@ -281,20 +283,7 @@ int main() {
                     pageIX = 0;
                 }
             }
-        } 
-        else {
-            // ======================================
-            // = \\\ Bootloader not initialized /// =
-            // ======================================
-            if (led_delay-- == 0) {
-#if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
-#endif /* ENABLE_LED_UI */
-                if (exit_delay-- == 0) {
-                    RunApplication();           /* Count from CYCLESTOEXIT to 0, then exit to the application */
-                }
-            }
-        }           
+        }      
     }
     return(0);
 }
@@ -316,7 +305,7 @@ inline void ReceiveEvent(uint8_t commandBytes) {
    |________________________|
 */
 inline void RequestEvent(void) {
-    //uint8_t opCodeAck = ~command[0];                              /* Command code reply => Command Bitwise "Not" */
+    //uint8_t opCodeAck = ~command[0];                                /* Command code reply => Command Bitwise "Not" */
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
@@ -346,13 +335,11 @@ inline void RequestEvent(void) {
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
-            // ---- too old ---- flags |= (1 << (FL_INIT_1)) | (1 << (FL_INIT_2));     /* Single-step init */
-            //flags |= (1 << FL_INIT_1);                              /* Single-step init */
-            fl_init_1 = true;
+            //flags |= (1 << (FL_INIT_1)) | (1 << (FL_INIT_2));     /* Single-step init */
+            flags |= (1 << FL_INIT_1);                              /* Single-step init */
 #endif /* !TWO_STEP_INIT */
 #if TWO_STEP_INIT
-            //flags |= (1 << FL_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
-            fl_init_2 = true;
+            flags |= (1 << FL_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
 #endif /* TWO_STEP_INIT */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
@@ -360,25 +347,26 @@ inline void RequestEvent(void) {
             for (uint8_t i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
         // ******************
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
             UsiTwiTransmitByte(ACKEXITT);
-            //flags |= (1 << FL_EXIT_TML);
-            fl_exit_tml = true;
-            break;
+            flags |= (1 << FL_EXIT_TML);
+            //break;
+            return;
         }
         // ******************
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
             UsiTwiTransmitByte(ACKDELFL);
-            //flags |= (1 << FL_DEL_FLASH);
-            fl_del_flash = true;
-            break;;
+            flags |= (1 << FL_DEL_FLASH);
+            //break;
+            return;
         }
 #if (CMD_STPGADDR || !(AUTO_TPL_CALC))
         // ******************
@@ -390,11 +378,12 @@ inline void RequestEvent(void) {
             flashPageAddr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
             flashPageAddr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);          /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (uint8_t)(command[1] + command[2]);             /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
 #endif /* CMD_STPGADDR || !AUTO_TPL_CALC */
         // ******************
@@ -430,21 +419,21 @@ inline void RequestEvent(void) {
                 }
             }
             if ((reply[1] != command[MST_DATA_SIZE + 1]) || (pageIX > PAGE_SIZE)) {
-                //flags |= (1 << FL_DEL_FLASH);            	        /* If checksums don't match, safety payload deletion ... */
-                fl_del_flash = true;
+                flags |= (1 << FL_DEL_FLASH);            	/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
-            break;
+            //break;
+            return;
         }
 #if CMD_READFLASH
         // ******************
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t ackLng = (command[3] + 2);                /* Fourth byte received determines the size of reply data */
+            const uint8_t ackLng = (command[3] + 2);                   /* Fourth byte received determines the size of reply data */
             uint8_t reply[ackLng];
             if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
@@ -454,7 +443,7 @@ inline void RequestEvent(void) {
                 flashAddr = (void *)flashPageAddr; 
                 for (uint8_t i = 1; i < command[3] + 1; i++) {
                     reply[i] = (*(flashAddr++) & 0xFF);             /* Actual flash data */
-                    reply[ackLng - 1] += (uint8_t)(reply[i]);       /* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[ackLng - 1] += (uint8_t)(reply[i]);          /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
                 for (uint8_t i = 0; i < ackLng; i++) {
                     UsiTwiTransmitByte(reply[i]);
@@ -463,7 +452,8 @@ inline void RequestEvent(void) {
             else {
                 UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
             }
-            break;
+            //break;
+            return;
         }   
 #endif /* CMD_READFLASH */
 #if TWO_STEP_INIT
@@ -471,15 +461,16 @@ inline void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            //flags |= (1 << FL_INIT_1);                              /* Two-step init step 1: receive INITSOFT command */
-            fl_init_1 = true;
+            flags |= (1 << FL_INIT_1);                     /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
-            break;
+            //break;
+            return;
         }
 #endif /* TWO_STEP_INIT */
         default: {
             UsiTwiTransmitByte(UNKNOWNC);
-            break;
+            //break;
+            return;
         }
     }
 }
@@ -607,8 +598,7 @@ inline void UsiOverflowHandler() {
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
-                fl_enable_slow_ops = true;
-                //flags |= (1 << FL_EN_SLOW_OPS); // Enable slow operations in main!   >>
+                flags |= (1 << FL_EN_SLOW_OPS); // Enable slow operations in main!   >>
                 //                                                                 >> 
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 break;
