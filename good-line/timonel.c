@@ -146,8 +146,8 @@ int main() {
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
     //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t exitDly = 0xFFF;         /* Delay to exit bootloader and run the application if not initialized */
-    uint8_t boogie = 0xFF;
+    uint8_t exit_delay = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t led_delay = 0xFFF;
     
     /*  ___________________
        |                   | 
@@ -185,8 +185,8 @@ int main() {
 #if ENABLE_LED_UI               
             LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */
-            if (boogie-- == 0) {
-                if (exitDly-- == 0) {
+            if (led_delay-- == 0) {
+                if (exit_delay-- == 0) {
                     RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
