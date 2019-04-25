@@ -78,7 +78,7 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    0xFFF   /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    0xFF   /* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
