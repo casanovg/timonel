@@ -153,7 +153,7 @@ int main() {
     asm volatile("spm");
     //uint16_t exit_delay = CYCLESTOEXIT;   /* Delay to exit bootloader and run the application if not initialized */
     uint8_t led_delay = 0xFF;                 /* Led blink delay */
-    uint16_t exit_delay = 0x2FFF;           /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t exit_delay = 0xFFF;           /* Delay to exit bootloader and run the application if not initialized */
     
     /*  ___________________
        |                   | 
