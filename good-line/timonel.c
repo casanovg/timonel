@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-04-23 (GOOD-LINE)
+ *  Version: 1.3 "Sandra" / 2019-04-25 (GOOD-LINE)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -74,6 +74,12 @@ typedef enum {
 uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exit; 3: delete flash; 2, 1: initialized */
 uint16_t flashPageAddr = 0x0000;               /* Flash memory page address */
+#if AUTO_TPL_CALC
+uint8_t appResetLSB = 0xFF;                    /* Application first byte */
+uint8_t appResetMSB = 0xFF;                    /* Application second byte */
+#endif /* AUTO_TPL_CALC */
+
+// USI TWI driver globals
 uint8_t pageIX = 0;                            /* Flash memory page index */
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
@@ -84,11 +90,6 @@ uint8_t rx_tail;
 uint8_t tx_head;
 uint8_t tx_tail;
 OperationalState device_state;
-
-#if AUTO_TPL_CALC
-uint8_t appResetLSB = 0xFF;                    /* Application first byte */
-uint8_t appResetMSB = 0xFF;                    /* Application second byte */
-#endif /* AUTO_TPL_CALC */
 
 // Jump to trampoline
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2);
@@ -138,7 +139,7 @@ int main() {
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 #if !(MODE_16_MHZ)
-    OSCCAL = OSCILLATOR_CAL;                /* Accelerate! */
+    OSCCAL = OSCILLATOR_CAL;                /* Calibrate oscillator for TWI interface */
 #endif /* 16_MHZ_MODE */
 #if SET_PRESCALER
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
@@ -189,7 +190,7 @@ int main() {
                 LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
-                    OSCCAL = 0x00;                          /* Slow down! */
+                    OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
                     RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
@@ -207,7 +208,7 @@ int main() {
                 // =======================================================
                 if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
-                    OSCCAL = 0x00;                          /* Slow down! */
+                    OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ================================================
@@ -222,7 +223,7 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
-                    OSCCAL = 0x00;                          /* Slow down! */
+                    OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                       /* Restart the bootloader by jumping to Timonel start */
 #else
