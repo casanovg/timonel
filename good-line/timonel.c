@@ -137,6 +137,9 @@ int main() {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);        /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
+#if !(MODE_16_MHZ)
+    OSCCAL = OSCILLATOR_CAL;                /* Accelerate! */
+#endif /* 16_MHZ_MODE */
 #if SET_PRESCALER
     CLKPR = (1 << CLKPCE);                  /* Set the CPU prescaler division factor = 1 */
     CLKPR = (0x00);
@@ -145,9 +148,8 @@ int main() {
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));        /* Clear temporary page buffer */
     asm volatile("spm");
-    //uint8_t exitDly = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
-    uint8_t exit_delay = CYCLESTOEXIT;         /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t led_delay = 0xFFF;
+    uint8_t exit_delay = CYCLESTOEXIT;      /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t led_delay = LED_DELAY;
     
     /*  ___________________
        |                   | 
@@ -187,6 +189,7 @@ int main() {
 #endif /* ENABLE_LED_UI */
             if (led_delay-- == 0) {
                 if (exit_delay-- == 0) {
+                    OSCCAL = 0x00;                          /* Slow down! */
                     RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
@@ -204,6 +207,7 @@ int main() {
                 // =================================================
                 if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    OSCCAL = 0x00;                          /* Slow down! */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ==================================================
@@ -218,6 +222,7 @@ int main() {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+                    OSCCAL = 0x00;                          /* Slow down! */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                       /* Restart the bootloader by jumping to Timonel start */
 #else

@@ -78,21 +78,42 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    0xFF   /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    0xFF    /* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
 #define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
 #endif /* LED_UI_PIN */
 
-
-#ifndef SET_PRESCALER           /* If this is enabled, it forces the CPU prescaler division to 1, so   */
-#define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
-#endif /* SET_PRESCALER */
-
 #ifndef FORCE_ERASE_PG          /* If this option is enabled, each flash memory page is erased before  */
 #define FORCE_ERASE_PG  false   /* writing new data. Normally, it shouldn't be necessary to enable it. */
 #endif /* FORCE_ERASE_PG */
+
+#ifndef MODE_16_MHZ
+#define MODE_16_MHZ     false    /* Set this in line with the AVR fuse settings */
+#endif /* MODE_16_MHZ */
+
+#if (MODE_16_MHZ == true)
+    #ifndef OSCILLATOR_CAL
+    #define OSCILLATOR_CAL  0x00    /* Internal oscillator callibrations for 16 MHz operation.         */
+    #endif /* OSCILLATOR_CAL */
+    #ifndef SET_PRESCALER
+    #define SET_PRESCALER   false   /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+    #endif /* SET_PRESCALER */    
+    #ifndef LED_DELAY
+    #define LED_DELAY       0xFFFF  /* Long led delay */
+    #endif /* LED_DELAY */    
+#else
+    #ifndef OSCILLATOR_CAL
+    #define OSCILLATOR_CAL  0xCF    /* Internal oscillator callibrations for 8 MHz operation.          */
+    #endif /* OSCILLATOR_CAL */
+    #ifndef SET_PRESCALER
+    #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+    #endif /* SET_PRESCALER */
+    #ifndef LED_DELAY
+    #define LED_DELAY       0xFFF   /* Short led delay */
+    #endif /* LED_DELAY */
+#endif /* MODE_16_MHZ */
 
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
