@@ -76,13 +76,13 @@ uint8_t flags = 0;                             /* Bit: 8,7,6,5: Not used; 4: exi
 uint16_t flashPageAddr = 0x0000;               /* Flash memory page address */
 uint8_t pageIX = 0;                            /* Flash memory page index */
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
+uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+uint8_t rx_byte_count;                         /* Received byte quantity in RX buffer */
+uint8_t tx_byte_count;                         /* Byte quantity to transmit in TX buffer */ 
 uint8_t rx_head;
 uint8_t rx_tail;
-uint8_t rx_count;
-uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t tx_head;
 uint8_t tx_tail;
-uint8_t tx_count;
 OperationalState device_state;
 
 #if AUTO_TPL_CALC
@@ -157,23 +157,23 @@ int main() {
        |___________________|
     */
     for (;;) {
-        /* .....................................................
-           . TWI Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify whether   .
-           . a TWI start condition handler should be launched  .
-           .....................................................
+        /* ......................................................
+           . TWI Interrupt Emulation .......................... .
+           . Check the USI status register to verify whether    .
+           . a TWI start condition handler should be triggered  .
+           ......................................................
         */
         if ((USISR & (1 << TWI_START_COND_FLAG)) && (USICR & (1 << TWI_START_COND_INT))) {
-            TwiStartHandler();                      /* If so, run the USI start handler ... */
+            TwiStartHandler();      /* If so, run the USI start handler ... */
         } 		
-        /* .....................................................
-           . TWI Interrupt Emulation ......................... .
-           . Check the USI Status Register to verify whether   .
-           . a USI counter overflow handler should be launched .
-           .....................................................
+        /* ......................................................
+           . TWI Interrupt Emulation .......................... .
+           . Check the USI status register to verify whether a  .
+           . 4-bit counter overflow handler should be triggered .
+           ......................................................
         */
         if ((USISR & (1 << USI_OVERFLOW_FLAG)) && (USICR & (1 << USI_OVERFLOW_INT))) {
-            UsiOverflowHandler(); /* If so, run the USI overflow handler ... */
+            UsiOverflowHandler();   /* If so, run the USI overflow handler ... */
         }
 #if !(TWO_STEP_INIT)
         if ((flags & (1 << FL_INIT_1)) != (1 << FL_INIT_1)) {
@@ -184,13 +184,13 @@ int main() {
             // ======================================
             // = \\\ Bootloader not initialized /// =
             // ======================================
-#if ENABLE_LED_UI               
-            LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
-#endif /* ENABLE_LED_UI */
             if (led_delay-- == 0) {
+#if ENABLE_LED_UI               
+                LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+#endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
                     OSCCAL = 0x00;                          /* Slow down! */
-                    RunApplication();               /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                    RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
         }
@@ -202,17 +202,17 @@ int main() {
             //    enable_slow_ops = false;
             if ((flags & (1 << FL_EN_SLOW_OPS)) == (1 << FL_EN_SLOW_OPS)) {
                 flags &= ~(1 << FL_EN_SLOW_OPS);
-                // =================================================
-                // = Exit bootloader and run application (Slow Op) =
-                // =================================================
+                // =======================================================
+                // = Exit the bootloader & run the application (Slow Op) =
+                // =======================================================
                 if ((flags & (1 << FL_EXIT_TML)) == (1 << FL_EXIT_TML)) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
                     OSCCAL = 0x00;                          /* Slow down! */
                     RunApplication();                       /* Exit to the application */
                 }
-                // ==================================================
-                // = Delete application from flash memory (Slow Op) =
-                // ==================================================
+                // ================================================
+                // = Delete the application from memory (Slow Op) =
+                // ================================================
                 if ((flags & (1 << FL_DEL_FLASH)) == (1 << FL_DEL_FLASH)) {
 #if ENABLE_LED_UI                   
                     LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
@@ -231,9 +231,9 @@ int main() {
 #endif /* !USE_WDT_RESET */                    
                 }
 #if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
-                // ========================================================================
-                // = Write received page to flash memory and prepare to receive a new one =
-                // ========================================================================    
+                // =========================================================================
+                // = Write the received page to memory and prepare for a new one (Slow Op) =
+                // =========================================================================    
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START)) {
 #else
                 if ((pageIX == PAGE_SIZE) & (flashPageAddr < TIMONEL_START - PAGE_SIZE)) {
@@ -255,13 +255,13 @@ int main() {
                         boot_page_write(TIMONEL_START - PAGE_SIZE);                        
                     }
 #if APP_USE_TPL_PG
-                    if ((flashPageAddr) == (TIMONEL_START - PAGE_SIZE)) {
+                    if (flashPageAddr == (TIMONEL_START - PAGE_SIZE)) {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((appResetMSB << 8) | appResetLSB) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char * flashAddr;
-                        for (byte i = 0; i < PAGE_SIZE - 2; i += 2) {
+                        for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
                             flashAddr = (void *)((TIMONEL_START - PAGE_SIZE) + i);
-                            word pgData = (*flashAddr & 0xFF);
+                            uint16_t pgData = (*flashAddr & 0xFF);
                             pgData += ((*(++flashAddr) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, pgData);
                         }
@@ -495,8 +495,8 @@ void UsiTwiSlaveInit(void) {
        for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
        by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
 	*/
-    rx_tail = rx_head = rx_count = 0; /* Flush TWI RX buffers */
-    tx_tail = tx_head = tx_count = 0; /* Flush TWI TX buffers */
+    rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
+    tx_tail = tx_head = tx_byte_count = 0; /* Flush TWI TX buffers */
 	SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
     PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
@@ -511,7 +511,7 @@ void UsiTwiSlaveInit(void) {
 */
 inline uint8_t UsiTwiReceiveByte(void) {
     uint8_t received_byte;
-    while (!rx_count--) {
+    while (!rx_byte_count--) {
         /* Wait until a byte is received into the RX buffer */
     };
     received_byte = rx_buffer[rx_tail];
@@ -525,7 +525,7 @@ inline uint8_t UsiTwiReceiveByte(void) {
    |___________________________|
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
-    while (tx_count++ == TWI_TX_BUFFER_SIZE) {
+    while (tx_byte_count++ == TWI_TX_BUFFER_SIZE) {
 		/* Wait until there is free space in the TX buffer */
     };
     tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX  buffer */
@@ -582,7 +582,7 @@ inline void UsiOverflowHandler() {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {             /* If lsbit = 1: Send data to master */
                     //DATA_REQUESTED_BY_MASTER_CALLBACK();
-                    ReceiveEvent(rx_count);
+                    ReceiveEvent(rx_byte_count);
                     RequestEvent();
                     device_state = STATE_SEND_DATA;
                 } else {                        /* If ls-bit = 0: Receive data from master */
@@ -615,7 +615,7 @@ inline void UsiOverflowHandler() {
         // Next STATE_WAIT_ACK_AFTER_SEND_DATA
         case STATE_SEND_DATA: {
             // Get data from Buffer
-            if (tx_count--) {
+            if (tx_byte_count--) {
                 USIDR = tx_buffer[tx_tail];
                 tx_tail = (tx_tail + 1) & TWI_TX_BUFFER_MASK;
             } else {
@@ -647,7 +647,7 @@ inline void UsiOverflowHandler() {
         case STATE_RECEIVE_DATA_AND_SEND_ACK: {
             // put data into buffer
             // check buffer size
-            if (rx_count++ < TWI_RX_BUFFER_SIZE) {
+            if (rx_byte_count++ < TWI_RX_BUFFER_SIZE) {
                 rx_buffer[rx_head] = USIDR;
                 rx_head = (rx_head + 1) & TWI_RX_BUFFER_MASK;
             } else {
