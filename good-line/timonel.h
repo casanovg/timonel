@@ -94,9 +94,6 @@
 #endif /* MODE_16_MHZ */
 
 #if (MODE_16_MHZ == true)
-    #ifndef OSCILLATOR_CAL
-    #define OSCILLATOR_CAL  0x00    /* Internal oscillator callibrations for 16 MHz operation.         */
-    #endif /* OSCILLATOR_CAL */
     #ifndef SET_PRESCALER
     #define SET_PRESCALER   false   /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
     #endif /* SET_PRESCALER */    
