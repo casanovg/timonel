@@ -151,7 +151,8 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             }
             upl_errors += WritePageBuff(data_packet); /* Send a data packet to Timonel through TWI */
             packet = 0;
-            delay(10); /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
+            // Data packet 8 = delay 10; // Data packet 16 = delay 20; 
+            delay(20); /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
         }
         if (upl_errors > 0) {
             //DeleteFlash();
@@ -167,13 +168,15 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 
             USE_SERIAL.printf_P(" P%d ", page_count);
 
+            // Data packet 8 = delay 100; // Data packet 16 = delay 150; 
             if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
-                delay(100);                                /* delay to allow memory flashing, then set the next   */
+                delay(150);                                /* delay to allow memory flashing, then set the next   */
                 USE_SERIAL.printf_P("\n\r");               /* page address before sending new data.               */
                 SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
 
-            delay(100); /* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
+            // Data packet 8 = delay 100; // Data packet 16 = delay 150;
+            delay(150); /* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
             page_count++;
 
             if (i < (payload_size - 1)) {

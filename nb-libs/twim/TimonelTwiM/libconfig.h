@@ -12,6 +12,9 @@
 
 #define USE_SERIAL Serial
 
+#define MST_DATA_SIZE   16   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   16   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
 #define V_CMD_LENGTH 9      /* Timonel version reply lenght */
 #define T_SIGNATURE 84      /* Timonel signature (expected "T") */
@@ -23,9 +26,6 @@
 #define V_BOOT_ADDR_LSB 6   /* Ver cmd reply: Timonel start address LSB position */
 #define V_APPL_ADDR_MSB 7   /* Ver cmd reply: Application address MSB position */
 #define V_APPL_ADDR_LSB 8   /* Ver cmd reply: Application address LSB position */
-
-#define MST_DATA_SIZE   8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 #define PAGE_SIZE 64		    /* Tiny85 flash page buffer size */
 #define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
