@@ -185,8 +185,8 @@ int main(void) {
             // ======================================
             // =   \\\ Bootloader initialized ///   =
             // ======================================           
-            if ((flags >> FL_EN_SLOW_OPS) & true) {
-                flags &= ~(1 << FL_EN_SLOW_OPS);
+            if ((flags >> FL_SLOW_OPS) & true) {
+                flags &= ~(1 << FL_SLOW_OPS);
                 // =======================================================
                 // = Exit the bootloader & run the application (Slow Op) =
                 // =======================================================
@@ -579,7 +579,7 @@ inline void UsiOverflowHandler(void) {
                 SET_USI_TO_WAIT_FOR_TWI_START_AND_ADDR();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
-                flags |= (1 << FL_EN_SLOW_OPS); // Enable slow operations in main!   >>
+                flags |= (1 << FL_SLOW_OPS); // Enable slow operations in main!   >>
                 //                                                                 >> 
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 break;
