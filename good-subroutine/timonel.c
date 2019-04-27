@@ -60,7 +60,7 @@
 // Type definitions
 typedef void (* const fptr_t)(void);              /* Pointer-to-function type */
 typedef enum {                                    /* TWI driver operational modes */
-	STATE_CHECK_ADDRESS,
+    STATE_CHECK_ADDRESS,
     STATE_SEND_DATA,
     STATE_WAIT_ACK_AFTER_SEND_DATA,
     STATE_CHECK_ACK_AFTER_SEND_DATA,
@@ -145,7 +145,7 @@ int main(void) {
     CLKPR = (1 << CLKPCE);                        /* Set the CPU prescaler division factor = 1 */
     CLKPR = 0x00;
 #endif /* SET_PRESCALER */
-	UsiTwiDriverInit();              		      /* Initialize the TWI driver */
+    UsiTwiDriverInit();                           /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));              /* Clear the temporary page buffer */
     asm volatile("spm");
@@ -166,7 +166,7 @@ int main(void) {
         */
         if (((USISR >> TWI_START_COND_FLAG) & true) && ((USICR >> TWI_START_COND_INT) & true)) {
             TwiStartHandler();                    /* If so, run the USI start handler ... */
-        } 		
+        }       
         /* ......................................................
            . TWI Interrupt Emulation .......................... .
            . Check the USI status register to verify whether a  .
@@ -479,18 +479,18 @@ inline void RequestEvent(void) {
    |_______________________________|
 */
 void UsiTwiDriverInit(void) {
-	/* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
+    /* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
        low when a start condition is detected or a counter overflow (only
        for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
        by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
-	*/
+    */
     rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
     tx_tail = tx_head = tx_byte_count = 0; /* Flush TWI TX buffers */
-	SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
+    SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
     PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
-	SET_USI_SDA_AS_INPUT(); 		 /* Set SDA as input */
-	SET_USI_TO_WAIT_FOR_TWI_START_AND_ADDR(); /* Wait for TWI start condition and address from master */
+    SET_USI_SDA_AS_INPUT();          /* Set SDA as input */
+    SET_USI_TO_WAIT_FOR_TWI_START_AND_ADDR(); /* Wait for TWI start condition and address from master */
 }
 
 /*  ___________________________
@@ -515,7 +515,7 @@ inline uint8_t UsiTwiReceiveByte(void) {
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
     while (tx_byte_count++ == TWI_TX_BUFFER_SIZE) {
-		/* Wait until there is free space in the TX buffer */
+        /* Wait until there is free space in the TX buffer */
     };
     tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX buffer */
     tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
@@ -528,19 +528,19 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
 */
 inline void TwiStartHandler(void) {
     device_state = STATE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
-	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+    SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
-		/* Wait for SCL to go low to ensure the start condition has completed (the
-		   start detector will hold SCL low ).
-		*/
-	}
-	// If a stop condition arises then leave this function to prevent waiting forever.
-	// Don't use USISR to test for stop condition as in application note AVR312
-	// because the stop condition flag is going to be set from the last TWI sequence.
-	if (!(PIN_USI & (1 << PIN_USI_SDA))) {	/*** Stop condition NOT DETECTED ***/
+        /* Wait for SCL to go low to ensure the start condition has completed (the
+           start detector will hold SCL low ).
+        */
+    }
+    // If a stop condition arises then leave this function to prevent waiting forever.
+    // Don't use USISR to test for stop condition as in application note AVR312
+    // because the stop condition flag is going to be set from the last TWI sequence.
+    if (!(PIN_USI & (1 << PIN_USI_SDA))) {  /*** Stop condition NOT DETECTED ***/
         SET_USI_TO_DETECT_TWI_RESTART();
     }
-    else { 								    /*** Stop condition DETECTED ***/
+    else {                                  /*** Stop condition DETECTED ***/
         SET_USI_TO_DETECT_TWI_START();
     }
     SET_USI_TO_SHIFT_8_ADDRESS_BITS(); /* Wait for TWI address */
@@ -642,14 +642,14 @@ inline void UsiOverflowHandler(void) {
 // USI basic TWI operations functions
 // -----------------------------------------------------
 inline void SET_USI_TO_SEND_ACK(void) {
-	USIDR = 0;	/* Clear the USI data register */
-	SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
+    USIDR = 0;  /* Clear the USI data register */
+    SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
     SET_USI_TO_SHIFT_1_ACK_BIT(); /* Shift-out ACK bit */
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_WAIT_ACK(void) {
-	USIDR = 0;	/* Clear the USI data register */
-	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+    USIDR = 0;  /* Clear the USI data register */
+    SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     SET_USI_TO_SHIFT_1_ACK_BIT(); /* Shift-in ACK bit */
 }
 // -----------------------------------------------------
@@ -659,40 +659,40 @@ inline void SET_USI_TO_WAIT_FOR_TWI_START_AND_ADDR(void) {
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_SEND_DATA(void) {
-	SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
+    SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
     SET_USI_TO_SHIFT_8_DATA_BITS();
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_RECEIVE_DATA(void) {
-	SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+    SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     SET_USI_TO_SHIFT_8_DATA_BITS();
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) {
-	/* Clear all USI status register interrupt flags to prepare for new start conditions */
-	USISR = (1 << TWI_START_COND_FLAG) |
-			(1 << USI_OVERFLOW_FLAG) |
-			(1 << TWI_STOP_COND_FLAG) |
-			(1 << TWI_COLLISION_FLAG) |
-			(0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */
+    /* Clear all USI status register interrupt flags to prepare for new start conditions */
+    USISR = (1 << TWI_START_COND_FLAG) |
+            (1 << USI_OVERFLOW_FLAG) |
+            (1 << TWI_STOP_COND_FLAG) |
+            (1 << TWI_COLLISION_FLAG) |
+            (0x0 << USICNT0); /* Reset status register 4-bit counter to shift 8 bits (data byte to be received) */
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
-	/* Clear all USI status register interrupt flags, except start condition */
-	USISR = (0 << TWI_START_COND_FLAG) |
-			(1 << USI_OVERFLOW_FLAG) |
-			(1 << TWI_STOP_COND_FLAG) |
-			(1 << TWI_COLLISION_FLAG) |
-			(0x0 << USICNT0); /* Set status register 4-bit counter to shift 8 bits */    
+    /* Clear all USI status register interrupt flags, except start condition */
+    USISR = (0 << TWI_START_COND_FLAG) |
+            (1 << USI_OVERFLOW_FLAG) |
+            (1 << TWI_STOP_COND_FLAG) |
+            (1 << TWI_COLLISION_FLAG) |
+            (0x0 << USICNT0); /* Set status register 4-bit counter to shift 8 bits */    
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_SHIFT_1_ACK_BIT(void) {
-	/* Clear all USI status register interrupt flags, except start condition */
-	USISR = (0 << TWI_START_COND_FLAG) |
-			(1 << USI_OVERFLOW_FLAG) |
-			(1 << TWI_STOP_COND_FLAG) |
-			(1 << TWI_COLLISION_FLAG) |
-			(0x0E << USICNT0); /* Set status register 4-bit counter to shift 1 bit */
+    /* Clear all USI status register interrupt flags, except start condition */
+    USISR = (0 << TWI_START_COND_FLAG) |
+            (1 << USI_OVERFLOW_FLAG) |
+            (1 << TWI_STOP_COND_FLAG) |
+            (1 << TWI_COLLISION_FLAG) |
+            (0x0E << USICNT0); /* Set status register 4-bit counter to shift 1 bit */
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_DETECT_TWI_START(void) {
@@ -700,7 +700,7 @@ inline void SET_USI_TO_DETECT_TWI_START(void) {
     USICR = (1 << TWI_START_COND_INT) | (0 << USI_OVERFLOW_INT) | /* Enable start condition interrupt, disable overflow interrupt */
             (1 << USIWM1) | (0 << USIWM0) | /* Set USI in Two-wire mode, no SCL hold when the 4-bit counter overflows */
             (1 << USICS1) | (0 << USICS0) | (0 << USICLK) | /* Clock Source = External (positive edge) for data register, External (both edges) for 4-Bit counter */
-            (0 << USITC); /* No toggle clock-port pin (SCL) */				
+            (0 << USITC); /* No toggle clock-port pin (SCL) */              
 }
 // -----------------------------------------------------
 inline void SET_USI_TO_DETECT_TWI_RESTART(void) {
@@ -715,25 +715,25 @@ inline void SET_USI_TO_DETECT_TWI_RESTART(void) {
 // USI direction setting functions
 // -----------------------------------------------------
 inline void SET_USI_SDA_AS_OUTPUT(void) {
-	DDR_USI |=  (1 << PORT_USI_SDA);
+    DDR_USI |=  (1 << PORT_USI_SDA);
 }
 // -----------------------------------------------------
 inline void SET_USI_SDA_AS_INPUT(void) {
-	DDR_USI &= ~(1 << PORT_USI_SDA);
+    DDR_USI &= ~(1 << PORT_USI_SDA);
 }
 // -----------------------------------------------------
 inline void SET_USI_SCL_AS_OUTPUT(void) {
-	DDR_USI |=  (1 << PORT_USI_SCL);
+    DDR_USI |=  (1 << PORT_USI_SCL);
 }
 // -----------------------------------------------------
 inline void SET_USI_SCL_AS_INPUT(void) {
-	DDR_USI &= ~(1 << PORT_USI_SCL);
+    DDR_USI &= ~(1 << PORT_USI_SCL);
 }
 // -----------------------------------------------------
 inline void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) {
-	DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
+    DDR_USI |= (1 << PORT_USI_SDA) | (1 << PORT_USI_SCL);
 }
 // -----------------------------------------------------
 inline void SET_USI_SDA_AND_SCL_AS_INPUT(void) {
-	DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
+    DDR_USI &= ~((1 << PORT_USI_SDA) | (1 << PORT_USI_SCL));
 }
