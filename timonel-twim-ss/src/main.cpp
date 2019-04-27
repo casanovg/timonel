@@ -199,10 +199,10 @@ void loop() {
             // ********************************
             case 'm':
             case 'M': {
-                //byte dataSize = 0;    // flash data size requested to ATtiny85
-                //byte dataIX = 0;  // Requested flash data start position
-                tml.DumpMemory(MCU_TOTAL_MEM, SLV_DATA_SIZE, VALUES_PER_LINE);
-                //DumpFlashMem(MCUTOTALMEM, 8, 32);
+                // (word) flash_size: MCU flash memory size
+                // (byte) slave_data_size: slave-to-master Xmit packet size
+                // (byte) values_per_line: MCU memory values shown per line
+                tml.DumpMemory(MCU_TOTAL_MEM, SLV_DATA_SIZE, SLV_DATA_SIZE);
                 new_byte = false;
                 break;
             }
