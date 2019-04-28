@@ -313,7 +313,8 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("      Features code: %d\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\n\r", tml_status.low_fuse);
     }
 }
 

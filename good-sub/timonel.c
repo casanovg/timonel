@@ -186,7 +186,7 @@ int main(void) {
             // =   \\\ Bootloader initialized ///   =
             // ======================================           
             if ((flags >> FL_SLOW_OPS) & true) {
-                flags &= ~(1 << FL_SLOW_OPS);
+                flags &= ~(1 << FL_SLOW_OPS);           
                 // =======================================================
                 // = Exit the bootloader & run the application (Slow Op) =
                 // =======================================================
@@ -315,9 +315,9 @@ inline void RequestEvent(void) {
         // ******************
         case GETTMNLV: {
 #if CHECK_EMPTY_FL
-            #define GETTMNLV_RPLYLN 10
+            #define GETTMNLV_RPLYLN 11
 #else
-            #define GETTMNLV_RPLYLN 9
+            #define GETTMNLV_RPLYLN 10
 #endif /* CHECK_EMPTY_FL */
             const __flash unsigned char * flashAddr;
             flashAddr = (void *)(TIMONEL_START - 1); 
@@ -331,10 +331,11 @@ inline void RequestEvent(void) {
             reply[6] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
             reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
             reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
+            reply[9] = LOW_FUSE;                                    /* AVR low fuse value */
 #if CHECK_EMPTY_FL
             for (uint16_t mPos = 0; mPos < 100; mPos++) {           /* Check the first 100 memory positions to determine if  */
                 flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
-                reply[9] += (uint8_t)~(*flashAddr);                    
+                reply[10] += (uint8_t)~(*flashAddr);                    
             }
 #endif /* CHECK_EMPTY_FL */
 #if !(TWO_STEP_INIT)
@@ -443,14 +444,17 @@ inline void RequestEvent(void) {
                     reply[ackLng - 1] += (uint8_t)(reply[i]);       /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
                 for (uint8_t i = 0; i < ackLng; i++) {
-                    UsiTwiTransmitByte(reply[i]);
+                    UsiTwiTransmitByte(reply[i]);                   
                 }
             }
             else {
                 UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
             }
+#if ENABLE_LED_UI               
+            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks on each memory data block sent */
+#endif /* ENABLE_LED_UI */          
             return;
-        }   
+        }
 #endif /* CMD_READFLASH */
 #if TWO_STEP_INIT
         // ******************
@@ -480,7 +484,7 @@ inline void RequestEvent(void) {
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
     while (tx_byte_count++ == TWI_TX_BUFFER_SIZE) {
-        /* Wait until there is free space in the TX buffer */
+        // Wait until there is free space in the TX buffer.
     };
     tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX buffer */
     tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
@@ -494,7 +498,7 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
 inline uint8_t UsiTwiReceiveByte(void) {
     uint8_t received_byte;
     while (!rx_byte_count--) {
-        /* Wait until a byte is received into the RX buffer */
+        // Wait until a byte is received into the RX buffer.
     };
     received_byte = rx_buffer[rx_tail];
     rx_tail = (rx_tail + 1) & TWI_RX_BUFFER_MASK; /* Calculate the buffer index */
@@ -507,11 +511,10 @@ inline uint8_t UsiTwiReceiveByte(void) {
    |_______________________________|
 */
 void UsiTwiDriverInit(void) {
-    /* In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
-       low when a start condition is detected or a counter overflow (only
-       for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
-       by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
-    */
+    // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
+    // low when a start condition is detected or a counter overflow (only
+    // for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
+    // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
     rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
     tx_tail = tx_head = tx_byte_count = 0; /* Flush TWI TX buffers */
     SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
@@ -530,9 +533,8 @@ inline void TwiStartHandler(void) {
     device_state = STATE_CHECK_ADDRESS; /* Set default starting conditions for a new TWI package */
     SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
     while ((PIN_USI & (1 << PORT_USI_SCL)) && (!(PIN_USI & (1 << PORT_USI_SDA)))) {
-        /* Wait for SCL to go low to ensure the start condition has completed (the
-           start detector will hold SCL low ).
-        */
+        // Wait for SCL to go low to ensure the start condition has completed.
+        // The start detector will hold SCL low.
     }
     // If a stop condition arises then leave this function to prevent waiting forever.
     // Don't use USISR to test for stop condition as in application note AVR312

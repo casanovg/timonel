@@ -35,8 +35,8 @@
 /* -------------------------------------- */
 
 // TWI Commands Xmit data block size
-#define MST_DATA_SIZE   16       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   16       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_DATA_SIZE   16      /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   16      /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
@@ -74,7 +74,7 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true   /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   true   	/* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
@@ -82,7 +82,7 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    0xFF    /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    40    	/* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
@@ -94,12 +94,16 @@
 #endif /* FORCE_ERASE_PG */
 
 #ifndef MODE_16_MHZ
-#define MODE_16_MHZ     false    /* Set this in line with the AVR fuse settings */
+#define MODE_16_MHZ     false   /* Set this in line with the AVR fuse settings */
 #endif /* MODE_16_MHZ */
+
+#ifndef LOW_FUSE
+#define LOW_FUSE		0x62	/* AVR low fuse value */
+#endif /* LOW_FUSE */
 
 #if (MODE_16_MHZ == true)
     #ifndef SET_PRESCALER
-    #define SET_PRESCALER   false   /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+    #define SET_PRESCALER   false	/* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
     #endif /* SET_PRESCALER */    
     #ifndef LED_DELAY
     #define LED_DELAY       0xFFFF  /* Long led delay */

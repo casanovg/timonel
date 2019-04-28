@@ -33,6 +33,13 @@ byte Timonel::QueryStatus(void) {
         status_.trampoline_addr = (~(((twi_reply_arr[V_APPL_ADDR_MSB] << 8) | twi_reply_arr[V_APPL_ADDR_LSB]) & 0xFFF));
         status_.trampoline_addr++;
         status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+        status_.low_fuse = twi_reply_arr[V_LOW_FUSE];
+        if ((twi_reply_arr[V_FEATURES] >> V_FEATURES) & true) {
+            status_.check_empty_fl = twi_reply_arr[V_CHECK_EMPTY_FL];
+        }
+        else {
+            status_.check_empty_fl = 0;
+        }
     } else {
         //USE_SERIAL.printf_P("\n\r[%s] Error: parsing %02d command! <<< %d\n\r", __func__, GETTMNLV, twi_reply_arr[0]);
         return (ERR_01);

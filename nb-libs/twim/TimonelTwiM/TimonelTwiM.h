@@ -30,6 +30,8 @@ class Timonel : public NbMicro {
         word bootloader_start = 0x0000;
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
+        byte low_fuse = 0;
+        byte check_empty_fl = 0;
     } Status;
     Status GetStatus(void);
     byte UploadApplication(byte payload[], int payload_size, const int start_address = 0x0000);

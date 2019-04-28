@@ -30,18 +30,19 @@ TIMONEL_TWI_ADDR = 8
 # -----------------------------
 # This options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = false
-AUTO_TPL_CALC  = false
+ENABLE_LED_UI  = true
+AUTO_TPL_CALC  = true
 APP_USE_TPL_PG = false
-CMD_STPGADDR   = true
+CMD_STPGADDR   = false
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = false
+USE_WDT_RESET  = true
 CHECK_EMPTY_FL = false
 CMD_READFLASH  = true
 # Warning: By modifying the below options Timonel may become unresponsive!
 LED_UI_PIN     = PB1
-CYCLESTOEXIT   = 40
+CYCLESTOEXIT   = 20
 SET_PRESCALER  = true
+LOW_FUSE	   = 0x62
 FORCE_ERASE_PG = false
 
 # Project name:
@@ -59,8 +60,8 @@ LIBDIR = ./nicebots-libs/twis/6-GC-if-Good-Line
 CMDDIR = ./nicebots-libs/cmd
 
 # Settings for running at 8 Mhz starting from Timonel v1.1
-FUSEOPT = -U lfuse:w:0x62:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
-FUSEOPT_DISABLERESET = -U lfuse:w:0x62:m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
+FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
+FUSEOPT_DISABLERESET = -U lfuse:w:$(LOW:FUSE):m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
 
 #---------------------------------------------------------------------
 # ATtiny85

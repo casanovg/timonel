@@ -21,12 +21,12 @@ then
 		# 8 MHz
 		echo "[[[ Flashing Timonel for operating @ 8 MHz ]]]";
 		echo "";
-		avrdude -c USBasp -p attiny85 -B3 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:0x62:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m;
+		avrdude -c USBasp -p attiny85 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:0x62:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m;
 	else
 		# 16 MHz
 		echo "[[[ Flashing Timonel for operating @ 16 MHz ]]]";
 		echo "";
-		avrdude -c USBasp -p attiny85 -B3 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m;
+		avrdude -c USBasp -p attiny85 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:0xe1:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m;
 	fi;
 else
 	echo ""
