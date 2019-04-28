@@ -12,8 +12,8 @@
 
 #define USE_SERIAL Serial
 
-#define MST_DATA_SIZE   16   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   16   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_DATA_SIZE   8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
 #define V_CMD_LENGTH 10     /* Timonel version reply lenght */
