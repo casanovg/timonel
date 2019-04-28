@@ -202,7 +202,7 @@ void loop() {
                 // (word) flash_size: MCU flash memory size
                 // (byte) slave_data_size: slave-to-master Xmit packet size
                 // (byte) values_per_line: MCU memory values shown per line
-                tml.DumpMemory(MCU_TOTAL_MEM, SLV_DATA_SIZE, SLV_DATA_SIZE);
+                tml.DumpMemory(MCU_TOTAL_MEM, SLV_PACKET_SIZE, 32);
                 new_byte = false;
                 break;
             }

@@ -12,8 +12,8 @@
 
 #define USE_SERIAL Serial
 
-#define MST_DATA_SIZE   8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE 8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
 #define V_CMD_LENGTH 10     /* Timonel version reply lenght */
@@ -30,7 +30,7 @@
 #define V_CHECK_EMPTY_FL 10 /* Ver cmd reply: Check empty flash value */
 
 #define PAGE_SIZE 64		    /* Tiny85 flash page buffer size */
-#define MAXCKSUMERRORS 1    /* Dump flash max count of errors accepted */
+#define MAXCKSUMERRORS 5    /* Dump flash max count of errors accepted */
 
 #define MCU_TOTAL_MEM 8192  /* Dumpflash: ATTiny flash memory size */
 #define VALUES_PER_LINE 32  /* Dumpflash: Values per line to display */

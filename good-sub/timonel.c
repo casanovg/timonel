@@ -49,7 +49,7 @@
     #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
-#if ((MST_DATA_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_DATA_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
+#if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
     #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
@@ -69,7 +69,7 @@ typedef enum {                                    /* TWI driver operational mode
 } OperationalState;
 
 // Bootloader globals
-uint8_t command[(MST_DATA_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
+uint8_t command[(MST_PACKET_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
 uint8_t flags = 0;                                /* Bit: 8,7,6: not used; 5: slow-ops; 4: exit; 3: delete flash; 2, 1: initialized */
 uint8_t page_ix = 0;                              /* Flash memory page index */
 uint16_t page_addr = 0x0000;                      /* Flash memory page address */
@@ -283,7 +283,10 @@ int main(void) {
                 LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
-                    OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
+					// ==========================================
+					// = >>> Run the application by timeout <<< =
+                    // ==========================================
+					OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
                     RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
@@ -404,20 +407,20 @@ inline void RequestEvent(void) {
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
                 reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
                 page_ix += 2;
-                for (uint8_t i = 3; i < (MST_DATA_SIZE + 1); i += 2) {
+                for (uint8_t i = 3; i < (MST_PACKET_SIZE + 1); i += 2) {
                     boot_page_fill((page_addr + page_ix), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     page_ix += 2;
                 }                
             }
             else {
-                for (uint8_t i = 1; i < (MST_DATA_SIZE + 1); i += 2) {
+                for (uint8_t i = 1; i < (MST_PACKET_SIZE + 1); i += 2) {
                     boot_page_fill((page_addr + page_ix), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     page_ix += 2;
                 }
             }
-            if ((reply[1] != command[MST_DATA_SIZE + 1]) || (page_ix > PAGE_SIZE)) {
+            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (page_ix > PAGE_SIZE)) {
                 flags |= (1 << FL_DEL_FLASH);                       /* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
@@ -433,7 +436,7 @@ inline void RequestEvent(void) {
         case READFLSH: {
             const uint8_t ackLng = (command[3] + 2);                /* Fourth byte received determines the size of reply data */
             uint8_t reply[ackLng];
-            if ((command[3] >= 1) & (command[3] <= (SLV_DATA_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
+            if ((command[3] >= 1) & (command[3] <= (SLV_PACKET_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
                 page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
                 reply[ackLng - 1] = 0;                              /* Checksum initialization */

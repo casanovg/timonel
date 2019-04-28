@@ -73,7 +73,7 @@ byte Timonel::BootloaderInit(const word time) {
 
 // Member Function WritePageBuff
 byte Timonel::WritePageBuff(const byte data_array[]) {
-    const byte cmd_size = MST_DATA_SIZE + 2;
+    const byte cmd_size = MST_PACKET_SIZE + 2;
     const byte reply_size = 2;
     byte twi_cmd[cmd_size] = {0};
     byte twi_reply_arr[reply_size] = {0};
@@ -110,7 +110,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     byte page_end = 0;                             /* Byte counter to detect the end of flash mem page */
     byte page_count = 1;                           /* Current page counter */
     byte upl_errors = 0;                           /* Upload error counter */
-    byte data_packet[MST_DATA_SIZE] = {0xFF};      /* Payload data packet to be sent to Timonel */
+    byte data_packet[MST_PACKET_SIZE] = {0xFF};      /* Payload data packet to be sent to Timonel */
     if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled */
         if (start_address >= PAGE_SIZE) {          /* If application start address is not 0 */
             USE_SERIAL.printf_P("\n\r[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
@@ -152,13 +152,13 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         } else {
             data_packet[packet] = 0xFF; /* If there are no more data, complete the page with padding (0xff) */
         }
-        if (packet++ == (MST_DATA_SIZE - 1)) { /* When a data packet is completed to be sent ... */
-            for (int j = 0; j < MST_DATA_SIZE; j++) {
+        if (packet++ == (MST_PACKET_SIZE - 1)) { /* When a data packet is completed to be sent ... */
+            for (int j = 0; j < MST_PACKET_SIZE; j++) {
                 USE_SERIAL.printf_P(".");
             }
             upl_errors += WritePageBuff(data_packet); /* Send a data packet to Timonel through TWI */
             packet = 0;
-            // Data packet 8 bytes = delay 10; // Data packet 16 bytes  = delay 20 (See SLV_DATA_SIZE)
+            // Data packet 8 bytes = delay 10; // Data packet 16 bytes  = delay 20 (See SLV_PACKET_SIZE)
             delay(10); /* ###### DELAY BETWEEN PACKETS SENT TO PAGE ###### */
         }
         if (upl_errors > 0) {
@@ -175,14 +175,14 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 
             USE_SERIAL.printf_P(" P%d ", page_count);
 
-            // Data packet 8 byte = delay 100; // Data packet 16 bytes = delay 150 (See SLV_DATA_SIZE)
+            // Data packet 8 byte = delay 100; // Data packet 16 bytes = delay 150 (See SLV_PACKET_SIZE)
             if ((status_.features_code & 0x08) != false) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
                 delay(100);                                /* delay to allow memory flashing, then set the next   */
                 USE_SERIAL.printf_P("\n\r");               /* page address before sending new data.               */
                 SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
 
-            // Data packet 8 bytes = delay 100; // Data packet 16 bytes  = delay 150 (See SLV_DATA_SIZE)
+            // Data packet 8 bytes = delay 100; // Data packet 16 bytes  = delay 150 (See SLV_PACKET_SIZE)
             delay(100); /* ###### DELAY BETWEEN PAGE WRITINGS ... ###### */
             page_count++;
 
@@ -245,7 +245,7 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     byte packet = 0; /* Byte amount to be sent in a single I2C data packet */
-    byte data_packet[MST_DATA_SIZE] = {0xFF};
+    byte data_packet[MST_PACKET_SIZE] = {0xFF};
     // Function mode: 1=reset vector page, 2=trampoline page
     switch (page_type) {
         case 1: { /* Reset Vector Page (0) */
@@ -271,8 +271,8 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
     delay(100);
     for (byte i = 0; i < PAGE_SIZE; i++) {
         data_packet[packet] = special_page[i];
-        if (packet++ == (MST_DATA_SIZE - 1)) {
-            for (int j = 0; j < MST_DATA_SIZE; j++) {
+        if (packet++ == (MST_PACKET_SIZE - 1)) {
+            for (int j = 0; j < MST_PACKET_SIZE; j++) {
                 USE_SERIAL.printf_P("|");
             }
             twi_errors += WritePageBuff(data_packet); /* Send data to Timonel through I2C */
@@ -302,46 +302,47 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
 }
 
 // Displays the microcontroller's entire flash memory contents
-byte Timonel::DumpMemory(const word flash_size, const byte slave_data_size, const byte values_per_line) {
+byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     if ((status_.features_code & 0x80) == false) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);
         return (3);
     }
     const byte cmd_size = 5;
     byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0, 0};
-    byte twi_reply_arr[slave_data_size + 2];
+    byte twi_reply_arr[rx_packet_size + 2];
     byte checksum_errors = 0;
     int j = 1;
-    twi_cmd_arr[3] = slave_data_size;
+    twi_cmd_arr[3] = rx_packet_size;
     USE_SERIAL.printf_P("\n\r[%s] Dumping Flash Memory ...\n\n\r", __func__);
     USE_SERIAL.printf_P("Addr %04X: ", 0);
-    for (word address = 0; address < flash_size; address += slave_data_size) {
+    for (word address = 0; address < flash_size; address += rx_packet_size) {
         twi_cmd_arr[1] = ((address & 0xFF00) >> 8);                                                 /* Flash page address high byte */
         twi_cmd_arr[2] = (address & 0xFF);                                                          /* Flash page address low byte */
         twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
-        byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, slave_data_size + 2);
+        byte twi_cmd_err = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + 2);
         if (twi_cmd_err == 0) {
-            byte checksum = 0;
-            for (byte i = 1; i < (slave_data_size + 1); i++) {
+            byte expected_checksum = 0;
+            for (byte i = 1; i < (rx_packet_size + 1); i++) {
                 USE_SERIAL.printf_P("%02X", twi_reply_arr[i]); /* Memory values */
                 if (j == values_per_line) {
                     USE_SERIAL.printf_P("\n\r");
-                    if ((address + slave_data_size) < flash_size) {
-                        USE_SERIAL.printf_P("Addr %04X: ", address + slave_data_size); /* Page address */
+                    if ((address + rx_packet_size) < flash_size) {
+                        USE_SERIAL.printf_P("Addr %04X: ", address + rx_packet_size); /* Page address */
                     }
                     j = 0;
                 } else {
                     USE_SERIAL.printf_P(" "); /* Space between values */
                 }
                 j++;
-                checksum += (byte)twi_reply_arr[i];
+                expected_checksum += (byte)twi_reply_arr[i];
             }
-            if (checksum != twi_reply_arr[slave_data_size + 1]) {
-                USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   %d\n\r", checksum);
-                //USE_SERIAL.printf_P("%d\n\r", checksum + 1);
-                //USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[slave_data_size + 1]);
+            byte received_checksum = twi_reply_arr[rx_packet_size + 1];
+            if (expected_checksum != received_checksum) {
+                USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   Expected:%d - Received:%d\n\r", expected_checksum, received_checksum);
+                //USE_SERIAL.printf_P("%d\n\r", expected_checksum + 1);
+                //USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[rx_packet_size + 1]);
                 if (checksum_errors++ == MAXCKSUMERRORS) {
-                    USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS, stopping! \n\r", __func__);
+                    USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS [ %d ], stopping! \n\r", __func__, checksum_errors);
                     delay(1000);
                     return (2);
                 }
@@ -353,5 +354,6 @@ byte Timonel::DumpMemory(const word flash_size, const byte slave_data_size, cons
         delay(150); /* Verify if this delay matters on multi-slave setups: 50 --> 250 */
     }
     USE_SERIAL.printf_P("\n\r");
+    USE_SERIAL.printf_P("\n\r[%s] Flash memory dump complete! Checksum errors: %d\n\r", __func__, checksum_errors);
     return (OK);
 }
