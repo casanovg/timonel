@@ -81,10 +81,6 @@
 /* ====== [                   in the GETTMNLV command.                         ] ====== */
 /* ====== [   ..............................................................   ] ====== */
 
-#ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
-#endif /* CYCLESTOEXIT */
-
 #ifndef LED_UI_PIN
 #define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
 #endif /* LED_UI_PIN */
@@ -99,7 +95,7 @@
 
 #if (MODE_16_MHZ == true)
     #ifndef SET_PRESCALER
-    #define SET_PRESCALER   false   /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+    #define SET_PRESCALER   false   /* the clock is left by default. */
     #endif /* SET_PRESCALER */    
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0x1FF   /* Long led delay */
@@ -118,10 +114,10 @@
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
     #endif /* SET_PRESCALER */
     #ifndef CYCLESTOBLINK   
-    #define CYCLESTOBLINK   0xFF    /* Long led delay */
+    #define CYCLESTOBLINK   0xFF    /* Short led delay */
     #endif /* CYCLESTOBLINK */
     #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0xA     /* Long exit delay */
+    #define CYCLESTOEXIT    0xA     /* Short exit delay */
     #endif /* CYCLESTOEXIT */
     #ifndef LOW_FUSE
     #define LOW_FUSE        0x62    /* AVR low fuse value */

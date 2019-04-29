@@ -139,7 +139,7 @@ int main(void) {
     LED_UI_DDR |= (1 << LED_UI_PIN);              /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 #if !(MODE_16_MHZ)
-    OSCCAL = OSCILLATOR_CAL;                      /* Calibrate oscillator for TWI interface */
+    OSCCAL = OSCILLATOR_CAL;                      /* Calibrate oscillator for TWI interface @ 8 MHz */
 #endif /* 16_MHZ_MODE */
 #if SET_PRESCALER
     CLKPR = (1 << CLKPCE);                        /* Set the CPU prescaler division factor = 1 */
