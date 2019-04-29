@@ -28,22 +28,24 @@
 #include <avr/wdt.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
-#include "../nicebots-libs/cmd/nb-twi-cmd.h"
+#include "../include/nb-twi-cmd.h"
 
 /* -------------------------------------- */
 /* Timonel settings and optional features */
 /* -------------------------------------- */
 
+#define TIMONEL_START 0x1980
+
 // TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE	8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE	8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
 /* VVVVVV [   modify this options directly, change "tml-config.mak" instead!   ] VVVVVV */
 
 #ifndef ENABLE_LED_UI           /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
-#define ENABLE_LED_UI   false   /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
+#define ENABLE_LED_UI   true   /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
 #endif /* ENABLE_LED_UI */      /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
            
 #ifndef AUTO_TPL_CALC           /* Automatic trampoline calculation & flash. If this is disabled,      */
@@ -74,7 +76,7 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true    /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   true   	/* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
@@ -82,7 +84,7 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    40      /* Loop counter before exit to application if not initialized */
+#define CYCLESTOEXIT    40    	/* Loop counter before exit to application if not initialized */
 #endif /* CYCLESTOEXIT */
 
 #ifndef LED_UI_PIN
@@ -97,19 +99,17 @@
 #define MODE_16_MHZ     false   /* Set this in line with the AVR fuse settings */
 #endif /* MODE_16_MHZ */
 
+#ifndef LOW_FUSE
+#define LOW_FUSE		0x62	/* AVR low fuse value */
+#endif /* LOW_FUSE */
+
 #if (MODE_16_MHZ == true)
     #ifndef SET_PRESCALER
-    #define SET_PRESCALER   false   /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
+    #define SET_PRESCALER   false	/* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
     #endif /* SET_PRESCALER */    
-    #ifndef CYCLESTOBLINK   
-    #define CYCLESTOBLINK   0x1FF   /* Long led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0x30    /* Long exit delay */
-    #endif /* CYCLESTOEXIT */
-    #ifndef LOW_FUSE
-    #define LOW_FUSE        0xE1    /* AVR low fuse value */
-    #endif /* LOW_FUSE */    
+    #ifndef LED_DELAY
+    #define LED_DELAY       0xFFFF  /* Long led delay */
+    #endif /* LED_DELAY */    
 #else
     #ifndef OSCILLATOR_CAL
     #define OSCILLATOR_CAL  0xDD    /* Internal oscillator callibrations for 8 MHz operation.          */
@@ -117,15 +117,9 @@
     #ifndef SET_PRESCALER
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
     #endif /* SET_PRESCALER */
-    #ifndef CYCLESTOBLINK   
-    #define CYCLESTOBLINK   0xFF    /* Long led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0xA     /* Long exit delay */
-    #endif /* CYCLESTOEXIT */
-    #ifndef LOW_FUSE
-    #define LOW_FUSE        0x62    /* AVR low fuse value */
-    #endif /* LOW_FUSE */    
+    #ifndef LED_DELAY
+    #define LED_DELAY       0xFFF   /* Short led delay */
+    #endif /* LED_DELAY */
 #endif /* MODE_16_MHZ */
 
 /* ---------------------------------------------------------------------------------- */
@@ -252,12 +246,12 @@
 #define PORT_USI_SCL PB2
 #define PIN_USI_SDA PINB0
 #define PIN_USI_SCL PINB2
-#define TWI_START_COND_FLAG USISIF  /* This status register flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
-#define USI_OVERFLOW_FLAG USIOIF    /* This status register flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
-#define TWI_STOP_COND_FLAG USIPF    /* This status register flag indicates that an I2C STOP condition occurred on the bus */
-#define TWI_COLLISION_FLAG USIDC    /* This status register flag indicates that a data output collision occurred on the bus */
-#define TWI_START_COND_INT USISIE   /* This control register bit defines whether an I2C START condition will trigger an interrupt */
-#define USI_OVERFLOW_INT USIOIE     /* This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt */
+#define TWI_START_COND_FLAG	USISIF	/* This status register flag indicates that an I2C START condition occurred on the bus (can trigger an interrupt) */
+#define USI_OVERFLOW_FLAG USIOIF	/* This status register flag indicates that the bits reception or transmission is complete (can trigger an interrupt) */
+#define TWI_STOP_COND_FLAG USIPF	/* This status register flag indicates that an I2C STOP condition occurred on the bus */
+#define TWI_COLLISION_FLAG USIDC	/* This status register flag indicates that a data output collision occurred on the bus */
+#define TWI_START_COND_INT USISIE	/* This control register bit defines whether an I2C START condition will trigger an interrupt */
+#define USI_OVERFLOW_INT USIOIE		/* This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt */
 #endif /* ATtinyX5 */
 
 #endif /* _TML_CONFIG_H_ */

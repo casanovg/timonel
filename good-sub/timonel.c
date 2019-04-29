@@ -150,8 +150,8 @@ int main(void) {
                  _BV(__SPM_ENABLE));              /* Clear the temporary page buffer */
     asm volatile("spm");
     uint8_t exit_delay = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t led_delay = LED_DELAY;               /* Delay for led blink */
-    
+    uint16_t led_delay = CYCLESTOBLINK;           /* Delay for led blink */
+   
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -192,7 +192,9 @@ int main(void) {
                 // =======================================================
                 if ((flags >> FL_EXIT_TML) & true) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+#if !(MODE_16_MHZ)
                     OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
+#endif /* 16_MHZ_MODE */
                     RunApplication();                       /* Exit to the application */
                 }
                 // ================================================
@@ -207,7 +209,9 @@ int main(void) {
                         pageAddress -= PAGE_SIZE;
                         boot_page_erase(pageAddress);
                     }
+#if !(MODE_16_MHZ)
                     OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
+#endif /* 16_MHZ_MODE */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                       /* Restart the bootloader by jumping to Timonel start */
 #else
@@ -283,10 +287,12 @@ int main(void) {
                 LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
-					// ==========================================
-					// = >>> Run the application by timeout <<< =
                     // ==========================================
-					OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
+                    // = >>> Run the application by timeout <<< =
+                    // ==========================================
+#if !(MODE_16_MHZ)
+                    OSCCAL = 0x00;                          /* Back the oscillator calibration to its original setup */
+#endif /* 16_MHZ_MODE */
                     RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
