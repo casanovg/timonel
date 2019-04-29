@@ -353,7 +353,6 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         }
         delay(150); /* Verify if this delay matters on multi-slave setups: 50 --> 250 */
     }
-    USE_SERIAL.printf_P("\n\r");
-    USE_SERIAL.printf_P("\n\r[%s] Flash memory dump complete! Checksum errors: %d\n\r", __func__, checksum_errors);
+    USE_SERIAL.printf_P("\n\r[%s] Flash memory dump complete! Checksum errors: %d\n\n\r", __func__, checksum_errors);
     return (OK);
 }
