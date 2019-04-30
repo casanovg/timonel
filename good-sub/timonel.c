@@ -123,8 +123,6 @@ inline void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
 inline void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
 inline void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
 
-//volatile uint8_t kelonio = 0;
-
 // Main function
 int main(void) {
     /*  ___________________
@@ -197,7 +195,8 @@ uint8_t kelonio = OSCCAL;
                 if ((flags >> FL_EXIT_TML) & true) {
                     asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
 #if !(MODE_16_MHZ)
-                    OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    //OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    OSCCAL = kelonio;
 #endif /* 16_MHZ_MODE */
                     RunApplication();                       /* Exit to the application */
                 }
@@ -214,7 +213,8 @@ uint8_t kelonio = OSCCAL;
                         boot_page_erase(pageAddress);
                     }
 #if !(MODE_16_MHZ)
-                    OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    //OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    OSCCAL = kelonio;
 #endif /* 16_MHZ_MODE */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                       /* Restart the bootloader by jumping to Timonel start */
@@ -295,7 +295,8 @@ uint8_t kelonio = OSCCAL;
                     // = >>> Run the application by timeout <<< =
                     // ==========================================
 #if !(MODE_16_MHZ)
-                    OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    //OSCCAL -= (OSC_OFFSET - kelonio);                   /* Back the oscillator calibration to its original setting */
+                    OSCCAL = kelonio;
 #endif /* 16_MHZ_MODE */
                     RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
