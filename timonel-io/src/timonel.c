@@ -62,12 +62,12 @@
 // Type definitions
 typedef void (*const fptr_t)(void); /* Pointer-to-function type */
 typedef enum {                      /* TWI driver operational modes */
-               STATE_CHECK_ADDRESS,
-               STATE_SEND_DATA,
-               STATE_WAIT_ACK_AFTER_SEND_DATA,
-               STATE_CHECK_ACK_AFTER_SEND_DATA,
-               STATE_WAIT_DATA_RECEPTION,
-               STATE_RECEIVE_DATA_AND_SEND_ACK
+    STATE_CHECK_ADDRESS,
+    STATE_SEND_DATA,
+    STATE_WAIT_ACK_AFTER_SEND_DATA,
+    STATE_CHECK_ACK_AFTER_SEND_DATA,
+    STATE_WAIT_DATA_RECEPTION,
+    STATE_RECEIVE_DATA_AND_SEND_ACK
 } OperationalState;
 
 // Bootloader globals
