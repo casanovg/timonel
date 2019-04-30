@@ -11,7 +11,8 @@
 #define _TML_TWIMCONFIG_H_
 
 #define USE_SERIAL Serial
-#define 
+
+#define DEBUG_LEVEL
 
 #define MST_PACKET_SIZE 8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
 #define SLV_PACKET_SIZE 8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
