@@ -461,7 +461,7 @@ inline void RequestEvent(void) {
                 UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
             }
 #if ENABLE_LED_UI               
-            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks on each memory data block sent */
+            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks whenever a memory data block is sent */
 #endif /* ENABLE_LED_UI */          
             return;
         }
@@ -506,7 +506,7 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
    | USI TWI byte reception    | -*-*-*-*-
    |___________________________|
 */
-inline uint8_t UsiTwiReceiveByte(void) {
+uint8_t UsiTwiReceiveByte(void) {
     while (!rx_byte_count--) {
         // Wait until a byte is received into the RX buffer.
     };
