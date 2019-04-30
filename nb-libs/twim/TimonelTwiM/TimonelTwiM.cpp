@@ -1,20 +1,24 @@
 /*
-  TimonelTwiM.cpp
-  ===============
-  Library code for uploading firmware to a microcontroller
-  that runs the Timonel I2C bootloader.
-  ---------------------------
-  2018-12-13 Gustavo Casanova
-  ---------------------------
-*/
+ *  Timonel TWI Master Library
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: TimonelTwiM.cpp (Library)
+ *  ........................................... 
+ *  Version: 1.3 / 2019-01-16
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
+ */
 
 #include "TimonelTwiM.h"
 
 // Class constructor
 Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMicro(twi_address, sda, scl) {
     if ((addr_ > 0) && (addr_ < 36)) {
-        USE_SERIAL.printf_P("[%s] Bootloader instance created with address %02d.\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Bootloader instance created with TWI address %02d.\r\n", __func__, addr_);
         BootloaderInit(0);
+    }
+    else {
+        USE_SERIAL.printf_P("[%s] Bootloader instance created without TWI address.\r\n", __func__);
     }
 }
 
@@ -62,13 +66,19 @@ byte Timonel::BootloaderInit(const word time) {
     byte step2_outcome = 0;
     if ((status_.features_code & 0x10) == 0x10) {
         USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 2 required by features *\r\n", __func__, addr_);
-        step2_outcome = InitMicro(); /* Timonel initialization: STEP 2 (only if Timonel has this feature enabled) */
+        step2_outcome = NbMicro::InitMicro(); /* Timonel initialization: STEP 2 (only if Timonel has this feature enabled) */
     }
     if ((step1_outcome + step1_outcome) == ACKINITS) {
         return (OK);
     } else {
         return (1);
     }
+}
+
+//Sets this bootloader's TWI address (allowed only once, if it wasn't set at object creation time)
+byte Timonel::SetTwiAddress(byte twi_address) {
+    NbMicro::SetTwiAddress(twi_address);
+    BootloaderInit(0);
 }
 
 // Member Function WritePageBuff
@@ -163,7 +173,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         }
         if (upl_errors > 0) {
             //DeleteFlash();
-            BootloaderInit(2000);
+            //BootloaderInit(2000);
 #if ESP8266
             ESP.restart();
 #else
@@ -196,7 +206,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     } else {
         USE_SERIAL.printf_P("\n\r[%s] Communication errors detected during firmware transfer, please retry !!! ErrCnt: %d\n\r", __func__, upl_errors);
         //DeleteFlash();
-        BootloaderInit(2000);
+        //BootloaderInit(2000);
 #if ESP8266
         ESP.restart();
 #else
@@ -293,7 +303,9 @@ byte Timonel::RunApplication(void) {
 // Makes Timonel delete the user application
 byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> %d\r\n", __func__, DELFLASH);
-    return (TwiCmdXmit(DELFLASH, ACKDELFL));
+    byte twi_errors = TwiCmdXmit(DELFLASH, ACKDELFL);
+    BootloaderInit(250);
+    return (twi_errors);
 }
 
 // Member Function CalculateTrampoline
@@ -301,7 +313,7 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
     return (((~((bootloader_start >> 1) - ((application_start + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 }
 
-// Displays the microcontroller's entire flash memory contents
+// Displays the microcontroller's entire flash memory contents over a serial connection
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     if ((status_.features_code & 0x80) == false) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);

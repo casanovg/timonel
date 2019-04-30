@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-04-29 (NO tx_byte_count)
+ *  Version: 1.3 "Sandra" / 2019-04-28 (GOOD-SUB)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -86,6 +86,7 @@ static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2); /* Point
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
 uint8_t rx_byte_count;                            /* Received byte quantity in RX buffer */
+uint8_t tx_byte_count;                            /* Byte quantity to transmit in TX buffer */ 
 uint8_t rx_head;
 uint8_t rx_tail;
 uint8_t tx_head;
@@ -123,7 +124,7 @@ inline void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
 inline void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
 inline void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
 
-//volatile uint8_t kelonio = 0;
+volatile uint8_t kelonio = 0;
 
 // Main function
 int main(void) {
@@ -140,7 +141,7 @@ int main(void) {
     LED_UI_DDR |= (1 << LED_UI_PIN);              /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 
-uint8_t kelonio = OSCCAL;
+kelonio = OSCCAL;
 
 #if !(MODE_16_MHZ)
     OSCCAL += (OSC_OFFSET - kelonio);                         /* With clock settings below 16MHz, speed up for better TWI performance */
@@ -155,7 +156,7 @@ uint8_t kelonio = OSCCAL;
     asm volatile("spm");
     uint8_t exit_delay = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
     uint16_t led_delay = CYCLESTOBLINK;           /* Delay for led blink */
-   
+
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -345,7 +346,7 @@ inline void RequestEvent(void) {
             reply[7] = (*flashAddr & 0xFF);                         /* Trampoline second byte (MSB) */
             reply[8] = (*(--flashAddr) & 0xFF);                     /* Trampoline first byte (LSB) */
             //reply[9] = LOW_FUSE;                                    /* AVR low fuse value */
-            reply[9] = OSCCAL;
+            reply[9] = OSCCAL;                                    /* Kelonio */
 #if CHECK_EMPTY_FL
             for (uint16_t mPos = 0; mPos < 100; mPos++) {           /* Check the first 100 memory positions to determine if  */
                 flashAddr = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
@@ -497,28 +498,26 @@ inline void RequestEvent(void) {
    |___________________________|
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
-    uint8_t tmp_tx_head = ((tx_head + 1) & TWI_TX_BUFFER_MASK);
-    while (tmp_tx_head == tx_tail) {
+    while (tx_byte_count++ == TWI_TX_BUFFER_SIZE) {
         // Wait until there is free space in the TX buffer.
     };
-    tx_buffer[tmp_tx_head] = data_byte; /* Write the data byte into the TX buffer */
-    tx_head = tmp_tx_head;
+    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX buffer */
+    tx_head = (tx_head + 1) & TWI_TX_BUFFER_MASK;
 }
 
 /*  ___________________________
    |                           |
-   | USI TWI byte reception    | -*-*-*-*-
+   | USI TWI byte reception    |
    |___________________________|
 */
 inline uint8_t UsiTwiReceiveByte(void) {
+    uint8_t received_byte;
     while (!rx_byte_count--) {
-    //while (rx_head == rx_tail) {
         // Wait until a byte is received into the RX buffer.
-        rx_head--;
     };
-    uint8_t tmp_rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);    
-    rx_tail = tmp_rx_tail; /* Calculate the buffer index */
-    return rx_buffer[tmp_rx_tail];
+    received_byte = rx_buffer[rx_tail];
+    rx_tail = (rx_tail + 1) & TWI_RX_BUFFER_MASK; /* Calculate the buffer index */
+    return received_byte; /* Return the received byte from the buffer */
 }
 
 /*  _______________________________
@@ -531,9 +530,8 @@ void UsiTwiDriverInit(void) {
     // low when a start condition is detected or a counter overflow (only
     // for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
     // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
-    //tx_tail = tx_head = tx_byte_count = 0; /* Flush TWI TX buffers */
-    tx_tail = tx_head = 0; /* Flush TWI TX buffers */
     rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
+    tx_tail = tx_head = tx_byte_count = 0; /* Flush TWI TX buffers */
     SET_USI_SDA_AND_SCL_AS_OUTPUT(); /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SDA); /* Set SDA high */
     PORT_USI |= (1 << PORT_USI_SCL); /* Set SCL high */
@@ -578,7 +576,6 @@ inline void UsiOverflowHandler(void) {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {             /* If ls-bit = 1, send data to master */
                     ReceiveEvent(rx_byte_count);
-                    //ReceiveEvent(rx_head);
                     RequestEvent();
                     device_state = STATE_SEND_DATA;
                 } else {                        /* If ls-bit = 0, receive data from master */
@@ -607,16 +604,15 @@ inline void UsiOverflowHandler(void) {
         }
         // From here we just drop straight into STATE_SEND_DATA if the
         // master sent an ACK.
-        // Copy data from buffer to USIDR and set USI to shift 8 bits.
-        // Next -> STATE_WAIT_ACK_AFTER_SEND_DATA        
+        // Copy data from buffer to USIDR and set USI to shift byte
+        // Next -> STATE_WAIT_ACK_AFTER_SEND_DATA
         case STATE_SEND_DATA: {
-            // Put data from buffer in USI data register for send
-            if (tx_head != tx_tail) {
-                tx_tail = ((tx_tail + 1) & TWI_TX_BUFFER_MASK);
+            // Get data from Buffer
+            if (tx_byte_count--) {
                 USIDR = tx_buffer[tx_tail];
-            } 
-            else {
-                // If the buffer is empty ...
+                tx_tail = (tx_tail + 1) & TWI_TX_BUFFER_MASK;
+            } else {
+                // The buffer is empty
                 SET_USI_TO_WAIT_ACK();  /* This might be necessary, see: http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227 */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 return;
@@ -625,7 +621,6 @@ inline void UsiOverflowHandler(void) {
             SET_USI_TO_SEND_DATA();
             break;
         }
-        
         // Set USI to sample ACK/NACK reply from master
         // Next -> STATE_CHECK_ACK_AFTER_SEND_DATA
         case STATE_WAIT_ACK_AFTER_SEND_DATA: {
@@ -640,19 +635,22 @@ inline void UsiOverflowHandler(void) {
             SET_USI_TO_RECEIVE_DATA();
             break;
         }
-        // Copy data from USIDR and send ACK.
+        // Take data from USIDR and send ACK
         // Next -> STATE_WAIT_DATA_RECEPTION
         case STATE_RECEIVE_DATA_AND_SEND_ACK: {
-            // Put data into buffer
-            rx_byte_count = ((rx_byte_count + 1) & TWI_RX_BUFFER_MASK);
-            rx_head = ((rx_head + 1) & TWI_RX_BUFFER_MASK);
-            rx_buffer[rx_head] = USIDR;
-            // Next -> STATE_WAIT_DATA_RECEPTION
+            // put data into buffer
+            // check buffer size
+            if (rx_byte_count++ < TWI_RX_BUFFER_SIZE) {
+                rx_buffer[rx_head] = USIDR;
+                rx_head = (rx_head + 1) & TWI_RX_BUFFER_MASK;
+            } else {
+                /* Overrun, drop data */
+            }
+            // Next STATE_WAIT_DATA_RECEPTION
             device_state = STATE_WAIT_DATA_RECEPTION;
             SET_USI_TO_SEND_ACK();
             break;
-        }        
-        
+        }
     }
     USISR |= (1 << USI_OVERFLOW_FLAG); /* Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
 }

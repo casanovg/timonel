@@ -1,12 +1,13 @@
 /*
-  TimonelTwiM.h
-  =============
-  Library header for uploading firmware to a microcontroller
-  that runs the Timonel I2C bootloader.
-  ---------------------------
-  2018-12-13 Gustavo Casanova
-  ---------------------------
-*/
+ *  Timonel TWI Master Library
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: TimonelTwiM.h (Header)
+ *  ........................................... 
+ *  Version: 1.3 / 2019-01-16
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
+ */
 
 #ifndef _TIMONELTWIM_H_
 #define _TIMONELTWIM_H_
@@ -34,6 +35,7 @@ class Timonel : public NbMicro {
         byte check_empty_fl = 0;
     } Status;
     Status GetStatus(void);
+    byte SetTwiAddress(byte twi_address);
     byte UploadApplication(byte payload[], int payload_size, const int start_address = 0x0000);
     byte RunApplication(void);
     byte DeleteApplication(void);

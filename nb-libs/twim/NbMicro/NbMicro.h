@@ -1,12 +1,13 @@
 /*
-  NbMicro.h
-  =========
-  Library header for TWI (I2C) communications with
-  a microcontroller using the NB command set.
-  ---------------------------
-  2019-03-12 Gustavo Casanova
-  ---------------------------
-*/
+ *  NB Micro TWI Master Library
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: NbMicro.h (Header)
+ *  ........................................... 
+ *  Version: 1.3 / 2019-01-16
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
+ */
 
 #ifndef _NBMICRO_H_
 #define _NBMICRO_H_
@@ -31,7 +32,7 @@ class NbMicro {
    public:
     NbMicro(byte twi_address = 0, byte sda = 0, byte scl = 0);
     byte GetTwiAddress(void);
-    byte SetObjTwiAddress(byte twi_address);
+    byte SetTwiAddress(byte twi_address);
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply,
                     byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply,

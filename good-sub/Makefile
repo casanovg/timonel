@@ -1,9 +1,9 @@
-#
+# .......................................................
 # File: Makefile
-# Project: Timonel - TWI Bootloader
-# ........................................................
-# 2019-04-20 gustavo.casanova@nicebots.com (GOOD-LINE)
-#
+# Project: Timonel - TWI Bootloader for TinyX5 MCUs
+# .......................................................
+# 2019-04-28 gustavo.casanova@nicebots.com
+# .......................................................
 
 CONFIG ?= tml-t85-std
 
@@ -66,8 +66,8 @@ CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
 CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
 CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
-CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
-CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
+# CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
+# CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
 CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
 CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
 
@@ -146,8 +146,8 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo \| ... CMD_READFLASH = $(CMD_READFLASH)
 	@echo \|------------------------------------------------------------------    
 	@echo \| ... LED_UI_PIN = $(LED_UI_PIN)
-	@echo \| ... CYCLESTOEXIT = $(CYCLESTOEXIT)
-	@echo \| ... SET_PRESCALER = $(SET_PRESCALER)
+#	@echo \| ... CYCLESTOEXIT = $(CYCLESTOEXIT)
+#	@echo \| ... SET_PRESCALER = $(SET_PRESCALER)
 	@echo \| ... LOW_FUSE = $(LOW_FUSE)
 	@echo \| ... FORCE_ERASE_PG = $(FORCE_ERASE_PG)
 	@echo -------------------------------------------------------------------    

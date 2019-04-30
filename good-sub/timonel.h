@@ -2,9 +2,9 @@
  *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  File: timonel.h (Main bootloader headers)
+ *  File: timonel.h (Bootloader header)
  *  ........................................... 
- *  Version: 1.3 "Sandra" / 2019-04-27 (GOOD-SUB)
+ *  Version: 1.3 "Sandra" / 2019-04-28 (GOOD-SUB)
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
@@ -94,9 +94,9 @@
 #endif /* MODE_16_MHZ */
 
 #if (MODE_16_MHZ == true)
-    #ifndef SET_PRESCALER
+//   #ifndef SET_PRESCALER
     #define SET_PRESCALER   false   /* the clock is left by default. */
-    #endif /* SET_PRESCALER */    
+//    #endif /* SET_PRESCALER */    
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0x1FF   /* Long led delay */
     #endif /* CYCLESTOBLINK */
@@ -107,12 +107,12 @@
     #define LOW_FUSE        0xE1    /* AVR low fuse value */
     #endif /* LOW_FUSE */    
 #else
-    #ifndef OSCILLATOR_CAL
-    #define OSCILLATOR_CAL  0xDD    /* Internal oscillator callibrations for 8 MHz operation.          */
-    #endif /* OSCILLATOR_CAL */
-    #ifndef SET_PRESCALER
+    #ifndef OSC_OFFSET
+    #define OSC_OFFSET      0xDD    /* Internal oscillator offset when running @ 8 MHz. */
+    #endif /* OSC_OFFSET */
+//    #ifndef SET_PRESCALER
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
-    #endif /* SET_PRESCALER */
+//    #endif /* SET_PRESCALER */
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0xFF    /* Short led delay */
     #endif /* CYCLESTOBLINK */
@@ -122,7 +122,7 @@
     #ifndef LOW_FUSE
     #define LOW_FUSE        0x62    /* AVR low fuse value */
     #endif /* LOW_FUSE */    
-#endif /* MODE_16_MHZ */
+#endif /* CLOCK MODE */
 
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */

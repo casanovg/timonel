@@ -1,12 +1,13 @@
 /*
-  NbMicro.cpp
-  ===========
-  Library header for TWI (I2C) communications with
-  a microcontroller using the NB command set.
-  ---------------------------
-  2019-03-12 Gustavo Casanova
-  ---------------------------
-*/
+ *  NB Micro TWI Master Library
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: NbMicro.cpp (Library)
+ *  ........................................... 
+ *  Version: 1.3 / 2019-01-16
+ *  gustavo.casanova@nicebots.com
+ *  ...........................................
+ */
 
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
@@ -43,7 +44,7 @@ byte NbMicro::GetTwiAddress(void) {
 }
 
 // Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
-byte NbMicro::SetObjTwiAddress(byte twi_address) {
+byte NbMicro::SetTwiAddress(byte twi_address) {
     if (addr_ == 0) {
         addr_ = twi_address;
         USE_SERIAL.printf_P("[%s] TWI address correctly set to %d\r\n", __func__, addr_);

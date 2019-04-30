@@ -55,7 +55,7 @@ void setup() {
     TwiBus i2c(SDA, SCL);
     byte slave_address = i2c.ScanBus(p_app_mode);
     ClrScr();
-    tml.SetObjTwiAddress(slave_address);
+    tml.SetTwiAddress(slave_address);
     ShowHeader();
     tml.GetStatus();
     PrintStatus(tml);
@@ -383,7 +383,7 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
             USE_SERIAL.printf_P("Pos: %02d | ", timonels);
             byte tml_addr = dev_info_arr[i].addr;
             USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
-            tml_arr[timonels].SetObjTwiAddress(tml_addr);
+            tml_arr[timonels].SetTwiAddress(tml_addr);
             timonels++;
         }
         delay(10);
