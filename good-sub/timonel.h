@@ -107,9 +107,9 @@
     #define LOW_FUSE        0xE1    /* AVR low fuse value */
     #endif /* LOW_FUSE */    
 #else
-    #ifndef OSC_OFFSET
-    #define OSC_OFFSET      0xDD    /* Internal oscillator offset when running @ 8 MHz. */
-    #endif /* OSC_OFFSET */
+    #ifndef OSC_FAST
+    #define OSC_FAST        0xDD    /* Internal oscillator offset when running @ 8 MHz. */
+    #endif /* OSC_FAST */
 //    #ifndef SET_PRESCALER
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
 //    #endif /* SET_PRESCALER */

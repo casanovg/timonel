@@ -138,8 +138,8 @@ int main(void) {
     LED_UI_DDR |= (1 << LED_UI_PIN);              /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 #if !(MODE_16_MHZ)
-    uint8_t factory_osccal = OSCCAL;
-    OSCCAL += (OSC_OFFSET - factory_osccal);                         /* With clock settings below 16MHz, speed up for better TWI performance */
+    uint8_t factory_osccal = OSCCAL;              /* Preserve factory oscillator calibration */
+    OSCCAL = OSC_FAST;                            /* With clock settings below 16MHz, speed up for better TWI performance */
 #endif /* 16_MHZ_MODE */
 #if SET_PRESCALER
     CLKPR = (1 << CLKPCE);                        /* Set the CPU prescaler division factor = 1 */
