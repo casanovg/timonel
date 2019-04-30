@@ -28,7 +28,7 @@
 #include <avr/wdt.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
-#include "../nicebots-libs/cmd/nb-twi-cmd.h"
+#include "../../nb-libs/cmd/nb-twi-cmd.h"
 
 /* -------------------------------------- */
 /* Timonel settings and optional features */

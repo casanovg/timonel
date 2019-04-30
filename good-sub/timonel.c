@@ -502,7 +502,7 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
         // Wait until there is free space in the TX buffer.
     };
     tx_buffer[tmp_tx_head] = data_byte; /* Write the data byte into the TX buffer */
-    tx_head = tmp_tx_head;
+    tx_head = tmp_tx_head; /* Store new index */
 }
 
 /*  ___________________________
@@ -512,13 +512,11 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
 */
 inline uint8_t UsiTwiReceiveByte(void) {
     while (!rx_byte_count--) {
-    //while (rx_head == rx_tail) {
         // Wait until a byte is received into the RX buffer.
-        rx_head--;
     };
-    uint8_t tmp_rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);    
-    rx_tail = tmp_rx_tail; /* Calculate the buffer index */
-    return rx_buffer[tmp_rx_tail];
+    uint8_t tmp_rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Calculate buffer index */    
+    rx_tail = tmp_rx_tail; /* Store new index */
+    return rx_buffer[tmp_rx_tail]; /* Return data from the buffer */
 }
 
 /*  _______________________________

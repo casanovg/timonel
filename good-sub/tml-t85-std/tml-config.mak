@@ -29,14 +29,14 @@ TIMONEL_TWI_ADDR = 8
 # -----------------------------
 # This options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = true
+ENABLE_LED_UI  = false
 AUTO_TPL_CALC  = true
 APP_USE_TPL_PG = false
 CMD_STPGADDR   = false
-TWO_STEP_INIT  = true
+TWO_STEP_INIT  = false
 USE_WDT_RESET  = true
 CHECK_EMPTY_FL = false
-CMD_READFLASH  = true
+CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!
 LED_UI_PIN     = PB1
 LOW_FUSE	   = 0x62
@@ -48,13 +48,11 @@ TARGET = timonel
 
 # Timonel required libraries path:
 # --------------------------------
-#LIBDIR = ./nicebots-libs/twis/1-GC-if
-#LIBDIR = ./nicebots-libs/twis/2-Blake
-#LIBDIR = ./nicebots-libs/twis/3-AVR312
-#LIBDIR = ./nicebots-libs/twis/4-eriksl
-#LIBDIR = ./nicebots-libs/twis/5-RmbMst
-LIBDIR = ./nicebots-libs/twis/6-GC-if-Good-Line
-CMDDIR = ./nicebots-libs/cmd
+LIBDIR = ../../nb-libs/twis
+CMDDIR = ../../nb-libs/cmd
+#LIBDIR = ./nicebots-libs/twis/6-GC-if-Good-Line
+#CMDDIR = ./nicebots-libs/cmd
+
 
 # Settings for running at 1 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
