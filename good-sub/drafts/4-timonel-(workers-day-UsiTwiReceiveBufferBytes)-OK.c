@@ -101,7 +101,7 @@ uint8_t UsiTwiReceiveByte(void);
 inline void UsiTwiDriverInit(void) __attribute__((always_inline));
 inline void TwiStartHandler(void) __attribute__((always_inline));
 inline void UsiOverflowHandler(void) __attribute__((always_inline));
-inline uint8_t UsiTwiReceiveBufferBytes(void) __attribute__((always_inline));
+uint8_t UsiTwiReceiveBufferBytes(void);
 
 // USI TWI driver basic operations prototypes
 inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
@@ -515,19 +515,15 @@ uint8_t UsiTwiReceiveByte(void) {
    | Byte quantity in receive buffer |
    |_________________________________|
 */
-inline uint8_t UsiTwiReceiveBufferBytes(void) {
+uint8_t UsiTwiReceiveBufferBytes(void) {
     if (rx_head == rx_tail) {
         return 0;
     }
-    else {
-        if (rx_head < rx_tail) {
-            // Is there a better way ?
-            return ((uint8_t)rx_head - (uint8_t)rx_tail) + TWI_RX_BUFFER_SIZE;
-        }
-        else {
-            return rx_head - rx_tail;
-        }
+    if (rx_head < rx_tail) {
+        // Is there a better way ?
+        return ((uint8_t)rx_head - (uint8_t)rx_tail) + TWI_RX_BUFFER_SIZE;
     }
+    return rx_head - rx_tail;
 }
 
 /*  _______________________________

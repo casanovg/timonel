@@ -85,6 +85,7 @@ static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2); /* Point
 // USI TWI driver globals
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+uint8_t rx_byte_count;                            /* Received byte quantity in RX buffer */
 uint8_t rx_head;
 uint8_t rx_tail;
 uint8_t tx_head;
@@ -101,7 +102,6 @@ uint8_t UsiTwiReceiveByte(void);
 inline void UsiTwiDriverInit(void) __attribute__((always_inline));
 inline void TwiStartHandler(void) __attribute__((always_inline));
 inline void UsiOverflowHandler(void) __attribute__((always_inline));
-uint8_t UsiTwiReceiveBufferBytes(void);
 
 // USI TWI driver basic operations prototypes
 inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
@@ -500,30 +500,22 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
 
 /*  ___________________________
    |                           |
-   | USI TWI byte reception    |
+   | USI TWI byte reception    | -*-*-*-*-
    |___________________________|
 */
+// uint8_t UsiTwiReceiveByte(void) {
+    // //while (!rx_byte_count--) {
+    // while (rx_byte_count-- == 0) {}; /* Wait until a byte is received into the RX buffer */
+    // rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
+    // return rx_buffer[rx_tail]; /* Return data from the buffer */
+// }
+
 uint8_t UsiTwiReceiveByte(void) {
-    //while (!rx_byte_count--) {
-    while ( rx_head == rx_tail ) {}; /* Wait until a byte is received into the RX buffer */
+    //while(rx_head == rx_tail) {};
+    //rx_byte_count--;
+    while (rx_byte_count-- == 0) {}; /* Wait until a byte is received into the RX buffer */
     rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
     return rx_buffer[rx_tail]; /* Return data from the buffer */
-}
-
-/*  _________________________________
-   |                                 |
-   | Byte quantity in receive buffer |
-   |_________________________________|
-*/
-uint8_t UsiTwiReceiveBufferBytes(void) {
-    if (rx_head == rx_tail) {
-        return 0;
-    }
-    if (rx_head < rx_tail) {
-        // Is there a better way ?
-        return ((uint8_t)rx_head - (uint8_t)rx_tail) + TWI_RX_BUFFER_SIZE;
-    }
-    return rx_head - rx_tail;
 }
 
 /*  _______________________________
@@ -537,7 +529,7 @@ void UsiTwiDriverInit(void) {
     // for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
     // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
     tx_tail = tx_head = 0; /* Flush TWI TX buffers */
-    rx_tail = rx_head = 0; /* Flush TWI RX buffers */
+    rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
     SET_USI_SDA_AND_SCL_AS_OUTPUT();    /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SDA);    /* Set SDA high */
     PORT_USI |= (1 << PORT_USI_SCL);    /* Set SCL high */
@@ -589,8 +581,11 @@ inline void UsiOverflowHandler(void) {
         case STATE_CHECK_RECEIVED_ADDRESS: {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
-                    ReceiveEvent(UsiTwiReceiveBufferBytes());   /* >>> Call a function in main to process the received data >>> */
-                    RequestEvent();                             /* >>> Call a function in main to prepare the reply data >>> */
+                    //ReceiveEvent(rx_byte_count);    /* >>> Call a function in main to process the received data >>> */
+                    
+                    ReceiveEvent(rx_byte_count);
+                    
+                    RequestEvent();                 /* >>> Call a function in main to prepare the reply data >>> */
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
                 } else {                /* If data register low-order bit = 0, start the receive data mode */
@@ -666,6 +661,7 @@ inline void UsiOverflowHandler(void) {
         // This mode's cycle should end when a stop condition is detected on the bus.
         case STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK: {
             // Put data into buffer
+            rx_byte_count++;
             rx_head = ((rx_head + 1) & TWI_RX_BUFFER_MASK);
             rx_buffer[rx_head] = USIDR;
             // Next state -> STATE_RECEIVE_DATA_BYTE
