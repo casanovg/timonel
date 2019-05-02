@@ -503,16 +503,8 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
    | USI TWI byte reception    | -*-*-*-*-
    |___________________________|
 */
-// uint8_t UsiTwiReceiveByte(void) {
-    // //while (!rx_byte_count--) {
-    // while (rx_byte_count-- == 0) {}; /* Wait until a byte is received into the RX buffer */
-    // rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
-    // return rx_buffer[rx_tail]; /* Return data from the buffer */
-// }
-
 uint8_t UsiTwiReceiveByte(void) {
-    //while(rx_head == rx_tail) {};
-    //rx_byte_count--;
+    //while (!rx_byte_count--) {
     while (rx_byte_count-- == 0) {}; /* Wait until a byte is received into the RX buffer */
     rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
     return rx_buffer[rx_tail]; /* Return data from the buffer */
