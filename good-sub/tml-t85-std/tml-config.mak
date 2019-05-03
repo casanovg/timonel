@@ -27,14 +27,14 @@ TIMONEL_TWI_ADDR = 8
 
 # Bootloader optional features:
 # -----------------------------
-# This options are commented in the "tmc-config.h" file
+# These options are commented in the "tmc-config.h" file
 
 ENABLE_LED_UI  = false
 AUTO_TPL_CALC  = false
 APP_USE_TPL_PG = false
 CMD_STPGADDR   = true
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = false
+USE_WDT_RESET  = flase
 CHECK_EMPTY_FL = false
 CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!

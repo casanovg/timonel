@@ -42,39 +42,39 @@
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
 /* VVVVVV [   modify this options directly, change "tml-config.mak" instead!   ] VVVVVV */
 
-#ifndef ENABLE_LED_UI           /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
-#define ENABLE_LED_UI   false   /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
-#endif /* ENABLE_LED_UI */      /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
+#ifndef ENABLE_LED_UI               /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
+#define ENABLE_LED_UI   false       /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
+#endif /* ENABLE_LED_UI */          /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
            
-#ifndef AUTO_TPL_CALC           /* Automatic trampoline calculation & flash. If this is disabled,      */
-#define AUTO_TPL_CALC   true    /* the trampoline has to be calculated and written by the I2C master.  */
-#endif /* AUTO_TPL_CALC */      /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
+#ifndef AUTO_TPL_CALC               /* Automatic trampoline calculation & flash. If this is disabled,      */
+#define AUTO_TPL_CALC   true        /* the trampoline has to be calculated and written by the I2C master.  */
+#endif /* AUTO_TPL_CALC */          /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
                                 
-#ifndef APP_USE_TPL_PG          /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
-#define APP_USE_TPL_PG  false   /* is enabled. This is a safety measure since enabling this takes 2    */
-#endif /* APP_USE_TPL_PG */     /* extra memory pages. In the end, disabling this allows 1 extra page. */
-                                /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
-                                /* duty to write the trampoline page is transferred to the I2C master. */
+#ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
+#define APP_USE_TPL_PG  false       /* is enabled. This is a safety measure since enabling this takes 2    */
+#endif /* APP_USE_TPL_PG */         /* extra memory pages. In the end, disabling this allows 1 extra page. */
+                                    /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
+                                    /* duty to write the trampoline page is transferred to the I2C master. */
                                 
-#ifndef CMD_STPGADDR            /* If this is disabled, applications can only be flashed starting      */
-#define CMD_STPGADDR    false   /* from page 0, this is OK for most applications.                      */
-#endif /* CMD_STPGADDR */       /* If this is enabled, Timonel expects STPGADDR before each data page. */
-                                /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
+#ifndef CMD_STPGADDR                /* If this is disabled, applications can only be flashed starting      */
+#define CMD_STPGADDR    false       /* from page 0, this is OK for most applications.                      */
+#endif /* CMD_STPGADDR */           /* If this is enabled, Timonel expects STPGADDR before each data page. */
+                                    /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
                                 
-#ifndef TWO_STEP_INIT           /* If this is enabled, Timonel expects a two-step initialization from  */
-#define TWO_STEP_INIT   false   /* an I2C master for starting. Otherwise, single-step init is enough   */
+#ifndef TWO_STEP_INIT               /* If this is enabled, Timonel expects a two-step initialization from  */
+#define TWO_STEP_INIT   false       /* an I2C master for starting. Otherwise, single-step init is enough   */
 #endif /* TWO_STEP_INIT */
 
-#ifndef USE_WDT_RESET           /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
+#ifndef USE_WDT_RESET               /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 #define USE_WDT_RESET   true    
 #endif /* USE_WDT_RESET */
 
-#ifndef CHECK_EMPTY_FL          /* GETTMNLV will read the first 100 flash memory positions to check if */
-#define CHECK_EMPTY_FL  false   /* there is an application (or some other data) loaded.                */
+#ifndef CHECK_EMPTY_FL              /* GETTMNLV will read the first 100 flash memory positions to check if */
+#define CHECK_EMPTY_FL  false       /* there is an application (or some other data) loaded.                */
 #endif /* CHECK_EMPTY_FL */
 
-#ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true    /* backing up the flash memory before flashing a new firmware.         */
+#ifndef CMD_READFLASH               /* This option enables the READFLSH command. It can be useful for      */
+#define CMD_READFLASH   true        /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
@@ -82,21 +82,25 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef LED_UI_PIN
-#define LED_UI_PIN      PB1     /* Use >>>PB1<<< to monitor activity. */
+#define LED_UI_PIN      PB1         /* Use >>>PB1<<< to monitor activity. */
 #endif /* LED_UI_PIN */
 
-#ifndef FORCE_ERASE_PG          /* If this option is enabled, each flash memory page is erased before  */
-#define FORCE_ERASE_PG  false   /* writing new data. Normally, it shouldn't be necessary to enable it. */
+#ifndef FORCE_ERASE_PG              /* If this option is enabled, each flash memory page is erased before  */
+#define FORCE_ERASE_PG  false       /* writing new data. Normally, it shouldn't be necessary to enable it. */
 #endif /* FORCE_ERASE_PG */
 
+#ifndef CLEAR_BIT_7_R31             /* Extra safety measure to avoid that the first bootloader instruction */
+#define CLEAR_BIT_7_R31 false       /* is skipped after restarting without an application in memory.       */
+#endif /* CLEAR_BIT_7_R31 */        /* See http://www.avrfreaks.net/comment/2561866#comment-2561866        */
+
 #ifndef MODE_16_MHZ
-#define MODE_16_MHZ     false   /* Set this in line with the AVR fuse settings */
+#define MODE_16_MHZ     false       /* Set this in line with the AVR fuse settings */
 #endif /* MODE_16_MHZ */
 
 #if (MODE_16_MHZ == true)
-//   #ifndef SET_PRESCALER
+    #ifndef SET_PRESCALER
     #define SET_PRESCALER   false   /* the clock is left by default. */
-//    #endif /* SET_PRESCALER */    
+    #endif /* SET_PRESCALER */    
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0x1FF   /* Long led delay */
     #endif /* CYCLESTOBLINK */
@@ -110,9 +114,9 @@
     #ifndef OSC_FAST
     #define OSC_FAST        0xDD    /* Internal oscillator offset when running @ 8 MHz. */
     #endif /* OSC_FAST */
-//    #ifndef SET_PRESCALER
+    #ifndef SET_PRESCALER
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
-//    #endif /* SET_PRESCALER */
+    #endif /* SET_PRESCALER */
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0xFF    /* Short led delay */
     #endif /* CYCLESTOBLINK */
@@ -147,7 +151,7 @@
 #define FL_INIT_2       1       /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
 #define FL_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
 #define FL_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & run application */
-#define FL_SLOW_OPS     4       /* Flag Bit 5 (16) : Enable slow operations in main */
+#define FL_BIT_5        4       /* Flag Bit 5 (16) : Not used */
 #define FL_BIT_6        5       /* Flag Bit 6 (32) : Not used */
 #define FL_BIT_7        6       /* Flag Bit 7 (64) : Not used */
 #define FL_BIT_8        7       /* Flag Bit 8 (128): Not used */
