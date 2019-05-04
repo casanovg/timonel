@@ -341,6 +341,7 @@ void ShowMenu(void) {
     } else {
         Timonel::Status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
+        USE_SERIAL.printf_P("KRAKATOA!!!!!\n\r");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
         }
