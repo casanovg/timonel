@@ -147,9 +147,11 @@ void loop() {
                 USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from flash memory, please wait ... ");
                 byte cmd_errors = tml.DeleteApplication();
                 if (cmd_errors == 0) {
-                    delay(1500); /* 750 ??? */
-                    tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */
-                    USE_SERIAL.printf_P("successful");
+                    delay(750);                    
+                    USE_SERIAL.printf_P("successful\n\n\r");
+                    USE_SERIAL.printf_P("TWI master reset necessary before running other memory commands ...");
+                    //USE_SERIAL.r                    
+                    tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */                    
                 }
                 else {
                     USE_SERIAL.printf_P("[ command error!]");

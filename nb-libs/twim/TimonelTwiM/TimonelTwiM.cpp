@@ -55,7 +55,11 @@ byte Timonel::QueryStatus(void) {
     return twi_errors;
 }
 
-// Returns a struct with the Timonel bootloader running status
+/* _____________________________________________________________
+  |                                                             | 
+  | Returns a struct with the Timonel bootloader running status |
+  |_____________________________________________________________|
+*/
 Timonel::Status Timonel::GetStatus(void) {
 #if defined DEBUG_LEVEL && DEBUG_LEVEL >= 1
     USE_SERIAL.printf_P("[%s] Getting Timonel device %02d status ...\r\n", __func__, addr_);
@@ -81,7 +85,11 @@ byte Timonel::BootloaderInit(const word delay_ms) {
     return twi_errors;
 }
 
-// Sets this object's TWI address (allowed only once, if it wasn't set at object creation time)
+/* ______________________________________________________________________________________________
+  |                                                                                              | 
+  | Sets this object's TWI address (allowed only once, if it wasn't set at object creation time) |
+  |______________________________________________________________________________________________|
+*/
 byte Timonel::SetTwiAddress(byte twi_address) {
     byte twi_errors = 0;
     NbMicro::SetTwiAddress(twi_address);
@@ -129,7 +137,11 @@ byte Timonel::WritePageBuff(const byte data_array[]) {
     return (wrt_errors);
 }
 
-// Uploads a user application to a microcontroller running Timonel
+/* _________________________________________________________________
+  |                                                                 | 
+  | Upload an user application to a microcontroller running Timonel |
+  |_________________________________________________________________|
+*/
 byte Timonel::UploadApplication(byte payload[], int payload_size, const int start_address) {
     byte packet = 0;                               /* Byte amount to be sent in a single I2C data packet */
     byte padding = 0;                              /* Amount of padding bytes to match the page size */
@@ -348,7 +360,11 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
     return twi_errors;
 }
 
-// Asks Timonel to stop executing and run the user application
+/* ____________________________________________________________
+  |                                                            | 
+  | Ask Timonel to stop executing and run the user application |
+  |____________________________________________________________|
+*/
 byte Timonel::RunApplication(void) {
 #if defined DEBUG_LEVEL && DEBUG_LEVEL >= 1
     USE_SERIAL.printf_P("\n\r[%s] Exit bootloader & run application >>> %d\r\n", __func__, EXITTMNL);
@@ -356,7 +372,11 @@ byte Timonel::RunApplication(void) {
     return (TwiCmdXmit(EXITTMNL, ACKEXITT));
 }
 
-// Makes Timonel delete the user application
+/* ____________________________________________
+  |                                            | 
+  | Ask Timonel to delete the user application |
+  |____________________________________________|
+*/
 byte Timonel::DeleteApplication(void) {
 #if defined DEBUG_LEVEL && DEBUG_LEVEL >= 1
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> %d\r\n", __func__, DELFLASH);
@@ -371,7 +391,11 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
     return (((~((bootloader_start >> 1) - ((application_start + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
 }
 
-// Displays the microcontroller's entire flash memory contents over a serial connection
+/* _____________________________________________________________________________________
+  |                                                                                     | 
+  | Display the microcontroller's entire flash memory contents over a serial connection |
+  |_____________________________________________________________________________________|
+*/
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     if ((status_.features_code & 0x80) == false) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__, DELFLASH);
