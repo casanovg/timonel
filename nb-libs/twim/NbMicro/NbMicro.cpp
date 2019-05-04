@@ -54,12 +54,12 @@ byte NbMicro::SetTwiAddress(byte twi_address) {
     if (addr_ == 0) {
         addr_ = twi_address;
 #if (DEBUG_LEVEL > 0)        
-        USE_SERIAL.printf_P("[%s] TWI address correctly set to %d\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Object TWI address correctly set to %d\r\n", __func__, addr_);
 #endif
         return 0;
     } else {
 #if (DEBUG_LEVEL > 0)        
-        USE_SERIAL.printf_P("[%s] TWI address already defined, using %d\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Object TWI address already defined, using %d\r\n", __func__, addr_);
 #endif
         return 1;
     }
