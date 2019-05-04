@@ -12,7 +12,7 @@
 
 #define USE_SERIAL Serial
 
-#define DEBUG_LEVEL 1
+//#define DEBUG_LEVEL 0       /* Level 0 = No debug info. Higher values increase function verbosity */
 
 #define MST_PACKET_SIZE 8   /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
 #define SLV_PACKET_SIZE 8   /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */

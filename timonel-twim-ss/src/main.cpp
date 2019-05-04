@@ -117,7 +117,7 @@ void loop() {
             // ********************************
             case 'v':
             case 'V': {
-                //USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
+                USE_SERIAL.printf_P("\nBootloader Cmd >>> Get bootloader version ...\r\n");
                 tml.GetStatus();
                 PrintStatus(tml);
                 break;
@@ -127,7 +127,7 @@ void loop() {
             // ********************************
             case 'r':
             case 'R': {
-                //USE_SERIAL.printf_P("\nBootloader Cmd >>> Run Application ...\r\n");
+                USE_SERIAL.printf_P("\nBootloader Cmd >>> Run application ...\r\n");
                 tml.RunApplication();
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
                 app_mode = true;
@@ -144,12 +144,17 @@ void loop() {
             // ********************************
             case 'e':
             case 'E': {
-                //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
-                tml.DeleteApplication();
-                delay(750);
-                tml.GetStatus();
-                PrintStatus(tml);
-                //TwoStepInit(750);
+                USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from flash memory, please wait ... ");
+                byte cmd_errors = tml.DeleteApplication();
+                if (cmd_errors == 0) {
+                    delay(1500); /* 750 ??? */
+                    tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */
+                    USE_SERIAL.printf_P("successful");
+                }
+                else {
+                    USE_SERIAL.printf_P("[ command error!]");
+                }
+                USE_SERIAL.printf_P("\n\r\n");
                 break;
             }
             // ********************************
@@ -157,8 +162,6 @@ void loop() {
             // ********************************
             case 'b':
             case 'B': {
-                //byte resetFirstByte = 0;
-                //byte resetSecondByte = 0;
                 Timonel::Status sts = tml.GetStatus();
                 if ((sts.features_code & 0x08) == false) {
                     USE_SERIAL.printf_P("\n\rSet address command not supported by current Timonel features ...\n\r");
@@ -191,7 +194,15 @@ void loop() {
             // ********************************
             case 'w':
             case 'W': {
-                tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
+                USE_SERIAL.printf_P("\nBootloader Cmd >>> Upload app firmware to flash memory, please wait ... ");
+                byte cmd_errors = tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
+                if (cmd_errors == 0) {
+                    USE_SERIAL.printf_P("successful");
+                }
+                else {
+                    USE_SERIAL.printf_P("[ command error!]");
+                }
+                USE_SERIAL.printf_P("\n\r\n");
                 break;
             }
             // ********************************
@@ -218,11 +229,10 @@ void loop() {
             // * Unknown Command *
             // *******************
             default: {
-                USE_SERIAL.printf_P("[Main] Command '%d' unknown ...\n\r", key);
+                USE_SERIAL.printf_P("Command '%d' unknown ...\n\r", key);
                 break;
             }
                 USE_SERIAL.printf_P("\n\r");
-                USE_SERIAL.printf_P("Menusero\n\r");
         }
         ShowMenu();
     }
@@ -341,7 +351,6 @@ void ShowMenu(void) {
     } else {
         Timonel::Status sts = tml.GetStatus();
         USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
-        USE_SERIAL.printf_P("KRAKATOA!!!!!\n\r");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
         }
@@ -393,4 +402,5 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     //Timonel tml_array[timonels];
     return 0;
 }
+
 
