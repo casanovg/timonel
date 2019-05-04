@@ -60,9 +60,6 @@ Timonel::Status Timonel::GetStatus(void) {
 byte Timonel::BootloaderInit(const word delay_ms) {
     delay(delay_ms);
     byte twi_errors = 0;
-#if (DEBUG_LEVEL > 1)
-    USE_SERIAL.printf_P("[%s] Attention ----> KRAKATOA AL ESTE DE JAVA!!!\n\r", __func__);
-#endif
     USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 1 required by features *\r\n", __func__, addr_);
     twi_errors += QueryStatus(); /* Timonel initialization: STEP 1 */
     if ((status_.features_code & 0x10) == 0x10) {
