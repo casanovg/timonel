@@ -34,7 +34,7 @@ AUTO_TPL_CALC  = false
 APP_USE_TPL_PG = false
 CMD_STPGADDR   = true
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = flase
+USE_WDT_RESET  = false
 CHECK_EMPTY_FL = false
 CMD_READFLASH  = false
 # Warning: By modifying the below options Timonel may become unresponsive!
