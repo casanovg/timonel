@@ -55,10 +55,10 @@ byte Timonel::QueryStatus(void) {
     return twi_errors;
 }
 
-/* _____________________________________________________________
-  |                                                             | 
-  | Returns a struct with the Timonel bootloader running status |
-  |_____________________________________________________________|
+/* ____________________________________________________________
+  |                                                            | 
+  | Return a struct with the Timonel bootloader running status |
+  |____________________________________________________________|
 */
 Timonel::Status Timonel::GetStatus(void) {
 #if defined DEBUG_LEVEL && DEBUG_LEVEL >= 1
