@@ -36,12 +36,8 @@ inline void STOP_CONDITION_RECEIVED_CALLBACK() __attribute__((always_inline));
 
 // Function FlushTwiBuffers
 static void FlushTwiBuffers(void) {
-    rx_tail = 0;
-    rx_head = 0;
-    rx_count = 0;
-    tx_tail = 0;
-    tx_head = 0;
-    tx_count = 0;
+    rx_tail = rx_head = rx_count = 0;
+    tx_tail = tx_head = tx_count = 0;
 }
 
 // Function UsiTwiSlaveInit
@@ -140,7 +136,7 @@ uint8_t UsiOverflowHandler(uint8_t twi_address) {
             else {
                 SET_USI_TO_WAIT_FOR_START_COND_AND_ADDRESS();
             }
-            break;
+            return(false);
         }
         // Master write data mode: check reply and goto STATE_SEND_DATA if OK,
         // else reset USI
@@ -172,21 +168,21 @@ uint8_t UsiOverflowHandler(uint8_t twi_address) {
             }
             device_state = STATE_WAIT_ACK_AFTER_SEND_DATA;
             SET_USI_TO_SEND_DATA();
-            break;
+            return(false);
         }
         // Set USI to sample ACK/NACK reply from master
         // Next STATE_CHECK_ACK_AFTER_SEND_DATA
         case STATE_WAIT_ACK_AFTER_SEND_DATA: {
             device_state = STATE_CHECK_ACK_AFTER_SEND_DATA;
             SET_USI_TO_WAIT_ACK();
-            break;
+            return(false);
         }
         // Read data mode: set USI to sample data from master, next
         // STATE_RECEIVE_DATA_AND_SEND_ACK
         case STATE_WAIT_DATA_RECEPTION: {
             device_state = STATE_RECEIVE_DATA_AND_SEND_ACK;
             SET_USI_TO_RECEIVE_DATA();
-            break;
+            return(false);
         }
         // Take data from USIDR and send ACK
         // Next STATE_WAIT_DATA_RECEPTION
@@ -202,7 +198,7 @@ uint8_t UsiOverflowHandler(uint8_t twi_address) {
             // Next STATE_WAIT_DATA_RECEPTION
             device_state = STATE_WAIT_DATA_RECEPTION;
             SET_USI_TO_SEND_ACK();
-            break;
+            return(false);
         }
     }
     USISR |= (1 << USI_OVERFLOW_FLAG); /* Clear the 4-bit counter overflow flag in USI status register to prepare for new interrupts */
