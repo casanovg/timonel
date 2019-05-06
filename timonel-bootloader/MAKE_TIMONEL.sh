@@ -21,7 +21,7 @@
 
 ARG1=${1:-timonel}
 ARG2=${2:-8}
-ARG3=${3:-1B00}
+ARG3=${3:-1AC0}
 
 echo "**************************************************************************"
 echo "* Starting Timonel compilation with these parameters: "

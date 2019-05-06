@@ -15,7 +15,7 @@
 
 # 1) If there is no Timonel bootloader .hex, we make a new one ...
 cd ../timonel-bootloader
-./MAKE_TML.sh
+./MAKE_TIMONEL.sh
 # 2) We generate the Timonel+Updater .hex from the Timonel's .hex.
 #    This file is placed in the "flashable-releases" folder and is
 #    intended to be flashed with an AVR programmer (e.g. USBasp).
@@ -25,7 +25,7 @@ echo "#   >>> STARTING UPDATER <<<   #"
 echo "################################"
 echo ""
 cd ../timonel-updater
-ruby generate-data.rb ../timonel-bootloader/releases/tml-bootloader.hex
+ruby generate-data.rb ../timonel-bootloader/releases/timonel.hex
 make clean
 make
 mv tml-updater.hex tmlupd-flashable
@@ -36,6 +36,6 @@ rm tml-payload.h
 #    flashed with a running Timonel through I2C.
 ruby generate-data.rb ./tmlupd-flashable/tml-updater.hex
 mv tml-payload.h tmlupd-payload
-cp -f tmlupd-payload/tml-payload.h ../timonel-i2cmaster/Payloads/payload.h
+cp -f tmlupd-payload/tml-payload.h ../timonel-twim-ss/data/payloads/payload.h
 rm bootloader_data.c
 make clean

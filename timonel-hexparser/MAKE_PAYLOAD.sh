@@ -20,10 +20,10 @@ if [ "$1" != "" ]; then
 	# Parsing application to create payload header ...
 	echo "Parsing" $1 "..."
 	if [ `uname | grep Linux` ]; then
-		./tml-hexparser $payload > ../timonel-i2cmaster/payloads/payload.h
+		./tml-hexparser $payload > ../timonel-twim-ss/data/payloads/payload.h
 		./tml-hexparser $payload > ./appl-payload/payload.h
 	else
-		./tml-hexparser.exe $payload > ../timonel-i2cmaster/payloads/payload.h
+		./tml-hexparser.exe $payload > ../timonel-twim-ss/data/payloads/payload.h
 		./tml-hexparser.exe $payload > ./appl-payload/payload.h
 	fi	
 else

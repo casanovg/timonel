@@ -1,7 +1,10 @@
 
 //
 // Start Address: 0x0 
-// End Address: 0x43e 
+// End Address: 0x43e
+//
+// This payload is to be uploaded to an ATTiny85 running Timonel bootloader
+// Once flashed, it will blink a led on PB1 sending an SOS ...
 //
 
 byte payload[1087] = {
