@@ -2,7 +2,7 @@
   main.cpp (timonel-twim-ss)
   ==========================
   Timonel TWI library test program
-  for single slave setup.
+  for single slave setup v1.2
   ----------------------------
   2019-04-28 Gustavo Casanova
   ---------------------------
@@ -149,9 +149,8 @@ void loop() {
                 if (cmd_errors == 0) {
                     delay(750);                    
                     USE_SERIAL.printf_P("successful\n\n\r");
-                    USE_SERIAL.printf_P("Please reset the TWI master before running other memory commands ...");
-                    //USE_SERIAL.r                    
-                    tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */                    
+                    USE_SERIAL.printf_P("Please RESET the TWI master (command z) before running other memory commands!");
+                    tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */
                 }
                 else {
                     USE_SERIAL.printf_P("[ command error!]");
