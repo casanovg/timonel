@@ -48,4 +48,4 @@ v0.4 - 2018-08-10: Non-functional.
 
 Credits:
 --------
-I would like to thank the guys @ [AVRFreaks.net](http://www.avrfreaks.net), specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 bootloaders. Many thanks also to Donald Papp @ [Hackaday](http://hackaday.com) for [posting about this](https://hackaday.com/2018/10/20/i2c-bootloader-for-attiny85-lets-other-micros-push-firmware-updates).
+I would like to thank the guys @ [AVRFreaks.net](http://www.avrfreaks.net), specially joeymorin and clawson) for sharing their vast knowledge and technical advice in general. Many thanks also to Donald Papp @ [Hackaday](http://hackaday.com) for [posting about this](https://hackaday.com/2018/10/20/i2c-bootloader-for-attiny85-lets-other-micros-push-firmware-updates).
