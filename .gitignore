@@ -53,6 +53,7 @@ dkms.conf
 
 #VisualStudio (GC: Project definitions not updated anymore, caution!)
 .vs/
+.vscode/
 *.vcxproj
 *.vcxproj.filters
 *.suo

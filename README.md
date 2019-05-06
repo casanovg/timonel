@@ -1,49 +1,35 @@
-Timonel - ATtiny85 I2C Bootloader
-=================================
+Timonel - ATtiny85 I2C Bootloader (i2c-m)
+=========================================
+__i2c-m__: this branch is to develop __timonel-i2cmaster__ improvements ...
 
-Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. The aim is to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) acting as I2C master and one or more Tiny85 as I2C slave performing peripheral functions.
+For a general description of this project, please open the master branch [readme](../master/README.md) ...
 
-Some possible cases:
+Contributuions are welcome!
 
-* A small robot controlled by Raspberry Pi where the specific functions of each limb are delegated to several Tiny85 through an I2C bus.
-* Multi-sensor systems, where each Tiny85 is a node that handles one or more sensors.
-* etc ...
+Development Environment Setup (Windows) / Master: ESP8266, Slave: ATTiny85
+--------------------------------------------------------------------------
+1-Install WinAVR in "C:\WinAVR-20100110"
 
-In these situations, it's handy to be able to update the AVRs firmware straight from the I2C master. But, so far (mid-2018), I haven't found an I2C bootloader that fits directly the TinyX5 family, addressing its several limitations:
-* It doesn't have dedicated hardware to handle I2C, only the USI (Universal Serial Interface).
-* It lacks a protected memory area for the bootloader.
-* It is not possible to redirect the interruption vectors to the bootloader.
+2-Replace WinAVR subdirectories with the newer AVR-GCC versions from (http://blog.zakkemble.net/avr-gcc-builds)
+  (http://blog.zakkemble.net/download/avr-gcc-8.2.0-x64-mingw.zip) at the time of this writing.
+  Open a Window command box and run: "avr-gcc --version" to check that the newest version is in your Windows path variable.
+  
+3-Install Notepad++ to use it optionally as the default git editor instead of vim (https://notepad-plus-plus.org/download).
 
-That's why I started writing this one.
+4-Install Visual Studio Code (https://code.visualstudio.com/download).
 
-Usage:
-------
-* Install "timonel-bootloader" on the Tiny85 (bare chips or Digisparks).
-* Compile your program and convert the generated .hex into an array of bytes to be included in "timonel-I2Cmaster". (e.g. const uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array.
-* Install "timonel-I2Cmaster" containing the generated payload in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
-* Connect both chips by I2C.
-* Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
-* Run the commands shown on screen for erasing and flashing new firmware on the Tiny85 (more details on the steps necessary will be published later).
-* It is also possible to update the bootloader itself thanks to the micronucleus' upgrade program.
+5-Install Platformio (From VS Code --> Extensions --> search: Platformio IDE.
 
-Contributing:
--------------
-Contributions are welcome! If you want to add a new feature, please feel free to create a pull request or open an issue :o)
+6-Install Git for Windows (https://git-scm.com/download).
 
-Version History:
-----------------
-v1.1 - 2018-10-29: Functional Release (Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz).
-
-v1.0 - 2018-10-05: Functional Release (Optional features implemented. See it [working](https://youtu.be/-7GOMToGvzI)).
-
-v0.9 - 2018-09-29: Functional pre-release (Temporary page buffer and other minor issues solved).
-
-v0.8 - 2018-09-16: First functional pre-release.
-
-v0.7 - 2018-09-07: Non-functional.
-
-v0.4 - 2018-08-10: Non-functional.
-
-Credits:
---------
-I would like to thank the guys @ [AVRFreaks.net](http://www.avrfreaks.net), specially joeymorin, clawson and donblake) for sharing their vast knowledge and technical advice in general. Also to the micronucleus developers, for showing us the way to go regarding Tiny85 bootloaders. Many thanks also to Donald Papp @ [Hackaday](http://hackaday.com) for [posting about this](https://hackaday.com/2018/10/20/i2c-bootloader-for-attiny85-lets-other-micros-push-firmware-updates).
+7-Install Python 3.7.2 or newer (https://www.python.org/downloads/release).
+  (https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64.exe) for Windows x64 systems.
+  Make sure to check "Add Python to PATH".
+  
+8-Open a Windows command prompt (or GIT Bash terminal) and run "pip install esptool"
+  to install the ESP8266 utilities.
+  
+9-Install MinGW (https://osdn.net/projects/mingw/releases), select at least
+  mingw32-base-bin and mingw32-gcc-g++-bin from the installation manager.
+  
+10-Add the "C:\MinGW\bin" folder to the Windows path variable.
