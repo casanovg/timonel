@@ -85,10 +85,10 @@ byte Timonel::BootloaderInit(const word delay_ms) {
     return twi_errors;
 }
 
-/* ______________________________________________________________________________________________
-  |                                                                                              | 
-  | Sets this object's TWI address (allowed only once, if it wasn't set at object creation time) |
-  |______________________________________________________________________________________________|
+/* _____________________________________________________________________________________________
+  |                                                                                             | 
+  | Set this object's TWI address (allowed only once, if it wasn't set at object creation time) |
+  |_____________________________________________________________________________________________|
 */
 byte Timonel::SetTwiAddress(byte twi_address) {
     byte twi_errors = 0;

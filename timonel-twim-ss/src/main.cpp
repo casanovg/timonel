@@ -149,7 +149,7 @@ void loop() {
                 if (cmd_errors == 0) {
                     delay(750);                    
                     USE_SERIAL.printf_P("successful\n\n\r");
-                    USE_SERIAL.printf_P("TWI master reset necessary before running other memory commands ...");
+                    USE_SERIAL.printf_P("Please reset the TWI master before running other memory commands ...");
                     //USE_SERIAL.r                    
                     tml.RunApplication(); /* This is necessary to restart the bootloader after erasing the memory */                    
                 }
