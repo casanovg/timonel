@@ -571,8 +571,8 @@ inline void UsiOverflowHandler(void) {
         case STATE_CHECK_RECEIVED_ADDRESS: {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
-                    ReceiveEvent(rx_byte_count);    /* >>> Call a function in main to process the received data >>> */
-                    RequestEvent();                 /* >>> Call a function in main to prepare the reply data >>> */
+                    ReceiveEvent(rx_byte_count);    /* Call a main function to process the received data */
+                    RequestEvent();                 /* Call a main function to prepare the reply data */
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
                 } else {                /* If data register low-order bit = 0, start the receive data mode */
@@ -623,7 +623,7 @@ inline void UsiOverflowHandler(void) {
             SET_USI_TO_SEND_BYTE();
             return;
         }
-        // 3) Set USI to receive an acknowledge bit reply from master
+        // 2) Set USI to receive an acknowledge bit reply from master
         case STATE_RECEIVE_ACK_AFTER_SENDING_DATA: {
             // Next state -> STATE_CHECK_RECEIVED_ACK
             device_state = STATE_CHECK_RECEIVED_ACK;
