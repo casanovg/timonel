@@ -81,7 +81,7 @@ static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /*
 #if !(USE_WDT_RESET)
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2); /* Pointer to bootloader restart address */
 #endif /* !USE_WDT_RESET */
-bool enable_slow_ops = false;                     /* Run slow operations only after completing TWI handshake */
+bool slow_ops_enabled = false;                     /* Run slow operations only after completing TWI handshake */
 
 // USI TWI driver globals
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
@@ -185,8 +185,8 @@ int main(void) {
             // ======================================
             // =   \\\ Bootloader initialized ///   =
             // ======================================           
-            if (enable_slow_ops == true) {
-                enable_slow_ops = false;
+            if (slow_ops_enabled == true) {
+                slow_ops_enabled = false;
                 // =======================================================
                 // = Exit the bootloader & run the application (Slow Op) =
                 // =======================================================
@@ -496,7 +496,7 @@ inline void RequestEvent(void) {
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
     tx_head = ((tx_head + 1) & TWI_TX_BUFFER_MASK); /* Update the TX buffer index */
-    while (tx_head == tx_tail) {}; /* Wait until there is free space in the TX buffer */
+    while (tx_head == tx_tail) {};  /* Wait until there is free space in the TX buffer */
     tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX buffer */
 }
 
@@ -506,9 +506,9 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
    |___________________________|
 */
 uint8_t UsiTwiReceiveByte(void) {
-    while (rx_byte_count-- == 0) {}; /* Wait until a byte is received into the RX buffer */
+    while (rx_byte_count-- == 0) {};    /* Wait until a byte is received into the RX buffer */
     rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
-    return rx_buffer[rx_tail]; /* Return data from the buffer */
+    return rx_buffer[rx_tail];          /* Return data from the buffer */
 }
 
 /*  _______________________________
@@ -517,12 +517,9 @@ uint8_t UsiTwiReceiveByte(void) {
    |_______________________________|
 */
 void UsiTwiDriverInit(void) {
-    // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
-    // low when a start condition is detected or a counter overflow (only
-    // for USIWM1, USIWM0 = 11).  This inserts a wait state.  SCL is released
-    // by the ISRs (USI_START_vect and USI_OVERFLOW_vect).
-    tx_tail = tx_head = 0; /* Flush TWI TX buffers */
-    rx_tail = rx_head = rx_byte_count = 0; /* Flush TWI RX buffers */
+    // Initialize USI for TWI Slave mode.
+    tx_tail = tx_head = 0;                  /* Flush TWI TX buffers */
+    rx_tail = rx_head = rx_byte_count = 0;  /* Flush TWI RX buffers */
     SET_USI_SDA_AND_SCL_AS_OUTPUT();    /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SDA);    /* Set SDA high */
     PORT_USI |= (1 << PORT_USI_SCL);    /* Set SCL high */
@@ -601,7 +598,7 @@ inline void UsiOverflowHandler(void) {
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
-                enable_slow_ops = true;        // Enable slow operations in main!    >>
+                slow_ops_enabled = true;        // Enable slow operations in main!    >>
                 //                                                                 >> 
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 return;
