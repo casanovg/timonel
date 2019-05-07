@@ -592,9 +592,7 @@ inline void UsiOverflowHandler(void) {
         // NACK. If ACK (low), just continue to STATE_SEND_DATA_BYTE without break. If NACK (high)
         // the transmission is complete. Wait for a new start condition and TWI address.        
         case STATE_CHECK_RECEIVED_ACK: {
-            if (USIDR) {
-                // If NACK, the master does not expect more data. Exit send data mode and
-                // prepare 
+            if (USIDR) {                /* NACK */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
@@ -667,34 +665,34 @@ inline void UsiOverflowHandler(void) {
 // ----------------------------------------------------------------------------
 // Set USI to detect start and shift 7 address bits + 1 direction bit in.
 inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
-    SET_USI_TO_DETECT_TWI_START(); /* Detect start condition */
+    SET_USI_TO_DETECT_TWI_START();  /* Detect start condition */
     SET_USI_TO_SHIFT_8_DATA_BITS(); /* Shift 8 bits */
 }
 // ............................................................................
 // Set USI to send a byte.
 inline void SET_USI_TO_SEND_BYTE(void) {
-    SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
+    SET_USI_SDA_AS_OUTPUT();        /* Drive the SDA line */
     SET_USI_TO_SHIFT_8_DATA_BITS(); /* Shift 8 bits */
 }
 // ............................................................................
 // Set USI to receive a byte.
 inline void SET_USI_TO_RECEIVE_BYTE(void) {
-    SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
+    SET_USI_SDA_AS_INPUT();         /* Float the SDA line */
     SET_USI_TO_SHIFT_8_DATA_BITS(); /* Shift 8 bits */
 }
 // ............................................................................
 // Set USI to send an ACK bit.
 inline void SET_USI_TO_SEND_ACK(void) {
-    USIDR = 0;  /* Clear the USI data register */
-    SET_USI_SDA_AS_OUTPUT(); /* Drive the SDA line */
-    SET_USI_TO_SHIFT_1_ACK_BIT(); /* Shift 1 bit */
+    USIDR = 0;                      /* Clear the USI data register */
+    SET_USI_SDA_AS_OUTPUT();        /* Drive the SDA line */
+    SET_USI_TO_SHIFT_1_ACK_BIT();   /* Shift 1 bit */
 }
 // ............................................................................
 // Set USI to receive an ACK bit.
 inline void SET_USI_TO_RECEIVE_ACK(void) {
-    USIDR = 0;  /* Clear the USI data register */
-    SET_USI_SDA_AS_INPUT(); /* Float the SDA line */
-    SET_USI_TO_SHIFT_1_ACK_BIT(); /* Shift 1 bit */
+    USIDR = 0;                      /* Clear the USI data register */
+    SET_USI_SDA_AS_INPUT();         /* Float the SDA line */
+    SET_USI_TO_SHIFT_1_ACK_BIT();   /* Shift 1 bit */
 }
 
 // ----------------------------------------------------------------------------
