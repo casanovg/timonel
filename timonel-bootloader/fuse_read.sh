@@ -1,11 +1,11 @@
 #!/bin/sh
 echo ""
-echo "*****************************"
-echo "*                           *"
-echo "* AVR microcontroller fuses *"
-echo "* ========================= *"
-echo "*                           *"
-echo "*****************************"
+echo "*******************************"
+echo "*                             *"
+echo "* AVR microcontroller fuses   *"
+echo "* =========================   *"
+echo "* 2019-06-06 Gustavo Casanova *"
+echo "*******************************"
 echo ""
 ARG1=${1:-fuse_settings.txt}
 LF="0x62"

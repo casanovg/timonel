@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny85 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.2 "Sandra" / 2019-04-28
+ *  Version: 1.3 "Sandra" / 2019-06-06
  *  gustavo.casanova@nicebots.com
  */
 
@@ -34,7 +34,7 @@
 
 // This bootloader ...
 #define TIMONEL_VER_MJR 1                               /* Timonel version major number   */
-#define TIMONEL_VER_MNR 2                               /* Timonel version major number   */
+#define TIMONEL_VER_MNR 3                               /* Timonel version major number   */
 
 // Configuration checks
 #if (TIMONEL_START % PAGE_SIZE != 0)

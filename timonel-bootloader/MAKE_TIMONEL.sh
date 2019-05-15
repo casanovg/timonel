@@ -6,7 +6,7 @@
 # flashable with an AVR programmer (e.g. USBasp).           #
 #                                                           #
 # ......................................................... #
-# 2019-04-28 Gustavo Casanova                               #
+# 2019-06-06 Gustavo Casanova                               #
 # ......................................................... #
 # From Linux: it runs directly.                             #
 # From Windows/Mac: you need to install the Git Bash tool   #

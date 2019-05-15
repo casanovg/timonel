@@ -2,9 +2,9 @@
   main.cpp (timonel-twim-ss)
   ==========================
   Timonel TWI library test program
-  for single slave setup v1.2
+  for single slave setup v1.3
   ----------------------------
-  2019-04-28 Gustavo Casanova
+  2019-06-06 Gustavo Casanova
   ---------------------------
 */
 #include <Arduino.h>
