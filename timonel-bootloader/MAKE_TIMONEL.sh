@@ -20,8 +20,8 @@
 # ARG3: Timonel start memory position. Default = 1B00 (hex)
 
 ARG1=${1:-timonel}
-ARG2=${2:-8}
-ARG3=${3:-1AC0}
+ARG2=${2:-11}
+ARG3=${3:-1A00}
 
 echo "**************************************************************************"
 echo "* Starting Timonel compilation with these parameters: "
