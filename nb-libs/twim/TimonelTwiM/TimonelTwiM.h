@@ -54,16 +54,3 @@ class Timonel : public NbMicro {
 };
 
 #endif /* _TIMONELTWIM_H_ */
-
-/*
- * Features code settings
- * 
- bool _led_ui_enabled = 0;
- bool _auto_trampoline_calc = 0;
- bool _app_use_trampoline_page = 0;
- bool _allow_set_pageaddr_ = 0;
- bool _two_step_init_enabled = 0;
- bool _use_wdt_reset = 0;
- bool _check_blank_flash = 0;
- bool _allow_read_flash = 0;
- */
