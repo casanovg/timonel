@@ -32,19 +32,19 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 Version History:
 ----------------
-v1.2 - 2019-05-05: Functional Release: "Good-neighbor" behavior: Fixes data dump operation on multi-device bus setups. In addition, the  TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. The "timonel-master-ss" firmware shows its usage. The TWI master code was moved to PlatformIO.
+__v1.2__ - 2019-05-05: Functional Release: "Good-neighbor" behavior: Fixes data dump operation on multi-device bus setups. In addition, the  TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. The "timonel-master-ss" firmware shows its usage. The TWI master code was moved to PlatformIO.
 
-v1.1 - 2018-10-29: Functional Release: Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz.
+__v1.1__ - 2018-10-29: Functional Release: Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz.
 
-v1.0 - 2018-10-05: Functional Release: Optional features implemented. See it [working](https://youtu.be/-7GOMToGvzI).
+__v1.0__ - 2018-10-05: Functional Release: Optional features implemented. See it [working](https://youtu.be/-7GOMToGvzI).
 
-v0.9 - 2018-09-29: Functional pre-release: Temporary page buffer and other minor issues solved.
+__v0.9__ - 2018-09-29: Functional pre-release: Temporary page buffer and other minor issues solved.
 
-v0.8 - 2018-09-16: First functional pre-release.
+__v0.8__ - 2018-09-16: First functional pre-release.
 
-v0.7 - 2018-09-07: Non-functional.
+__v0.7__ - 2018-09-07: Non-functional.
 
-v0.4 - 2018-08-10: Non-functional.
+__v0.4__ - 2018-08-10: Non-functional.
 
 Credits:
 --------
