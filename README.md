@@ -19,8 +19,8 @@ That's why I started writing this one.
 Usage:
 ------
 * Install "timonel.hex" on a Tiny85 (bare chips or Digisparks).
-* Compile your application program and convert the generated .hex into an array of bytes to be included in "timonel-twim-ss". (e.g. uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array (payload).
-* Install "timonel-twim-ss.bin" containing the generated payload in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
+* Compile your application program and convert the generated .hex into an array of bytes to be included in "timonel-twim-ss" (e.g. uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array (payload).
+* Compile and install "timonel-twim-ss.bin" (contains the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. Note: the .bin file provided contains a small payload demo that sends an SOS by blinking PB1.
 * Connect both chips by I2C (SDA, SCL and ground).
 * Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
 * Run the commands shown on screen for erasing and flashing new firmware on the Tiny85.
