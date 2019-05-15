@@ -18,13 +18,13 @@ That's why I started writing this one.
 
 Usage:
 ------
-* Install "timonel-bootloader" on the Tiny85 (bare chips or Digisparks).
-* Compile your program and convert the generated .hex into an array of bytes to be included in "timonel-I2Cmaster". (e.g. const uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array.
-* Install "timonel-I2Cmaster" containing the generated payload in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
-* Connect both chips by I2C.
+* Install "timonel.hex" on a Tiny85 (bare chips or Digisparks).
+* Compile your application program and convert the generated .hex into an array of bytes to be included in "timonel-twim-ss". (e.g. uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array (payload).
+* Install "timonel-twim-ss.bin" containing the generated payload in an arduino-compatible MCU (It has been tested with ESP8266 ESP01 and NodeMCU).
+* Connect both chips by I2C (SDA, SCL and ground).
 * Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
-* Run the commands shown on screen for erasing and flashing new firmware on the Tiny85 (more details on the steps necessary will be published later).
-* It is also possible to update the bootloader itself thanks to the micronucleus' upgrade program.
+* Run the commands shown on screen for erasing and flashing new firmware on the Tiny85.
+* It is also possible to update the bootloader itself by using "timonel-updater" (based on the micronucleus upgrade program).
 
 Contributing:
 -------------
@@ -32,7 +32,7 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 Version History:
 ----------------
-__v1.2__ - 2019-05-05: Functional Release: "Good-neighbor" behavior: Fixes data dump operation on multi-device bus setups. In addition, the  TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. The "timonel-master-ss" firmware shows its usage. The TWI master code was moved to PlatformIO.
+__v1.2__ - 2019-05-15: Functional Release: "Good-neighbor" behavior fixes data dump operation interferences among Timonel devices in multi-device bus setups. The TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. Timonel-master-ss firmware shows its usage. The TWI master code was moved to PlatformIO.
 
 __v1.1__ - 2018-10-29: Functional Release: Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz.
 
