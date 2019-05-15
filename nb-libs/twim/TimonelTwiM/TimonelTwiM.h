@@ -44,7 +44,7 @@ class Timonel : public NbMicro {
                     const byte values_per_line = VALUES_PER_LINE);
 
    private:
-    Status status_; /* Goblal struct that holds a Timonel instance's running status */
+    Status status_; /* Global struct that holds a Timonel instance's running status */
     byte QueryStatus(void);
     byte BootloaderInit(const word time);
     byte WritePageBuff(const byte data_array[]);
