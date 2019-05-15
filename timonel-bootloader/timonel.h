@@ -70,7 +70,7 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH           /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true   	/* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   true    /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
 /* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
@@ -78,11 +78,11 @@
 /* ====== [   ..............................................................   ] ====== */
 
 #ifndef CYCLESTOEXIT
-#define CYCLESTOEXIT    0x0A	/* Loop counter before exit to application if not initialized. */
+#define CYCLESTOEXIT    0x0A    /* Loop counter before exit to application if not initialized. */
 #endif /* CYCLESTOEXIT */
 
 #ifndef CYCLESTOBLINK   
-#define CYCLESTOBLINK   0xFF   	/* Led blink delay. */
+#define CYCLESTOBLINK   0xFF    /* Led blink delay. */
 #endif /* CYCLESTOBLINK */
 
 #ifndef LED_UI_PIN
@@ -98,7 +98,7 @@
 #endif /* MODE_16_MHZ */
 
 #ifndef OSC_FAST
-#define OSC_FAST        0xDD    /* Internal oscillator offset when running @ 8 MHz. */
+#define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
 #endif /* OSC_FAST */
 
 #ifndef SET_PRESCALER           /* If this is enabled, it forces the CPU prescaler division to 1, so   */
@@ -124,18 +124,18 @@
 #define ID_CHAR_3       84      /* T */
 
 // TWI Commands Xmit data block size
-#define MST_DATA_SIZE   8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_DATA_SIZE   8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_DATA_SIZE   16      /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_DATA_SIZE   16      /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
-// Status byte
-#define ST_INIT_1       0       /* Flag Bit 1 (1)  : Two-Step Initialization STEP 1 */
-#define ST_INIT_2       1       /* Flag Bit 2 (2)  : Two-Step Initialization STEP 2 */
-#define ST_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
-#define ST_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & Run Application */
-#define ST_BIT_4        4       /* Flag Bit 5 (16) : Not used */
-#define ST_BIT_6        5       /* Flag Bit 6 (32) : Not used */
-#define ST_BIT_7        6       /* Flag Bit 7 (64) : Not used */
-#define ST_BIT_8        7       /* Flag Bit 8 (128): Not used */
+// Flags byte
+#define FL_INIT_1       0       /* Flag Bit 1 (1)  : Two-Step Initialization STEP 1 */
+#define FL_INIT_2       1       /* Flag Bit 2 (2)  : Two-Step Initialization STEP 2 */
+#define FL_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
+#define FL_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & Run Application */
+#define FL_BIT_4        4       /* Flag Bit 5 (16) : Not used */
+#define FL_BIT_6        5       /* Flag Bit 6 (32) : Not used */
+#define FL_BIT_7        6       /* Flag Bit 7 (64) : Not used */
+#define FL_BIT_8        7       /* Flag Bit 8 (128): Not used */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))

@@ -70,14 +70,10 @@ File.open "tml-payload.h", "w" do |file|
   file.puts "//"
   file.puts "// Generated from #{ARGV.first} at #{Time.now} by #{ENV['USER']}"
   file.puts ""
-  file.puts "const byte payldType = 1;    /* Timonel Updater Payload */"
-  file.puts ""
-  file.puts "const uint8_t payload[#{data.length}] = {"
+  file.puts "uint8_t payload[#{data.length}] = {"
   file.puts data.each.map { |data_byte|
 	"0x#{ (data_byte).to_s(16).rjust(2, '0') }"
   }.join(', ')  
   file.puts "};"
   file.puts ""
 end
-
-

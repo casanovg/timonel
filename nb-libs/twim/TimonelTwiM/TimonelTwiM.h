@@ -7,6 +7,10 @@
  *  Version: 1.2 / 2019-01-16
  *  gustavo.casanova@nicebots.com
  *  ...........................................
+ *  This TWI (I2C) master library interacts with a microcontroller
+ *  running the Timonel bootloader. It inherits from the NbMicro
+ *  class, which handles the actual communication over the TWI bus
+ *  using the NB command set.
  */
 
 #ifndef _TIMONELTWIM_H_
@@ -31,26 +35,35 @@ class Timonel : public NbMicro {
         word bootloader_start = 0x0000;
         word application_start = 0x0000;
         word trampoline_addr = 0x0000;
-        byte low_fuse = 0;
+        byte oscillator_cal = 0;
         byte check_empty_fl = 0;
     } Status;
     Status GetStatus(void);
     byte SetTwiAddress(byte twi_address);
-    byte UploadApplication(byte payload[], int payload_size, const int start_address = 0x0000);
     byte RunApplication(void);
-    byte DeleteApplication(void);
+    byte DeleteApplication(void);    
+    byte UploadApplication(byte payload[],
+                           int payload_size,
+                           const int start_address = 0x0000);
+    #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))                       
     byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
                     const byte rx_packet_size = SLV_PACKET_SIZE,
                     const byte values_per_line = VALUES_PER_LINE);
+    #endif /* FEATURES_CODE >> F_CMD_READFLASH */
 
    private:
     Status status_; /* Global struct that holds a Timonel instance's running status */
+    byte BootloaderInit(const word delay_ms = 0);
     byte QueryStatus(void);
-    byte BootloaderInit(const word time);
-    byte WritePageBuff(const byte data_array[]);
+    byte SendDataPacket(const byte data_packet[]);
+    #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
     byte SetPageAddress(const word page_addr);
-    byte FillSpecialPage(const byte page_type, const byte app_reset_msb = 0, const byte app_reset_lsb = 0);
-    word CalculateTrampoline(const word bootloader_start, const word application_start);
+    byte FillSpecialPage(const byte page_type,
+                         const byte app_reset_msb = 0,
+                         const byte app_reset_lsb = 0);
+    word CalculateTrampoline(const word bootloader_start,
+                             const word application_start);
+    #endif /* FEATURES_CODE >> F_CMD_STPGADDR */
 };
 
 #endif /* _TIMONELTWIM_H_ */
