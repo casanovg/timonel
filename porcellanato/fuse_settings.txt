@@ -1,3 +1,0 @@
-Low fuse: 0x62
-High fuse: 0xdd
-Extended fuse: 0xfe

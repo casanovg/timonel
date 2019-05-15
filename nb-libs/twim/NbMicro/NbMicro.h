@@ -4,9 +4,15 @@
  *  ...........................................
  *  File: NbMicro.h (Header)
  *  ........................................... 
- *  Version: 1.3 / 2019-01-16
+ *  Version: 1.3 / 2019-06-06
  *  gustavo.casanova@nicebots.com
  *  ...........................................
+ *  This TWI (I2C) master library handles the communication protocol
+ *  with slave devices that implement the NB command set over a TWI
+ *  bus. In addition, the TwiBus class has methods to scan the bus in
+ *  search of the existing slave devices addresses. For single-slave
+ *  setups or those where all addresses are known in advance, this
+ *  last one could be dropped to save memory.
  */
 
 #ifndef _NBMICRO_H_
@@ -16,18 +22,18 @@
 #include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
 #include "Wire.h"
+#include "libconfig.h"
 #include "stdbool.h"
-//#include <iostream>
-//#include <exception>
 
-#define USE_SERIAL Serial
-#define MAX_TWI_DEVS 28
-#define MIN_TWI_ADDR 8
-#define MAX_TWI_ADDR 63
+// Store of TWI addresses in use ...
+static std::unordered_set<byte> active_addresses;
 
-static std::unordered_set<byte> in_use;
-
-// Class NbMicro: Represents a microcontroller using the NB command set connected to the TWI bus
+/* 
+ * ===================================================================
+ * Class NbMicro: Represents a microcontroller using
+ * the NB command set connected to the TWI bus
+ * ===================================================================
+ */
 class NbMicro {
    public:
     NbMicro(byte twi_address = 0, byte sda = 0, byte scl = 0);
@@ -48,6 +54,7 @@ class NbMicro {
    private:
 };
 
+#if ((defined MULTI_DEVICE) && (MULTI_DEVICE == true))
 // Class TwiBus: Represents a Two Wire Interfase (I2C) bus
 class TwiBus {
    public:
@@ -59,12 +66,15 @@ class TwiBus {
     } DeviceInfo;
     TwiBus(byte sda = 0, byte scl = 0);
     byte ScanBus(bool *p_app_mode = nullptr);
-    byte ScanBus(DeviceInfo dev_info_arr[] = nullptr, byte arr_size = MAX_TWI_DEVS,
-                 byte start_twi_addr = MIN_TWI_ADDR);
-    //byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size);
+    byte ScanBus(DeviceInfo dev_info_arr[] = nullptr,
+                 //byte arr_size = ((HIG_TWI_ADDR + 1) - LOW_TWI_ADDR) / 2,
+                 byte arr_size = HIG_TWI_ADDR + 1,
+                 byte start_twi_addr = LOW_TWI_ADDR);
+
    private:
     byte sda_ = 0, scl_ = 0;
     bool reusing_twi_connection_ = true;
 };
+#endif /* MULTI_DEVICE */
 
 #endif /* _NBMICRO_H_ */

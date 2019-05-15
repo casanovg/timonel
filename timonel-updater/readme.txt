@@ -25,11 +25,12 @@ You'll need avr-gcc. For OS X, it can be obtained from http://www.obdev.at/produ
 Creating an Upgrade
 ===================
 
-    ruby generate-data.rb my_new_bootloader.hex
-    make clean; make
+ ruby generate-data.rb my_new_bootloader.hex
+ make clean; make
 
 Next upload the 'upgrade.hex' file generated in this folder, via whichever bootloader you're using, or an ISP or whatever - everything should work. If you're using micronucleus and have the command line tool installed: micronucleus --run upgrade.hex
 
 The generate-data.rb script requires Ruby 1.9 or newer to be installed. If you're using an older version of Mac OS X (before Mavericks), use homebrew to install ruby with 'brew install ruby' to get a recent version. On linuxes you can usually find a package called ruby1.9 in whichever installing thingy. On windows you're on your own!
 
 Pre-built upgrades (based on ../firmware/releases/*.hex) are available in directory ./releases. Shell script MAKE_RELEASES.sh was tested under linux / debian stable.
+
