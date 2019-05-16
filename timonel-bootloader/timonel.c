@@ -77,9 +77,9 @@ uint16_t page_addr = 0x0000;                            /* Flash memory page add
 uint8_t app_reset_lsb = 0xFF;                           /* Application first byte: reset vector LSB */
 uint8_t app_reset_msb = 0xFF;                           /* Application second byte: reset vector MSB */
 #endif /* AUTO_TPL_CALC */
-static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to to-application trampoline address */
+static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to trampoline-to-application */
 #if !(USE_WDT_RESET)
-static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2); /* Pointer to bootloader restart address */
+static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);       /* Pointer to bootloader start address */
 #endif /* !USE_WDT_RESET */
 
 // USI TWI driver globals
@@ -151,7 +151,7 @@ int main(void) {
     asm volatile("spm");
     uint8_t exit_delay = CYCLESTOEXIT;                  /* Delay to exit bootloader and run the application if not initialized */
     uint16_t led_delay = CYCLESTOBLINK;                 /* Delay for led blink */
-    bool slow_ops_enabled = false;                          /* Run slow operations only after completing TWI handshake */    
+    bool slow_ops_enabled = false;                      /* Run slow operations only after completing TWI handshake */    
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -165,7 +165,7 @@ int main(void) {
            ......................................................
         */
         if (((USISR >> TWI_START_COND_FLAG) & true) && ((USICR >> TWI_START_COND_INT) & true)) {
-            TwiStartHandler();                                  /* If so, run the USI start handler ... */
+            TwiStartHandler();                          /* If so, run the USI start handler ... */
         }       
         /* ......................................................
            . TWI Interrupt Emulation .......................... .
@@ -174,7 +174,7 @@ int main(void) {
            ......................................................
         */
         if (((USISR >> USI_OVERFLOW_FLAG) & true) && ((USICR >> USI_OVERFLOW_INT) & true)) {
-            slow_ops_enabled = UsiOverflowHandler();            /* If so, run the USI overflow handler ... */
+            slow_ops_enabled = UsiOverflowHandler();    /* If so, run the USI overflow handler ... */
         }
 #if !(TWO_STEP_INIT)
         if ((flags >> FL_INIT_1) & true) {
@@ -191,32 +191,32 @@ int main(void) {
                 // =======================================================
                 if ((flags >> FL_EXIT_TML) & true) {
 #if CLEAR_BIT_7_R31
-                    asm volatile("cbr r31, 0x80");              /* Clear bit 7 of r31 */
+                    asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
 #endif /* CLEAR_BIT_7_R31 */
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
-                    RunApplication();                           /* Exit to the application */
+                    RunApplication();                   /* Exit to the application */
                 }
                 // ================================================
                 // = Delete the application from memory (Slow Op) =
                 // ================================================
                 if ((flags >> FL_DEL_FLASH) & true) {
 #if ENABLE_LED_UI                   
-                    LED_UI_PORT |= (1 << LED_UI_PIN);           /* Turn led on to indicate erasing ... */
+                    LED_UI_PORT |= (1 << LED_UI_PIN);   /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
-                    uint16_t page_to_del = TIMONEL_START;       /* Erase flash ... */
+                    uint16_t page_to_del = TIMONEL_START;
                     while (page_to_del != RESET_PAGE) {
                         page_to_del -= PAGE_SIZE;
-                        boot_page_erase(page_to_del);
+                        boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
 #if !(USE_WDT_RESET)
-                    RestartTimonel();                           /* Restart by jumping to Timonel start */
+                    RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
-                    wdt_enable(WDTO_15MS);                      /* Restart by activating the watchdog timer */
+                    wdt_enable(WDTO_15MS);              /* Restart by activating the watchdog timer */
                     for (;;) {};
 #endif /* !USE_WDT_RESET */
                 }
@@ -229,14 +229,14 @@ int main(void) {
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START - PAGE_SIZE)) {
 #endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
 #if ENABLE_LED_UI
-                    LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Turn led on and off to indicate writing ... */
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
 #if FORCE_ERASE_PG
                     boot_page_erase(page_addr);
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(page_addr);
 #if AUTO_TPL_CALC
-                    if (page_addr == RESET_PAGE) {              /* Calculate and write trampoline */
+                    if (page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
@@ -285,16 +285,16 @@ int main(void) {
             // ======================================
             if (led_delay-- == 0) {
 #if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);               /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+                LED_UI_PORT ^= (1 << LED_UI_PIN);       /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
                     // ========================================
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
-                    RunApplication();                           /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                    RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
         }
@@ -309,7 +309,7 @@ int main(void) {
 */
 inline void ReceiveEvent(uint8_t received_bytes) {
     for (uint8_t i = 0; i < received_bytes; i++) {
-        command[i] = UsiTwiReceiveByte();                       /* Store the data sent by the TWI master in the data buffer */
+        command[i] = UsiTwiReceiveByte();               /* Store the data sent by the TWI master in the data buffer */
     }
 }
 
@@ -329,25 +329,27 @@ inline void RequestEvent(void) {
             mem_position = (void *)(TIMONEL_START - 1); 
             uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = ACKTMNLV;
-            reply[1] = ID_CHAR_3;                               /* "T" Signature */
-            reply[2] = TIMONEL_VER_MJR;                         /* Major version number */
-            reply[3] = TIMONEL_VER_MNR;                         /* Minor version number */
-            reply[4] = TML_FEATURES;                            /* Optional features */
-            reply[5] = ((TIMONEL_START & 0xFF00) >> 8);         /* Start address MSB */
-            reply[6] = (TIMONEL_START & 0xFF);                  /* Start address LSB */
-            reply[7] = (*mem_position & 0xFF);                  /* Trampoline second byte (MSB) */
-            reply[8] = (*(--mem_position) & 0xFF);              /* Trampoline first byte (LSB) */
+            reply[1] = ID_CHAR_3;                       /* "T" Signature */
+            reply[2] = TIMONEL_VER_MJR;                 /* Major version number */
+            reply[3] = TIMONEL_VER_MNR;                 /* Minor version number */
+            reply[4] = TML_FEATURES;                    /* Optional features */
+            reply[5] = ((TIMONEL_START & 0xFF00) >> 8); /* Start address MSB */
+            reply[6] = (TIMONEL_START & 0xFF);          /* Start address LSB */
+            reply[7] = (*mem_position & 0xFF);          /* Trampoline second byte (MSB) */
+            reply[8] = (*(--mem_position) & 0xFF);      /* Trampoline first byte (LSB) */
 #if CHECK_EMPTY_FL
-            for (uint16_t mem_ix = 0; mem_ix < 100; mem_ix++) { /* Check the first 100 memory positions to determine if  */
-                mem_position = (void *)(mem_ix);                /* there is an application (or some other data) loaded.  */
+            // Check the first 100 memory positions to determine if
+            // there is an application (or some other data) loaded.
+            for (uint16_t mem_ix = 0; mem_ix < 100; mem_ix++) {
+                mem_position = (void *)(mem_ix);
                 reply[9] += (uint8_t)~(*mem_position);                    
             }
 #else
-            reply[9] = OSCCAL;                                  /* Internal RC oscillator calibration */
+            reply[9] = OSCCAL;                          /* Internal RC oscillator calibration */
 #endif /* CHECK_EMPTY_FL */
-            flags |= (1 << FL_INIT_1);                          /* First-step of single or two-step initialization */
+            flags |= (1 << FL_INIT_1);                  /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
-            LED_UI_PORT &= ~(1 << LED_UI_PIN);                  /* Turn led off to indicate initialization */
+            LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
             for (uint8_t i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
@@ -433,27 +435,27 @@ inline void RequestEvent(void) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t reply_len = (command[3] + 2);             /* Fourth byte received determines the size of reply data */
+            const uint8_t reply_len = (command[3] + 2);             /* byte quantity requested */
             uint8_t reply[reply_len];
             if ((command[3] >= 1) & (command[3] <= (SLV_PACKET_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
-                page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
+                page_addr = ((command[1] << 8) + command[2]);       /* Initial memory position requested */
                 reply[reply_len - 1] = 0;                           /* Checksum initialization */
                 const __flash unsigned char * mem_position;
                 mem_position = (void *)page_addr; 
                 for (uint8_t i = 1; i < command[3] + 1; i++) {
-                    reply[i] = (*(mem_position++) & 0xFF);          /* Actual flash data */
-                    reply[reply_len - 1] += (uint8_t)(reply[i]);    /* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[i] = (*(mem_position++) & 0xFF);          /* Actual memory position data */
+                    reply[reply_len - 1] += (uint8_t)(reply[i]);    /* Checksum accumulator */
                 }                
                 for (uint8_t i = 0; i < reply_len; i++) {
                     UsiTwiTransmitByte(reply[i]);                   
                 }
             }
             else {
-                UsiTwiTransmitByte(UNKNOWNC);                       /* Incorrect operand value received */
+                UsiTwiTransmitByte(UNKNOWNC);                   /* Incorrect operand value received */
             }
 #if ENABLE_LED_UI               
-            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks whenever a memory data block is sent */
+            LED_UI_PORT ^= (1 << LED_UI_PIN);                   /* Blinks whenever a memory data block is sent */
 #endif /* ENABLE_LED_UI */          
             return;
         }
@@ -463,13 +465,13 @@ inline void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            flags |= (1 << FL_INIT_2);                              /* Two-step init step 1: receive INITSOFT command */
+            flags |= (1 << FL_INIT_2);                          /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
             return;
         }
 #endif /* TWO_STEP_INIT */
         default: {
-            UsiTwiTransmitByte(UNKNOWNC);                           /* Command not recognized */
+            UsiTwiTransmitByte(UNKNOWNC);                       /* Command not recognized */
             return;
         }
     }
@@ -584,7 +586,7 @@ inline bool UsiOverflowHandler(void) {
         // NACK. If ACK (low), just continue to STATE_SEND_DATA_BYTE without break. If NACK (high)
         // the transmission is complete. Wait for a new start condition and TWI address.        
         case STATE_CHECK_RECEIVED_ACK: {
-            if (USIDR) {                /* NACK*/
+            if (USIDR) {                /* NACK - handshake complete ... */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
@@ -605,7 +607,7 @@ inline bool UsiOverflowHandler(void) {
             }
             else {
                 // If the buffer is empty ...
-                SET_USI_TO_RECEIVE_ACK();  /* This might be necessary, see: http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227 */
+                SET_USI_TO_RECEIVE_ACK();  /* This might be necessary (http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227) */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 return false;
             }
