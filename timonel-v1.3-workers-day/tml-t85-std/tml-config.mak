@@ -48,11 +48,8 @@ TARGET = timonel
 
 # Timonel required libraries path:
 # --------------------------------
-LIBDIR = ../../nb-libs/twis
+#LIBDIR = ../../nb-libs/twis
 CMDDIR = ../../nb-libs/cmd
-#LIBDIR = ./nicebots-libs/twis/6-GC-if-Good-Line
-#CMDDIR = ./nicebots-libs/cmd
-
 
 # Settings for running at 1 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
