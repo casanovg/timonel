@@ -355,7 +355,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3z twim-ss)\n\r");
+    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3 twim-ss)\n\r");
 }
 
 // Function ShowMenu
