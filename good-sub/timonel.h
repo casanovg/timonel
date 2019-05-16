@@ -35,8 +35,8 @@
 /* -------------------------------------- */
 
 // TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 16          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE 16          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
@@ -121,7 +121,7 @@
     #define CYCLESTOBLINK   0xFF    /* Short led delay */
     #endif /* CYCLESTOBLINK */
     #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0xA     /* Short exit delay */
+    #define CYCLESTOEXIT    0x0A    /* Short exit delay */
     #endif /* CYCLESTOEXIT */
     #ifndef LOW_FUSE
     #define LOW_FUSE        0x62    /* AVR low fuse value */

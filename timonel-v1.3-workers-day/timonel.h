@@ -35,8 +35,8 @@
 /* -------------------------------------- */
 
 // TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 8       /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 8       /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
@@ -112,7 +112,7 @@
     #endif /* LOW_FUSE */    
 #else
     #ifndef OSC_FAST
-    #define OSC_FAST        0xDD    /* Internal oscillator offset when running @ 8 MHz. */
+    #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
     #endif /* OSC_FAST */
     #ifndef SET_PRESCALER
     #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
@@ -121,7 +121,7 @@
     #define CYCLESTOBLINK   0xFF    /* Short led delay */
     #endif /* CYCLESTOBLINK */
     #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0xA     /* Short exit delay */
+    #define CYCLESTOEXIT    0x0A    /* Short exit delay */
     #endif /* CYCLESTOEXIT */
     #ifndef LOW_FUSE
     #define LOW_FUSE        0x62    /* AVR low fuse value */
@@ -134,27 +134,27 @@
 /* ---------------------------------------------------------------------------------- */
 
 // flash memory definitions
-#define PAGE_SIZE       64      /* SPM Flash memory page size */
-#define RESET_PAGE      0       /* Interrupt vector table address start location */
+#define PAGE_SIZE       64          /* SPM Flash memory page size */
+#define RESET_PAGE      0           /* Interrupt vector table address start location */
 
 // Led UI Port
-#define LED_UI_DDR      DDRB    /* >>> WARNING!!! This is NOT <<< */
-#define LED_UI_PORT     PORTB   /* >>> for use in production. <<< */
+#define LED_UI_DDR      DDRB        /* >>> WARNING!!! This is NOT <<< */
+#define LED_UI_PORT     PORTB       /* >>> for use in production. <<< */
 
 // Timonel ID characters
-#define ID_CHAR_1       78      /* N */
-#define ID_CHAR_2       66      /* B */
-#define ID_CHAR_3       84      /* T */
+#define ID_CHAR_1       78          /* N */
+#define ID_CHAR_2       66          /* B */
+#define ID_CHAR_3       84          /* T */
 
 // Status byte
-#define FL_INIT_1       0       /* Flag Bit 1 (1)  : Two-step initialization STEP 1 */
-#define FL_INIT_2       1       /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
-#define FL_DEL_FLASH    2       /* Flag Bit 3 (4)  : Delete flash memory            */
-#define FL_EXIT_TML     3       /* Flag Bit 4 (8)  : Exit Timonel & run application */
-#define FL_BIT_5        4       /* Flag Bit 5 (16) : Not used */
-#define FL_BIT_6        5       /* Flag Bit 6 (32) : Not used */
-#define FL_BIT_7        6       /* Flag Bit 7 (64) : Not used */
-#define FL_BIT_8        7       /* Flag Bit 8 (128): Not used */
+#define FL_INIT_1       0           /* Flag Bit 1 (1)  : Two-step initialization STEP 1 */
+#define FL_INIT_2       1           /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
+#define FL_DEL_FLASH    2           /* Flag Bit 3 (4)  : Delete flash memory            */
+#define FL_EXIT_TML     3           /* Flag Bit 4 (8)  : Exit Timonel & run application */
+#define FL_BIT_5        4           /* Flag Bit 5 (16) : Not used */
+#define FL_BIT_6        5           /* Flag Bit 6 (32) : Not used */
+#define FL_BIT_7        6           /* Flag Bit 7 (64) : Not used */
+#define FL_BIT_8        7           /* Flag Bit 8 (128): Not used */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
@@ -221,7 +221,7 @@
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE  32
+#define TWI_RX_BUFFER_SIZE  64
 #endif /* TWI_RX_BUFFER_SIZE */
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
@@ -232,7 +232,7 @@
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE  32
+#define TWI_TX_BUFFER_SIZE  64
 #endif /* TWI_TX_BUFFER_SIZE */
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)

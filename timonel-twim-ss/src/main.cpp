@@ -206,6 +206,7 @@ void loop() {
                 USE_SERIAL.printf_P("\n\n\r");
                 break;
             }
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))                
             // ********************************
             // * Timonel ::: READFLSH command *
             // ********************************
@@ -218,6 +219,7 @@ void loop() {
                 new_byte = false;
                 break;
             }
+#endif /* CMD_READFLASH) */
             // ******************
             // * ? Help command *
             // ******************
@@ -353,7 +355,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.2 twim-ss)\n\r");
+    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3z twim-ss)\n\r");
 }
 
 // Function ShowMenu

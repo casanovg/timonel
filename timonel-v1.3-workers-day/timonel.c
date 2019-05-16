@@ -29,12 +29,12 @@
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
     #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
     #undef TWI_ADDR
-    #define TWI_ADDR    8                   /* Timonel TWI default address: 08 (0x08) */
+    #define TWI_ADDR    8                               /* Timonel TWI default address: 08 (0x08) */
 #endif /* 8 <= TWI_ADDR <= 35 */
 
 /* This bootloader ... */
-#define TIMONEL_VER_MJR 1                   /* Timonel version major number   */
-#define TIMONEL_VER_MNR 3                   /* Timonel version major number   */
+#define TIMONEL_VER_MJR 1                               /* Timonel version major number   */
+#define TIMONEL_VER_MNR 3                               /* Timonel version major number   */
 
 /* Configuration checks */
 #if (TIMONEL_START % PAGE_SIZE != 0)
@@ -58,8 +58,8 @@
 #endif
 
 // Type definitions
-typedef void (* const fptr_t)(void);              /* Pointer-to-function type */
-typedef enum {                                    /* TWI driver operational modes */
+typedef void (* const fptr_t)(void);                    /* Pointer-to-function type */
+typedef enum {                                          /* TWI driver operational modes */
     STATE_CHECK_RECEIVED_ADDRESS,
     STATE_SEND_DATA_BYTE,
     STATE_RECEIVE_ACK_AFTER_SENDING_DATA,
@@ -69,24 +69,23 @@ typedef enum {                                    /* TWI driver operational mode
 } OverflowState;
 
 // Bootloader globals
-uint8_t command[(MST_PACKET_SIZE * 2) + 2] = { 0 }; /* Command received from TWI master */
-uint8_t flags = 0;                                /* Bit: 8, 7, 6, 5: not used; 4: exit; 3: delete flash; 2, 1: initialized */
-uint8_t page_ix = 0;                              /* Flash memory page index */
-uint16_t page_addr = 0x0000;                      /* Flash memory page address */
+uint8_t command[(MST_PACKET_SIZE * 2) + 2] = { 0 };     /* Command received from TWI master */
+uint8_t flags = 0;                                      /* Bit: 8, 7, 6, 5: not used; 4: exit; 3: delete app; 2, 1: initialized */
+uint8_t page_ix = 0;                                    /* Flash memory page index */
+uint16_t page_addr = 0x0000;                            /* Flash memory page address */
 #if AUTO_TPL_CALC
-uint8_t reset_lsb = 0xFF;                         /* Application first byte: reset vector LSB */
-uint8_t reset_msb = 0xFF;                         /* Application second byte: reset vector MSB */
+uint8_t app_reset_lsb = 0xFF;                           /* Application first byte: reset vector LSB */
+uint8_t app_reset_msb = 0xFF;                           /* Application second byte: reset vector MSB */
 #endif /* AUTO_TPL_CALC */
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to to-application trampoline address */
 #if !(USE_WDT_RESET)
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2); /* Pointer to bootloader restart address */
 #endif /* !USE_WDT_RESET */
-bool slow_ops_enabled = false;                     /* Run slow operations only after completing TWI handshake */
 
 // USI TWI driver globals
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-uint8_t rx_byte_count;                            /* Received byte quantity in RX buffer */
+uint8_t rx_byte_count;                                  /* Received byte quantity in RX buffer */
 uint8_t rx_head;
 uint8_t rx_tail;
 uint8_t tx_head;
@@ -102,7 +101,7 @@ void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
 inline void UsiTwiDriverInit(void) __attribute__((always_inline));
 inline void TwiStartHandler(void) __attribute__((always_inline));
-inline void UsiOverflowHandler(void) __attribute__((always_inline));
+inline bool UsiOverflowHandler(void) __attribute__((always_inline));
 
 // USI TWI driver basic operations prototypes
 inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
@@ -131,28 +130,28 @@ int main(void) {
        |    Setup Block    |
        |___________________|
     */
-    MCUSR = 0;                                    /* Disable watchdog */
+    MCUSR = 0;                                          /* Disable watchdog */
     WDTCR = ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
-    cli();                                        /* Disable interrupts */
+    cli();                                              /* Disable interrupts */
 #if ENABLE_LED_UI
-    LED_UI_DDR |= (1 << LED_UI_PIN);              /* Set led pin data direction register for output */
+    LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 #if !(MODE_16_MHZ)
-    uint8_t factory_osccal = OSCCAL;              /* Preserve factory oscillator calibration */
-    OSCCAL = OSC_FAST;                            /* With clock settings below 16MHz, speed up for better TWI performance */
+    uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
+    OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
 #endif /* 16_MHZ_MODE */
 #if SET_PRESCALER
-    CLKPR = (1 << CLKPCE);                        /* Set the CPU prescaler division factor = 1 */
+    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
     CLKPR = 0x00;
 #endif /* SET_PRESCALER */
-    UsiTwiDriverInit();                           /* Initialize the TWI driver */
+    UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
-                 _BV(__SPM_ENABLE));              /* Clear the temporary page buffer */
+                 _BV(__SPM_ENABLE));                    /* Clear the temporary page buffer */
     asm volatile("spm");
-    uint8_t exit_delay = CYCLESTOEXIT;            /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t led_delay = CYCLESTOBLINK;           /* Delay for led blink */
-   
+    uint8_t exit_delay = CYCLESTOEXIT;                  /* Delay to exit bootloader and run the application if not initialized */
+    uint16_t led_delay = CYCLESTOBLINK;                 /* Delay for led blink */
+    bool slow_ops_enabled = false;                          /* Run slow operations only after completing TWI handshake */    
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -166,7 +165,7 @@ int main(void) {
            ......................................................
         */
         if (((USISR >> TWI_START_COND_FLAG) & true) && ((USICR >> TWI_START_COND_INT) & true)) {
-            TwiStartHandler();                    /* If so, run the USI start handler ... */
+            TwiStartHandler();                                  /* If so, run the USI start handler ... */
         }       
         /* ......................................................
            . TWI Interrupt Emulation .......................... .
@@ -175,7 +174,7 @@ int main(void) {
            ......................................................
         */
         if (((USISR >> USI_OVERFLOW_FLAG) & true) && ((USICR >> USI_OVERFLOW_INT) & true)) {
-            UsiOverflowHandler();                 /* If so, run the USI overflow handler ... */
+            slow_ops_enabled = UsiOverflowHandler();            /* If so, run the USI overflow handler ... */
         }
 #if !(TWO_STEP_INIT)
         if ((flags >> FL_INIT_1) & true) {
@@ -192,32 +191,32 @@ int main(void) {
                 // =======================================================
                 if ((flags >> FL_EXIT_TML) & true) {
 #if CLEAR_BIT_7_R31
-                    asm volatile("cbr r31, 0x80");          /* Clear bit 7 of r31 */
+                    asm volatile("cbr r31, 0x80");              /* Clear bit 7 of r31 */
 #endif /* CLEAR_BIT_7_R31 */
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
-                    RunApplication();                       /* Exit to the application */
+                    RunApplication();                           /* Exit to the application */
                 }
                 // ================================================
                 // = Delete the application from memory (Slow Op) =
                 // ================================================
                 if ((flags >> FL_DEL_FLASH) & true) {
 #if ENABLE_LED_UI                   
-                    LED_UI_PORT |= (1 << LED_UI_PIN);       /* Turn led on to indicate erasing ... */
+                    LED_UI_PORT |= (1 << LED_UI_PIN);           /* Turn led on to indicate erasing ... */
 #endif /* ENABLE_LED_UI */
-                    uint16_t pageAddress = TIMONEL_START;   /* Erase flash ... */
-                    while (pageAddress != RESET_PAGE) {
-                        pageAddress -= PAGE_SIZE;
-                        boot_page_erase(pageAddress);
+                    uint16_t page_to_del = TIMONEL_START;       /* Erase flash ... */
+                    while (page_to_del != RESET_PAGE) {
+                        page_to_del -= PAGE_SIZE;
+                        boot_page_erase(page_to_del);
                     }
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
 #if !(USE_WDT_RESET)
-                    RestartTimonel();                       /* Restart by jumping to Timonel start */
+                    RestartTimonel();                           /* Restart by jumping to Timonel start */
 #else
-                    wdt_enable(WDTO_15MS);                  /* Restart by activating the watchdog timer */
+                    wdt_enable(WDTO_15MS);                      /* Restart by activating the watchdog timer */
                     for (;;) {};
 #endif /* !USE_WDT_RESET */
                 }
@@ -230,15 +229,15 @@ int main(void) {
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START - PAGE_SIZE)) {
 #endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
 #if ENABLE_LED_UI
-                    LED_UI_PORT ^= (1 << LED_UI_PIN);       /* Turn led on and off to indicate writing ... */
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
 #if FORCE_ERASE_PG
                     boot_page_erase(page_addr);
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(page_addr);
 #if AUTO_TPL_CALC
-                    if (page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
-                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((reset_msb << 8) | reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                    if (page_addr == RESET_PAGE) {              /* Calculate and write trampoline */
+                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
                         }
@@ -247,7 +246,7 @@ int main(void) {
                     }
 #if APP_USE_TPL_PG
                     if (page_addr == (TIMONEL_START - PAGE_SIZE)) {
-                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((reset_msb << 8) | reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
+                        uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash unsigned char *mem_position;
                         for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -286,21 +285,21 @@ int main(void) {
             // ======================================
             if (led_delay-- == 0) {
 #if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+                LED_UI_PORT ^= (1 << LED_UI_PIN);               /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
                     // ========================================
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
 #if !(MODE_16_MHZ)
-                    OSCCAL = factory_osccal;                /* Back the oscillator calibration to its original setting */
+                    OSCCAL = factory_osccal;                    /* Back the oscillator calibration to its original setting */
 #endif /* 16_MHZ_MODE */
-                    RunApplication();                       /* Count from CYCLESTOEXIT to 0, then exit to the application */
+                    RunApplication();                           /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
         }
     }
-    return(0);
+    return 0;
 }
 
 /*  ________________________
@@ -310,7 +309,7 @@ int main(void) {
 */
 inline void ReceiveEvent(uint8_t received_bytes) {
     for (uint8_t i = 0; i < received_bytes; i++) {
-        command[i] = UsiTwiReceiveByte();                   /* Store the data sent by the TWI master in the data buffer */
+        command[i] = UsiTwiReceiveByte();                       /* Store the data sent by the TWI master in the data buffer */
     }
 }
 
@@ -325,39 +324,30 @@ inline void RequestEvent(void) {
         // * GETTMNLV Reply *
         // ******************
         case GETTMNLV: {
-#if CHECK_EMPTY_FL
-            #define GETTMNLV_RPLYLN 11
-#else
             #define GETTMNLV_RPLYLN 10
-#endif /* CHECK_EMPTY_FL */
             const __flash unsigned char *mem_position;
             mem_position = (void *)(TIMONEL_START - 1); 
             uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = ACKTMNLV;
-            reply[1] = ID_CHAR_3;                                   /* "T" Signature */            
-            reply[2] = TIMONEL_VER_MJR;                             /* Major version number */
-            reply[3] = TIMONEL_VER_MNR;                             /* Minor version number */
-            reply[4] = TML_FEATURES;                                /* Optional features */
-            reply[5] = ((TIMONEL_START & 0xFF00) >> 8);             /* Start address MSB */
-            reply[6] = (TIMONEL_START & 0xFF);                      /* Start address LSB */
-            reply[7] = (*mem_position & 0xFF);                      /* Trampoline second byte (MSB) */
-            reply[8] = (*(--mem_position) & 0xFF);                  /* Trampoline first byte (LSB) */
-            //reply[9] = LOW_FUSE;                                    /* AVR low fuse value */
-            reply[9] = OSCCAL;
+            reply[1] = ID_CHAR_3;                               /* "T" Signature */
+            reply[2] = TIMONEL_VER_MJR;                         /* Major version number */
+            reply[3] = TIMONEL_VER_MNR;                         /* Minor version number */
+            reply[4] = TML_FEATURES;                            /* Optional features */
+            reply[5] = ((TIMONEL_START & 0xFF00) >> 8);         /* Start address MSB */
+            reply[6] = (TIMONEL_START & 0xFF);                  /* Start address LSB */
+            reply[7] = (*mem_position & 0xFF);                  /* Trampoline second byte (MSB) */
+            reply[8] = (*(--mem_position) & 0xFF);              /* Trampoline first byte (LSB) */
 #if CHECK_EMPTY_FL
-            for (uint16_t mPos = 0; mPos < 100; mPos++) {           /* Check the first 100 memory positions to determine if  */
-                mem_position = (void *)(mPos);                         /* there is an application (or some other data) loaded.  */
-                reply[10] += (uint8_t)~(*mem_position);                    
+            for (uint16_t mem_ix = 0; mem_ix < 100; mem_ix++) { /* Check the first 100 memory positions to determine if  */
+                mem_position = (void *)(mem_ix);                /* there is an application (or some other data) loaded.  */
+                reply[9] += (uint8_t)~(*mem_position);                    
             }
+#else
+            reply[9] = OSCCAL;                                  /* Internal RC oscillator calibration */
 #endif /* CHECK_EMPTY_FL */
-#if !(TWO_STEP_INIT)
-            flags |= (1 << FL_INIT_1);                              /* Single-step init */
-#endif /* !TWO_STEP_INIT */
-#if TWO_STEP_INIT
-            flags |= (1 << FL_INIT_2);                              /* Two-step init step 2: receive GETTMNLV command */
-#endif /* TWO_STEP_INIT */
+            flags |= (1 << FL_INIT_1);                          /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
-            LED_UI_PORT &= ~(1 << LED_UI_PIN);                      /* Turn led off to indicate initialization */
+            LED_UI_PORT &= ~(1 << LED_UI_PIN);                  /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
             for (uint8_t i = 0; i < GETTMNLV_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
@@ -387,10 +377,10 @@ inline void RequestEvent(void) {
         case STPGADDR: {
             #define STPGADDR_RPLYLN 2
             uint8_t reply[STPGADDR_RPLYLN] = { 0 };
-            page_addr = ((command[1] << 8) + command[2]);           /* Sets the flash memory page base address */
-            page_addr &= ~(PAGE_SIZE - 1);                          /* Keep only pages' base addresses */
+            page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
+            page_addr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);          /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (uint8_t)(command[1] + command[2]);      /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -406,8 +396,8 @@ inline void RequestEvent(void) {
             reply[0] = ACKWTPAG;
             if ((page_addr + page_ix) == RESET_PAGE) {
 #if AUTO_TPL_CALC
-                reset_lsb = command[1];
-                reset_msb = command[2];
+                app_reset_lsb = command[1];
+                app_reset_msb = command[2];
 #endif /* AUTO_TPL_CALC */
                 // This section modifies the reset vector to point to this bootloader.
                 // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
@@ -443,19 +433,19 @@ inline void RequestEvent(void) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t ackLng = (command[3] + 2);                /* Fourth byte received determines the size of reply data */
-            uint8_t reply[ackLng];
+            const uint8_t reply_len = (command[3] + 2);             /* Fourth byte received determines the size of reply data */
+            uint8_t reply[reply_len];
             if ((command[3] >= 1) & (command[3] <= (SLV_PACKET_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
                 page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-                reply[ackLng - 1] = 0;                              /* Checksum initialization */
+                reply[reply_len - 1] = 0;                           /* Checksum initialization */
                 const __flash unsigned char * mem_position;
                 mem_position = (void *)page_addr; 
                 for (uint8_t i = 1; i < command[3] + 1; i++) {
                     reply[i] = (*(mem_position++) & 0xFF);          /* Actual flash data */
-                    reply[ackLng - 1] += (uint8_t)(reply[i]);       /* Checksum accumulator to be sent in the last byte of the reply */
+                    reply[reply_len - 1] += (uint8_t)(reply[i]);    /* Checksum accumulator to be sent in the last byte of the reply */
                 }                
-                for (uint8_t i = 0; i < ackLng; i++) {
+                for (uint8_t i = 0; i < reply_len; i++) {
                     UsiTwiTransmitByte(reply[i]);                   
                 }
             }
@@ -473,7 +463,7 @@ inline void RequestEvent(void) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            flags |= (1 << FL_INIT_1);                              /* Two-step init step 1: receive INITSOFT command */
+            flags |= (1 << FL_INIT_2);                              /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
             return;
         }
@@ -563,16 +553,18 @@ inline void TwiStartHandler(void) {
    | USI 4-bit overflow handler (Interrupt-like function) |
    |______________________________________________________|
 */
-inline void UsiOverflowHandler(void) {
+inline bool UsiOverflowHandler(void) {    
     switch (device_state) {
         // If the address received after the start condition matches this device or is
         // a general call, reply ACK and check whether it should send or receive data.
-        // Otherwise, set USI to wait for the next start condition and address.        
+        // Otherwise, set USI to wait for the next start condition and address.
         case STATE_CHECK_RECEIVED_ADDRESS: {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
+                    // ***********************| = = = |***********************
                     ReceiveEvent(rx_byte_count);    /* Call a main function to process the received data */
                     RequestEvent();                 /* Call a main function to prepare the reply data */
+                    // ***********************| = = = |***********************
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
                 } else {                /* If data register low-order bit = 0, start the receive data mode */
@@ -584,7 +576,7 @@ inline void UsiOverflowHandler(void) {
             else {
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
             }
-            return;
+            return false;
         }
         // Send data mode:
         //================
@@ -592,14 +584,13 @@ inline void UsiOverflowHandler(void) {
         // NACK. If ACK (low), just continue to STATE_SEND_DATA_BYTE without break. If NACK (high)
         // the transmission is complete. Wait for a new start condition and TWI address.        
         case STATE_CHECK_RECEIVED_ACK: {
-            if (USIDR) {                /* NACK */
+            if (USIDR) {                /* NACK*/
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 //                                                                 >>
-                slow_ops_enabled = true;        // Enable slow operations in main!    >>
+                return true;        // Enable slow operations in main!               >>
                 //                                                                 >> 
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                return;
              }
              // Just drop straight into STATE_SEND_DATA_BYTE (no break) ...
         }
@@ -616,19 +607,19 @@ inline void UsiOverflowHandler(void) {
                 // If the buffer is empty ...
                 SET_USI_TO_RECEIVE_ACK();  /* This might be necessary, see: http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227 */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
-                return;
+                return false;
             }
             // Next state -> STATE_RECEIVE_ACK_AFTER_SENDING_DATA 
             device_state = STATE_RECEIVE_ACK_AFTER_SENDING_DATA; 
             SET_USI_TO_SEND_BYTE();
-            return;
+            return false;
         }
         // 2) Set USI to receive an acknowledge bit reply from master
         case STATE_RECEIVE_ACK_AFTER_SENDING_DATA: {
             // Next state -> STATE_CHECK_RECEIVED_ACK
             device_state = STATE_CHECK_RECEIVED_ACK;
             SET_USI_TO_RECEIVE_ACK();
-            return;
+            return false;
         }
         // Receive data mode:
         // ==================
@@ -639,7 +630,7 @@ inline void UsiOverflowHandler(void) {
             // Next state -> STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK
             device_state = STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK;
             SET_USI_TO_RECEIVE_BYTE();
-            return;
+            return false;
         }
         // 2) Copy the received byte from USIDR to RX buffer and send ACK. After the
         // counter overflows, return to the previous state (STATE_RECEIVE_DATA_BYTE).
@@ -652,12 +643,13 @@ inline void UsiOverflowHandler(void) {
             // Next state -> STATE_RECEIVE_DATA_BYTE
             device_state = STATE_RECEIVE_DATA_BYTE;
             SET_USI_TO_SEND_ACK();
-            return;
+            return false;
         }        
     }
     // Clear the 4-bit counter overflow flag in USI status register after processing each
     // overflow state to allow detecting new interrupts that take this device to next states.
     USISR |= (1 << USI_OVERFLOW_FLAG);
+    return false;
 }
 
 // ----------------------------------------------------------------------------
