@@ -37,7 +37,7 @@ NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda
     if (!((sda_ == 0) && (scl_ == 0))) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Creating a new TWI connection with address %02d\n\r", __func__, addr_);
-#endif /* DEBUG_LEVEL */
+#endif                          /* DEBUG_LEVEL */
         Wire.begin(sda_, scl_); /* Init I2C sda_:GPIO0, scl_:GPIO2 (ESP-01) / sda_:D3, scl_:D4 (NodeMCU) */
         reusing_twi_connection_ = false;
     } else {
@@ -133,7 +133,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
         } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Error parsing 0x%02X command <<< 0x%02X (single byte reply)\n\r", __func__, twi_cmd_arr[0], reply);
-#endif /* DEBUG_LEVEL */
+#endif                              /* DEBUG_LEVEL */
             return ERR_CMD_PARSE_S; /* Error: reply doesn't match command (single byte) */
         }
     }
@@ -151,7 +151,7 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
         } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Error parsing 0x%02X command <<< 0x%02X (multibyte reply)\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
-#endif /* DEBUG_LEVEL */
+#endif                              /* DEBUG_LEVEL */
             return ERR_CMD_PARSE_M; /* Error: reply doesn't match command (multi byte) */
         }
     }
@@ -177,9 +177,8 @@ byte NbMicro::InitMicro(void) {
     return (TwiCmdXmit(INITSOFT, ACKINITS));
 }
 
-
 #if ((defined MULTI_DEVICE) && (MULTI_DEVICE == true))
-    #pragma GCC warning "TwiBus device discovery functions code included in TWI master!"
+#pragma GCC warning "TwiBus device discovery functions code included in TWI master!"
 /////////////////////////////////////////////////////////////////////////////
 ////////////                    TWIBUS CLASS                     ////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -189,7 +188,7 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     if (!((sda == 0) && (scl == 0))) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Creating a new I2C connection\n\r", __func__);
-#endif /* DEBUG_LEVEL */
+#endif                        /* DEBUG_LEVEL */
         Wire.begin(sda, scl); /* Init I2C sda:GPIO0, scl:GPIO2 (ESP-01) / sda:D3, scl:D4 (NodeMCU) */
         reusing_twi_connection_ = false;
     } else {
@@ -282,5 +281,5 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
     return OK;
 }
 #else
-    #pragma GCC warning "TwiBus device discovery functions code included in TWI master!"
+#pragma GCC warning "TwiBus device discovery functions code included in TWI master!"
 #endif /* MULTI_DEVICE */
