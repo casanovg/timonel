@@ -435,7 +435,7 @@ inline void RequestEvent(void) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t reply_len = (command[3] + 2);             /* byte quantity requested */
+            const uint8_t reply_len = (command[3] + 2);             /* Reply lenght: ack + memory positions requested + checksum */
             uint8_t reply[reply_len];
 //            if ((command[3] >= 1) & (command[3] <= SLV_PACKET_SIZE) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
