@@ -437,7 +437,7 @@ inline void RequestEvent(void) {
         case READFLSH: {
             const uint8_t reply_len = (command[3] + 2);             /* byte quantity requested */
             uint8_t reply[reply_len];
-            if ((command[3] >= 1) & (command[3] <= (SLV_PACKET_SIZE + 2) * 2) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
+            if ((command[3] >= 1) & (command[3] <= SLV_PACKET_SIZE) & ((uint8_t)(command[0] + command[1] + command[2] + command[3]) == command[4])) {
                 reply[0] = ACKRDFSH;
                 page_addr = ((command[1] << 8) + command[2]);       /* Initial memory position requested */
                 reply[reply_len - 1] = 0;                           /* Checksum initialization */
