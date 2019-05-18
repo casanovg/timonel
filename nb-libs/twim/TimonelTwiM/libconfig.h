@@ -21,8 +21,8 @@
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
 #define HIG_TML_ADDR 35     /* Highest allowed TWI address for Timonel devices */
 #define T_SIGNATURE 84      /* Timonel signature "T" */
-#define MST_PACKET_SIZE 64  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 64  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 32  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE 32  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 #define PAGE_SIZE 64        /* Tiny85 flash page buffer size */
 #define OK 0                /* No error in function execution */
 // End General defs

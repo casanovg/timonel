@@ -35,8 +35,8 @@
 /* -------------------------------------- */
 
 // TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 64          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 64          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
+#define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
@@ -221,7 +221,7 @@
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE  128
+#define TWI_RX_BUFFER_SIZE  64
 #endif /* TWI_RX_BUFFER_SIZE */
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
@@ -232,7 +232,7 @@
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE  128
+#define TWI_TX_BUFFER_SIZE  64
 #endif /* TWI_TX_BUFFER_SIZE */
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
