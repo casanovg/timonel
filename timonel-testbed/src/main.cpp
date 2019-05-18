@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include "Wire.h"
 #include "TimonelTwiM.h"
+#include "payload.h"
 
 #define USE_SERIAL Serial
 #define TML_ADDR 8  /* Bootloader I2C address*/
@@ -93,7 +94,7 @@ void loop() {
             }            
             case '4': {
                 Timonel tml(twi_address);
-                tml.DumpMemory(MCU_TOTAL_MEM, SLV_DATA_SIZE, VALUES_PER_LINE);
+                tml.DumpMemory(MCU_TOTAL_MEM, SLV_PACKET_SIZE, VALUES_PER_LINE);
                 new_byte = false;
                 break;
             }            
@@ -138,10 +139,10 @@ void loop() {
             // ********************************
             // * Timonel ::: EXITTMNL Command *
             // ********************************
-            case 'r':
-            case 'R': {
+            case '7': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Run Application ...\r\n");
-                //tml.RunApplication();
+                Timonel tml(twi_address);
+                tml.RunApplication();
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
                 app_mode = true;
                 delay(2000);
@@ -155,10 +156,10 @@ void loop() {
             // ********************************
             // * Timonel ::: DELFLASH Command *
             // ********************************
-            case 'e':
-            case 'E': {
+            case '6': {
                 //USE_SERIAL.printf_P("\nBootloader Cmd >>> Delete app firmware from T85 flash memory ...\r\n");
-                //tml.DeleteApplication();
+                Timonel tml(twi_address);
+                tml.DeleteApplication();
                 delay(750);
                 //tml.GetStatus();
                 //PrintStatus(tml);
@@ -199,14 +200,14 @@ void loop() {
             //     }
             //     break;
             // }
-            // // ********************************
-            // // * Timonel ::: WRITPAGE Command *
-            // // ********************************
-            // case 'w':
-            // case 'W': {
-            //     tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
-            //     break;
-            // }
+            // ********************************
+            // * Timonel ::: WRITPAGE Command *
+            // ********************************
+            case '5': {
+                Timonel tml(twi_address);
+                tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
+                break;
+            }
             // // ********************************
             // // * Timonel ::: READFLSH Command *
             // // ********************************
@@ -358,7 +359,8 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("      Features code: %d\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("         RC osc cal: 0x%02X\n\n\r", tml_status.oscillator_cal);
     } else {
         USE_SERIAL.printf_P("\n\r *******************************************************************\n\r");
         USE_SERIAL.printf_P(" * Unknown bootloader, application or device at TWI address %02d ... *\n\r", twi_address);
@@ -386,7 +388,7 @@ void ShowHeader(void) {
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Test command ('1' wire begin, '2' set twi address, '3' initialize Timonel, '4' dump memory, 'z' reboot): ");
+        USE_SERIAL.printf_P("Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'): ");
     } 
     // else {
     //     Timonel::Status sts = tml.GetStatus();
@@ -404,9 +406,9 @@ void ShowMenu(void) {
 // Function ListTwidevices
 void ListTwiDevices(byte sda, byte scl) {
     TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
-    twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
-    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR];
+    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR);
+    for (byte i = 0; i < HIG_TWI_ADDR; i++) {
         USE_SERIAL.printf_P("...........................................................\n\r");
         USE_SERIAL.printf_P("Pos: %02d | ", i + 1);
         if (dev_info_arr[i].firmware != "") {
@@ -425,15 +427,15 @@ void ListTwiDevices(byte sda, byte scl) {
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     byte timonels = 0;
     TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
-    twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
-    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR];
+    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR);
+    for (byte i = 0; i < HIG_TWI_ADDR; i++) {
         if ((dev_info_arr[i].firmware != "Timonel") && (timonels < tml_arr_size)) {
             USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\r");
             USE_SERIAL.printf_P("Pos: %02d | ", timonels);
             byte tml_addr = dev_info_arr[i].addr;
             USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
-            tml_arr[timonels].SetObjTwiAddress(tml_addr);
+            tml_arr[timonels].SetTwiAddress(tml_addr);
             timonels++;
         }
         delay(10);
