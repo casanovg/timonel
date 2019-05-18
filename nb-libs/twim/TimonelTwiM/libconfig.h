@@ -63,11 +63,13 @@
 // Timonel::DumpMemory defs
 #define MCU_TOTAL_MEM 8192  /* Config: Microcontroller flash memory size */
 #define VALUES_PER_LINE 32  /* Config: Memory positions values to display per line */
-#define D_CMD_LENGTH 5      /* Config: DumpMemory command lenght (1 cmd byte + 2 addr bytes + 1 rx size byte + 1 checksum byte) */
+#define D_CMD_LENGTH 4      /* Config: READFLSH command lenght (1 cmd byte + 2 addr bytes + 1 rx size byte + 1 checksum byte) */
+#define D_REPLY_OVHD 4      /* Config: READFLSH reply overhead: extra bytes added to the reply: 1 ack + 2 mem + 1 checksum */
 #define MAXCKSUMERRORS 3    /* Config: DumpMemory max count of errors accepted */
 #define ERR_NOT_SUPP 1      /* Error: function not supported in current setup */
 #define ERR_CMD_PARSE_D 2   /* Error: reply doesn't match DumpMemory command */
-#define ERR_CHECKSUM_D 3    /* Error: Too much checksum errors */
+#define ERR_ADDR_PARSE 3    /* Error: requested address misinterpreted by Timonel device */
+#define ERR_CHECKSUM_D 4    /* Error: Too much checksum errors */
 #define DLY_1_SECOND 1000   /* 1 second delay */
 #define DLY_PKT_REQUEST 150 /* Delay between data packet requests */
 // End Timonel::DumpMemory

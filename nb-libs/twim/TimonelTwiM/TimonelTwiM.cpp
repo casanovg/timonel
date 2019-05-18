@@ -271,6 +271,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
   |_________________________|
 */
 // Display the microcontroller's entire flash memory contents over a serial connection
+
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     //if ((status_.features_code & 0x80) == false) {
     if (!((status_.features_code >> F_CMD_READFLASH) & true)) {
@@ -278,7 +279,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         return (ERR_NOT_SUPP);
     }
     const byte cmd_size = D_CMD_LENGTH;
-    byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0, 0};
+    byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0};
     byte twi_reply_arr[rx_packet_size + 2];
     byte checksum_errors = 0;
     int j = 1;
@@ -288,37 +289,45 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
     for (word address = 0; address < flash_size; address += rx_packet_size) {
         twi_cmd_arr[1] = ((address & 0xFF00) >> 8);                                                 /* Flash page address high byte */
         twi_cmd_arr[2] = (address & 0xFF);                                                          /* Flash page address low byte */
-        twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
-        byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + 2);
+        //twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
+        byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + D_REPLY_OVHD);
         if (twi_errors == 0) {
-            byte expected_checksum = 0;
-            for (byte i = 1; i < (rx_packet_size + 1); i++) {
-                USE_SERIAL.printf_P("%02X", twi_reply_arr[i]); /* Memory values */
-                if (j == values_per_line) {
-                    USE_SERIAL.printf_P("\n\r");
-                    if ((address + rx_packet_size) < flash_size) {
-                        USE_SERIAL.printf_P("Addr %04X: ", address + rx_packet_size); /* Page address */
+
+            if ((twi_reply_arr[1] == twi_cmd_arr[1]) && (twi_reply_arr[2] == twi_cmd_arr[2])) {
+
+                byte expected_checksum = 0;
+                for (byte i = D_REPLY_OVHD - 1; i < (rx_packet_size + 1); i++) {
+                    USE_SERIAL.printf_P("%02X", twi_reply_arr[i]); /* Memory values */
+                    if (j == values_per_line) {
+                        USE_SERIAL.printf_P("\n\r");
+                        if ((address + rx_packet_size) < flash_size) {
+                            USE_SERIAL.printf_P("Addr %04X: ", address + rx_packet_size); /* Page address */
+                        }
+                        j = 0;
+                    } else {
+                        USE_SERIAL.printf_P(" "); /* Space between values */
                     }
-                    j = 0;
-                } else {
-                    USE_SERIAL.printf_P(" "); /* Space between values */
+                    j++;
+                    expected_checksum += (byte)twi_reply_arr[i];
                 }
-                j++;
-                expected_checksum += (byte)twi_reply_arr[i];
-            }
-            byte received_checksum = twi_reply_arr[rx_packet_size + 1];
-            if (expected_checksum != received_checksum) {
-                USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   Expected:%d - Received:%d\n\r", expected_checksum, received_checksum);
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
-                USE_SERIAL.printf_P("%d\n\r", expected_checksum + 1);
-                USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[rx_packet_size + 1]);
-#endif /* DEBUG_LEVEL */
-                if (checksum_errors++ == MAXCKSUMERRORS) {
-                    USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS [ %d ], stopping! \n\r", __func__, checksum_errors);
-                    delay(DLY_1_SECOND);
-                    return (ERR_CHECKSUM_D);
+                byte received_checksum = twi_reply_arr[rx_packet_size + 1];
+                if (expected_checksum != received_checksum) {
+                    USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   Expected:%d - Received:%d\n\r", expected_checksum, received_checksum);
+    #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
+                    USE_SERIAL.printf_P("%d\n\r", expected_checksum + 1);
+                    USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[rx_packet_size + 1]);
+    #endif /* DEBUG_LEVEL */
+                    if (checksum_errors++ == MAXCKSUMERRORS) {
+                        USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS [ %d ], stopping! \n\r", __func__, checksum_errors);
+                        delay(DLY_1_SECOND);
+                        return (ERR_CHECKSUM_D);
+                    }
                 }
+            } else {
+                USE_SERIAL.printf_P("[%s] The address requested was misinterpreted by Timonel device!\n\r", __func__);
+                return (ERR_ADDR_PARSE);
             }
+
         } else {
             USE_SERIAL.printf_P("[%s] Error parsing 0x%02X command <<< 0x%02X\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
             return (ERR_CMD_PARSE_D);
@@ -332,6 +341,69 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
     USE_SERIAL.printf_P("\n\n\r");
     return (OK);
 }
+
+// byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
+//     //if ((status_.features_code & 0x80) == false) {
+//     if (!((status_.features_code >> F_CMD_READFLASH) & true)) {
+//         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__);
+//         return (ERR_NOT_SUPP);
+//     }
+//     const byte cmd_size = D_CMD_LENGTH;
+//     byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0, 0};
+//     byte twi_reply_arr[rx_packet_size + 2];
+//     byte checksum_errors = 0;
+//     int j = 1;
+//     twi_cmd_arr[3] = rx_packet_size;                                                                /* Requested packet size */    
+//     USE_SERIAL.printf_P("\n\r[%s] Dumping Flash Memory ...\n\n\r", __func__);
+//     USE_SERIAL.printf_P("Addr %04X: ", 0);
+//     for (word address = 0; address < flash_size; address += rx_packet_size) {
+//         twi_cmd_arr[1] = ((address & 0xFF00) >> 8);                                                 /* Flash page address high byte */
+//         twi_cmd_arr[2] = (address & 0xFF);                                                          /* Flash page address low byte */
+//         twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
+//         byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + 2);
+//         if (twi_errors == 0) {
+//             byte expected_checksum = 0;
+//             for (byte i = 1; i < (rx_packet_size + 1); i++) {
+//                 USE_SERIAL.printf_P("%02X", twi_reply_arr[i]); /* Memory values */
+//                 if (j == values_per_line) {
+//                     USE_SERIAL.printf_P("\n\r");
+//                     if ((address + rx_packet_size) < flash_size) {
+//                         USE_SERIAL.printf_P("Addr %04X: ", address + rx_packet_size); /* Page address */
+//                     }
+//                     j = 0;
+//                 } else {
+//                     USE_SERIAL.printf_P(" "); /* Space between values */
+//                 }
+//                 j++;
+//                 expected_checksum += (byte)twi_reply_arr[i];
+//             }
+//             byte received_checksum = twi_reply_arr[rx_packet_size + 1];
+//             if (expected_checksum != received_checksum) {
+//                 USE_SERIAL.printf_P("\n\r   ### Checksum ERROR! ###   Expected:%d - Received:%d\n\r", expected_checksum, received_checksum);
+// #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
+//                 USE_SERIAL.printf_P("%d\n\r", expected_checksum + 1);
+//                 USE_SERIAL.printf_P(" <-- calculated, received --> %d\n\r", twi_reply_arr[rx_packet_size + 1]);
+// #endif /* DEBUG_LEVEL */
+//                 if (checksum_errors++ == MAXCKSUMERRORS) {
+//                     USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS [ %d ], stopping! \n\r", __func__, checksum_errors);
+//                     delay(DLY_1_SECOND);
+//                     return (ERR_CHECKSUM_D);
+//                 }
+//             }
+//         } else {
+//             USE_SERIAL.printf_P("[%s] Error parsing 0x%02X command <<< 0x%02X\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
+//             return (ERR_CMD_PARSE_D);
+//         }
+//         delay(DLY_PKT_REQUEST);
+//     }
+//     USE_SERIAL.printf_P("\n\r[%s] Flash memory dump successful!", __func__);
+//     if (checksum_errors > 0) {
+//         USE_SERIAL.printf_P(" Checksum errors: %d", checksum_errors);
+//     }
+//     USE_SERIAL.printf_P("\n\n\r");
+//     return (OK);
+// }
+
 #else
     #pragma GCC warning "Timonel::DumpMemory function code NOT INCLUDED in TWI master!"
 #endif /* FEATURES_CODE >> F_CMD_READFLASH */
