@@ -35,8 +35,8 @@
 /* -------------------------------------- */
 
 // TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 64 */
+#define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 64 */
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
