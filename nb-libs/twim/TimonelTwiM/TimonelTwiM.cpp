@@ -272,7 +272,6 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 */
 // Display the microcontroller's entire flash memory contents over a serial connection
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
-    //if ((status_.features_code & 0x80) == false) {
     if (!((status_.features_code >> F_CMD_READFLASH) & true)) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__);
         return (ERR_NOT_SUPP);
