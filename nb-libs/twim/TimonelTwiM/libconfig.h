@@ -21,8 +21,8 @@
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
 #define HIG_TML_ADDR 35     /* Highest allowed TWI address for Timonel devices */
 #define T_SIGNATURE 84      /* Timonel signature "T" */
-#define MST_PACKET_SIZE 32  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 8 */
-#define SLV_PACKET_SIZE 32  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 8 */
+#define MST_PACKET_SIZE 32  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 32 */
+#define SLV_PACKET_SIZE 32  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 32 */
 #define PAGE_SIZE 64        /* Tiny85 flash page buffer size */
 #define OK 0                /* No error in function execution */
 // End General defs
@@ -72,6 +72,7 @@
 #define ERR_CHECKSUM_D 4    /* Error: Too much checksum errors */
 #define DLY_1_SECOND 1000   /* 1 second delay */
 #define DLY_PKT_REQUEST 150 /* Delay between data packet requests */
+//#define DLY_PKT_REQUEST 350 /* Delay between data packet requests */
 // End Timonel::DumpMemory
 
 // Timonel::SendDataPacket defs

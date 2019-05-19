@@ -248,7 +248,7 @@ int main(void) {
                     if (page_addr == (TIMONEL_START - PAGE_SIZE)) {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
-                        const __flash unsigned char *mem_position;
+                        const __flash uint8_t *mem_position;
                         for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
                             mem_position = (void *)((TIMONEL_START - PAGE_SIZE) + i);
                             uint16_t page_data = (*mem_position & 0xFF);
@@ -325,7 +325,7 @@ inline void RequestEvent(void) {
         // ******************
         case GETTMNLV: {
             #define GETTMNLV_RPLYLN 10
-            const __flash unsigned char *mem_position;
+            const __flash uint8_t *mem_position;
             mem_position = (void *)(TIMONEL_START - 1); 
             uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
             reply[0] = ACKTMNLV;
@@ -441,7 +441,7 @@ inline void RequestEvent(void) {
             reply[reply_len - 1] = 0;                           /* Checksum initialization */
             // Point the initial memory position to the received address, then
             // advance to fill the reply with the requested data amount.
-            const __flash unsigned char *mem_position;
+            const __flash uint8_t *mem_position;
             mem_position = (void *)((command[1] << 8) + command[2]);
             for (uint8_t i = 1; i < command[3] + 1; i++) {
                 reply[i] = (*(mem_position++) & 0xFF);          /* Actual memory position data */
