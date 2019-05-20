@@ -139,7 +139,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             delay(DLY_FLASH_PG);
         }
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-        USE_SERIAL.printf_P("[%s] Writing payload to flash (memory addresses calculated by TWI master) ...\n\r", __func__);
+        USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X (addresses set by TWI master) ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
         // If AUTO_TPL_CALC feature is disabled in Timonel device
         if (!((status_.features_code >> F_AUTO_TPL_CALC) & true)) {

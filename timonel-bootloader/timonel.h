@@ -93,41 +93,6 @@
 #define CLEAR_BIT_7_R31 false       /* is skipped after restarting without an application in memory.       */
 #endif /* CLEAR_BIT_7_R31 */        /* See http://www.avrfreaks.net/comment/2561866#comment-2561866        */
 
-#ifndef MODE_16_MHZ
-#define MODE_16_MHZ     false       /* Set this in line with the AVR fuse settings */
-#endif /* MODE_16_MHZ */
-
-#if (MODE_16_MHZ == true)
-    #ifndef SET_PRESCALER
-    #define SET_PRESCALER   false   /* the clock is left by default. */
-    #endif /* SET_PRESCALER */    
-    #ifndef CYCLESTOBLINK   
-    #define CYCLESTOBLINK   0x1FF   /* Long led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0x30    /* Long exit delay */
-    #endif /* CYCLESTOEXIT */
-    #ifndef LOW_FUSE
-    #define LOW_FUSE        0xE1    /* AVR low fuse value */
-    #endif /* LOW_FUSE */    
-#else
-    #ifndef OSC_FAST
-    #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
-    #endif /* OSC_FAST */
-    #ifndef SET_PRESCALER
-    #define SET_PRESCALER   true    /* the clock is not divided by 8. This way sets 8 / 16 MHz full speed. */
-    #endif /* SET_PRESCALER */
-    #ifndef CYCLESTOBLINK   
-    #define CYCLESTOBLINK   0xFF    /* Short led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
-    #define CYCLESTOEXIT    0x0A    /* Short exit delay */
-    #endif /* CYCLESTOEXIT */
-    #ifndef LOW_FUSE
-    #define LOW_FUSE        0x62    /* AVR low fuse value */
-    #endif /* LOW_FUSE */    
-#endif /* CLOCK MODE */
-
 /* ---------------------------------------------------------------------------------- */
 /* ---   Timonel internal configuration. Do not change anything below this line   --- */
 /* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
@@ -155,6 +120,50 @@
 #define FL_BIT_6        5           /* Flag Bit 6 (32) : Not used */
 #define FL_BIT_7        6           /* Flag Bit 7 (64) : Not used */
 #define FL_BIT_8        7           /* Flag Bit 8 (128): Not used */
+
+// Low-fuse dependent settings
+#if ((LOW_FUSE & 0x0F) == 0x01)     /* HF PLL (16 MHz) clock selected */
+    #define CLOCK_MODE PLL
+    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided */
+        #pragma message "HF PLL (16 MHz) not divided -> 16 MHz  >>>>>  OK for Timonel ..."
+        #define CLOCK_SPEED 16_MHZ
+    #else                           /* Clock divided by 8 */
+        #pragma message "HF PLL (16 MHz) divided by 8 -> 2 MHz  >>>>>  Disable prescaler ..."
+        #define CLOCK_SPEED 2_MHZ
+        #ifndef SET_PRESCALER
+        #define SET_PRESCALER true  /* Prescaler IS dividing clock by 8, set it to 1. */
+        #endif /* SET_PRESCALER */         
+    #endif
+    #ifndef CYCLESTOBLINK   
+    #define CYCLESTOBLINK   0x1FF   /* Long led delay */
+    #endif /* CYCLESTOBLINK */
+    #ifndef CYCLESTOEXIT
+    #define CYCLESTOEXIT    0x30    /* Long exit delay */
+    #endif /* CYCLESTOEXIT */    
+#elif ((LOW_FUSE & 0x0F) == 0x02)   /* RC oscillator (8 MHz) clock selected */
+    #define CLOCK_MODE RC
+    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided */
+        #pragma message "RC oscillator (8 MHz) not divided -> 8 MHz  >>>>>  Set OSCCAL to speed-up ..."
+        #define CLOCK_SPEED 8_MHZ
+    #else                           /* Clock divided by 8 */
+        #pragma message "RC oscillator (8 MHz) divided by 8 -> 1 MHz  >>>>>  Disable prescaler and set OSCCAL to speed-up ..."
+        #define CLOCK_SPEED 1_MHZ
+        #ifndef SET_PRESCALER
+        #define SET_PRESCALER true  /* Prescaler IS dividing clock by 8, set it to 1. */
+        #endif /* SET_PRESCALER */        
+    #endif
+    #ifndef OSC_FAST
+    #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
+    #endif /* OSC_FAST */
+    #ifndef CYCLESTOBLINK   
+    #define CYCLESTOBLINK   0xFF    /* Short led delay */
+    #endif /* CYCLESTOBLINK */
+    #ifndef CYCLESTOEXIT
+    #define CYCLESTOEXIT    0x0A    /* Short exit delay */
+    #endif /* CYCLESTOEXIT */    
+#else                               /* WARNING!!! Invalid clock setting */
+    #error "**** INVALID LOW FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+#endif /* Clock setting */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
@@ -241,7 +250,7 @@
 #error TWI TX buffer size is not a power of 2
 #endif /* TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK */
 
-// Device Dependent Defines
+// Device dependent defines
 #if defined(__AVR_ATtiny25__) | \
     defined(__AVR_ATtiny45__) | \
     defined(__AVR_ATtiny85__)

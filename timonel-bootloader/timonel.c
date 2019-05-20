@@ -137,10 +137,10 @@ int main(void) {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
-#if !(MODE_16_MHZ)
+#if ((LOW_FUSE & 0x0F) != 0x01)
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
-#endif /* 16_MHZ_MODE */
+#endif /* LOW_FUSE UNDER 16 MHZ */
 #if SET_PRESCALER
     CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
     CLKPR = 0x00;
@@ -193,9 +193,9 @@ int main(void) {
 #if CLEAR_BIT_7_R31
                     asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
 #endif /* CLEAR_BIT_7_R31 */
-#if !(MODE_16_MHZ)
+#if ((LOW_FUSE & 0x0F) != 0x01)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* 16_MHZ_MODE */
+#endif /* LOW_FUSE UNDER 16 MHZ */
                     RunApplication();                   /* Exit to the application */
                 }
                 // ================================================
@@ -210,9 +210,9 @@ int main(void) {
                         page_to_del -= PAGE_SIZE;
                         boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
-#if !(MODE_16_MHZ)
+#if ((LOW_FUSE & 0x0F) != 0x01)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* 16_MHZ_MODE */
+#endif /* LOW_FUSE UNDER 16 MHZ */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
@@ -291,9 +291,9 @@ int main(void) {
                     // ========================================
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
-#if !(MODE_16_MHZ)
+#if ((LOW_FUSE & 0x0F) != 0x01)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* 16_MHZ_MODE */
+#endif /* LOW_FUSE UNDER 16 MHZ */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
