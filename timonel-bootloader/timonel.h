@@ -130,9 +130,6 @@
     #else                           /* Clock divided by 8 */
         #pragma message "HF PLL (16 MHz) divided by 8 -> 2 MHz  >>>>>  Disable prescaler ..."
         #define CLOCK_SPEED 2_MHZ
-        #ifndef SET_PRESCALER
-        #define SET_PRESCALER true  /* Prescaler IS dividing clock by 8, set it to 1. */
-        #endif /* SET_PRESCALER */         
     #endif
     #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0x1FF   /* Long led delay */
@@ -148,9 +145,6 @@
     #else                           /* Clock divided by 8 */
         #pragma message "RC oscillator (8 MHz) divided by 8 -> 1 MHz  >>>>>  Disable prescaler and set OSCCAL to speed-up ..."
         #define CLOCK_SPEED 1_MHZ
-        #ifndef SET_PRESCALER
-        #define SET_PRESCALER true  /* Prescaler IS dividing clock by 8, set it to 1. */
-        #endif /* SET_PRESCALER */        
     #endif
     #ifndef OSC_FAST
     #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */

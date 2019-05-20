@@ -141,10 +141,10 @@ int main(void) {
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
 #endif /* LOW_FUSE UNDER 16 MHZ */
-#if SET_PRESCALER
+#if ((LOW_FUSE & 0x80) != 0x80)
     CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
     CLKPR = 0x00;
-#endif /* SET_PRESCALER */
+#endif /* SET PRESCALER */
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));                    /* Clear the temporary page buffer */
