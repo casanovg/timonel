@@ -19,7 +19,7 @@
 #include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
 #include "NbMicro.h"
-#include "Wire.h"
+//#include "Wire.h"
 #include "libconfig.h"
 #include "stdbool.h"
 

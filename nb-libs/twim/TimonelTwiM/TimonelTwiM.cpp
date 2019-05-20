@@ -278,7 +278,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
     }
     const byte cmd_size = D_CMD_LENGTH;
     byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0};
-    byte twi_reply_arr[rx_packet_size + D_REPLY_OVHD];
+    byte twi_reply_arr[rx_packet_size + D_REPLY_OVRHD];
     byte checksum_errors = 0;
     byte line_ix = 1;
     twi_cmd_arr[3] = rx_packet_size; /* Requested packet size */
@@ -288,7 +288,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         twi_cmd_arr[1] = ((address & 0xFF00) >> 8); /* Flash page address high byte */
         twi_cmd_arr[2] = (address & 0xFF);          /* Flash page address low byte */
         //twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
-        byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + D_REPLY_OVHD);
+        byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + D_REPLY_OVRHD);
         if (twi_errors == 0) {
             byte expected_checksum = 0;
             for (byte i = 1; i < (rx_packet_size + 1); i++) {

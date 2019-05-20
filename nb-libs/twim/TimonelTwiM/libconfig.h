@@ -64,7 +64,7 @@
 #define MCU_TOTAL_MEM 8192  /* Config: Microcontroller flash memory size */
 #define VALUES_PER_LINE 32  /* Config: Memory positions values to display per line */
 #define D_CMD_LENGTH 4      /* Config: READFLSH command lenght (1 cmd byte + 2 addr bytes + 1 rx size byte + 1 checksum byte) */
-#define D_REPLY_OVHD 2      /* Config: READFLSH reply overhead: extra bytes added to the reply: 1 ack + 1 checksum */
+#define D_REPLY_OVRHD 2     /* Config: READFLSH reply overhead: extra bytes added to the reply: 1 ack + 1 checksum */
 #define MAXCKSUMERRORS 3    /* Config: DumpMemory max count of errors accepted */
 #define ERR_NOT_SUPP 1      /* Error: function not supported in current setup */
 #define ERR_CMD_PARSE_D 2   /* Error: reply doesn't match DumpMemory command */
