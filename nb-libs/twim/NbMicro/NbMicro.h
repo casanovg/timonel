@@ -22,7 +22,6 @@
 #include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
 #include "Wire.h"
-//#include "NBWire.h"
 #include "libconfig.h"
 #include "stdbool.h"
 
