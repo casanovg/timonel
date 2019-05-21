@@ -21,10 +21,10 @@
 #include <unordered_set>
 #include "../../cmd/nb-twi-cmd.h"
 #include "Arduino.h"
-//#include "Wire.h"
+#include "Wire.h"
+//#include "NBWire.h"
 #include "libconfig.h"
 #include "stdbool.h"
-#include "NBWire.h"
 
 // Store of TWI addresses in use ...
 static std::unordered_set<byte> active_addresses;
