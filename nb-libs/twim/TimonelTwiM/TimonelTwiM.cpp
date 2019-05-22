@@ -287,7 +287,6 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
     for (word address = 0; address < flash_size; address += rx_packet_size) {
         twi_cmd_arr[1] = ((address & 0xFF00) >> 8); /* Flash page address high byte */
         twi_cmd_arr[2] = (address & 0xFF);          /* Flash page address low byte */
-        //twi_cmd_arr[4] = (byte)(twi_cmd_arr[0] + twi_cmd_arr[1] + twi_cmd_arr[2] + twi_cmd_arr[3]); /* READFLSH Checksum */
         byte twi_errors = TwiCmdXmit(twi_cmd_arr, cmd_size, ACKRDFSH, twi_reply_arr, rx_packet_size + D_REPLY_OVRHD);
         if (twi_errors == 0) {
             byte expected_checksum = 0;

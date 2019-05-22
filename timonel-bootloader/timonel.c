@@ -85,11 +85,9 @@ static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);       /*
 // USI TWI driver globals
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
 uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-uint8_t rx_byte_count;                                  /* Received byte quantity in RX buffer */
-uint8_t rx_head;
-uint8_t rx_tail;
-uint8_t tx_head;
-uint8_t tx_tail;
+uint8_t rx_byte_count = 0;                              /* Bytes received in RX buffer */
+uint8_t rx_head = 0, rx_tail = 0;
+uint8_t tx_head = 0, tx_tail = 0;
 OverflowState device_state;
 
 // Bootloader prototypes
@@ -151,7 +149,7 @@ int main(void) {
     asm volatile("spm");
     uint8_t exit_delay = CYCLESTOEXIT;                  /* Delay to exit bootloader and run the application if not initialized */
     uint16_t led_delay = CYCLESTOBLINK;                 /* Delay for led blink */
-    bool slow_ops_enabled = false;                      /* Run slow operations only after completing TWI handshake */    
+    bool slow_ops_enabled = false;                      /* Run slow operations only after completing TWI handshake */
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -159,7 +157,7 @@ int main(void) {
     */
     for (;;) {
         /* ......................................................
-           . TWI Interrupt Emulation .......................... .
+           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>> .
            . Check the USI status register to verify whether    .
            . a TWI start condition handler should be triggered  .
            ......................................................
@@ -168,7 +166,7 @@ int main(void) {
             TwiStartHandler();                          /* If so, run the USI start handler ... */
         }       
         /* ......................................................
-           . TWI Interrupt Emulation .......................... .
+           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>> .
            . Check the USI status register to verify whether a  .
            . 4-bit counter overflow handler should be triggered .
            ......................................................
@@ -182,7 +180,7 @@ int main(void) {
         if (((flags >> FL_INIT_1) & true) && ((flags >> FL_INIT_2) & true)) {
 #endif /* TWO_STEP_INIT */
             // ======================================
-            // =   \\\ Bootloader initialized ///   =
+            // =   *\* Bootloader initialized */*   =
             // ======================================           
             if (slow_ops_enabled == true) {
                 slow_ops_enabled = false;
@@ -281,7 +279,7 @@ int main(void) {
         }
         else {
             // ======================================
-            // = \\\ Bootloader not initialized /// =
+            // = *\* Bootloader not initialized */* =
             // ======================================
             if (led_delay-- == 0) {
 #if ENABLE_LED_UI               
@@ -345,7 +343,8 @@ inline void RequestEvent(void) {
                 reply[9] += (uint8_t)~(*mem_position);                    
             }
 #else
-            reply[9] = OSCCAL;                          /* Internal RC oscillator calibration */
+            //reply[9] = OSCCAL;                          /* Internal RC oscillator calibration */
+            reply[9] = boot_lock_fuse_bits_get(0);
 #endif /* CHECK_EMPTY_FL */
             flags |= (1 << FL_INIT_1);                  /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
