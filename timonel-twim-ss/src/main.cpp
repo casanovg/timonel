@@ -8,7 +8,7 @@
   ---------------------------
 */
 #include <Arduino.h>
-#include <Memory>
+//#include <Memory>
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
 #include "payload.h"
