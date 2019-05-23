@@ -38,6 +38,11 @@
 #define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 32 */
 #define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 32 */
 
+// Command reply length constants
+#define GETTMNLV_RPLYLN 11          /* GETTMNLV command reply length */
+#define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
+#define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
+
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
 /* VVVVVV [   modify this options directly, change "tml-config.mak" instead!   ] VVVVVV */

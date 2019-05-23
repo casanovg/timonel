@@ -31,9 +31,10 @@ class Timonel : public NbMicro {
         byte version_major = 0;
         byte version_minor = 0;
         byte features_code = 0;
-        word bootloader_start = 0x0000;
-        word application_start = 0x0000;
-        word trampoline_addr = 0x0000;
+        word bootloader_start = 0;
+        word application_start = 0;
+        word trampoline_addr = 0;
+        byte low_fuse_setting = 0;
         byte oscillator_cal = 0;
         byte check_empty_fl = 0;
     } Status;
@@ -43,7 +44,7 @@ class Timonel : public NbMicro {
     byte DeleteApplication(void);
     byte UploadApplication(byte payload[],
                            int payload_size,
-                           const int start_address = 0x0000);
+                           const int start_address = 0);
 #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
     byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
                     const byte rx_packet_size = SLV_PACKET_SIZE,

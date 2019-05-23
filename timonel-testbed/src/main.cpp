@@ -361,7 +361,8 @@ void PrintStatus(Timonel timonel) {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
         USE_SERIAL.printf_P("      Features code: %d\n\r", tml_status.features_code);
-        USE_SERIAL.printf_P("         RC osc cal: 0x%02X\n\n\r", tml_status.oscillator_cal);
+        USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
+        USE_SERIAL.printf_P("             RC osc: 0x%02X\n\n\r", tml_status.oscillator_cal);
     } else {
         USE_SERIAL.printf_P("\n\r *******************************************************************\n\r");
         USE_SERIAL.printf_P(" * Unknown bootloader, application or device at TWI address %02d ... *\n\r", twi_address);

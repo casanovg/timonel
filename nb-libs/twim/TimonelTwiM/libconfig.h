@@ -31,7 +31,7 @@
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
 #define T_SIGNATURE 84      /* Timonel signature "T" */
 // *** Status reply (10 bytes)
-#define S_REPLY_LENGTH 10   /* Timonel status reply lenght (1 bit ACK + 8 status bytes + 1 checksum byte) */
+#define S_REPLY_LENGTH 11   /* Timonel status reply lenght (1 bit ACK + 8 status bytes + 1 checksum byte) */
 #define S_SIGNATURE 1       /* Status: signature byte position */
 #define S_MAJOR 2           /* Status: major number byte position */
 #define S_MINOR 3           /* Status: minor number byte position */
@@ -40,8 +40,9 @@
 #define S_BOOT_ADDR_LSB 6   /* Status: Timonel start address LSB position */
 #define S_APPL_ADDR_MSB 7   /* Status: Application address MSB position */
 #define S_APPL_ADDR_LSB 8   /* Status: Application address LSB position */
-#define S_OSCCAL 9          /* Status: AVR low fuse value byte position */
-#define S_CHECK_EMPTY_FL 9  /* Status: Check empty flash value byte position */
+#define S_LOW_FUSE 9        /* Status: Low fuse setting */
+#define S_OSCCAL 10         /* Status: AVR low fuse value byte position */
+#define S_CHECK_EMPTY_FL 10 /* Status: Check empty flash value byte position */
 // *** Features byte (8 bits)
 #define F_ENABLE_LED_UI 0   /* Features 1 (1)  : LED UI enabled */
 #define F_AUTO_TPL_CALC 1   /* Features 2 (2)  : Automatic trampoline and addr handling */

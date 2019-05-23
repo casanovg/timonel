@@ -129,6 +129,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     ////    ONLY IF REQUESTED BY CMD_STPGADDR AND AUTO_TPL_CALC FEATURES     ////
     /////////////////////////////////////////////////////////////////////////////
     // If CMD_STPGADDR feature is enabled in Timonel device
+    // ---- TODO: Replace below condition by this one ---> (!((status_.features_code >> F_AUTO_TPL_CALC) & true))
+    // This section is dependant on the Timonel impossibility of calculating mem addresses, not on
+    // the set page address command. This one MUST be enabled when AUTO_TPL_CALC is disabled
     if ((status_.features_code >> F_CMD_STPGADDR) & true) { /* If CMD_STPGADDR is enabled */
         if (start_address >= PAGE_SIZE) {                   /* If application start address is not 0 */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
@@ -388,6 +391,7 @@ byte Timonel::QueryStatus(void) {
             status_.trampoline_addr = (~(((twi_reply_arr[S_APPL_ADDR_MSB] << 8) | twi_reply_arr[S_APPL_ADDR_LSB]) & 0xFFF));
             status_.trampoline_addr++;
             status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
+            status_.low_fuse_setting = twi_reply_arr[S_LOW_FUSE];
             if ((twi_reply_arr[S_CHECK_EMPTY_FL] >> S_CHECK_EMPTY_FL) & true) {
                 status_.check_empty_fl = twi_reply_arr[S_CHECK_EMPTY_FL];
                 status_.oscillator_cal = 0;

@@ -69,7 +69,6 @@ typedef enum {                                          /* TWI driver operationa
 } OverflowState;
 
 // Bootloader globals
-uint8_t command[(MST_PACKET_SIZE * 2) + 2] = { 0 };     /* Command received from TWI master */
 uint8_t flags = 0;                                      /* Bit: 8, 7, 6, 5: not used; 4: exit; 3: delete app; 2, 1: initialized */
 uint8_t page_ix = 0;                                    /* Flash memory page index */
 uint16_t page_addr = 0x0000;                            /* Flash memory page address */
@@ -91,35 +90,34 @@ uint8_t tx_head = 0, tx_tail = 0;
 OverflowState device_state;
 
 // Bootloader prototypes
-inline void ReceiveEvent(uint8_t) __attribute__((always_inline));
-inline void RequestEvent(void) __attribute__((always_inline));
+inline static void ReceiveEvent(uint8_t) __attribute__((always_inline));
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
-inline void UsiTwiDriverInit(void) __attribute__((always_inline));
-inline void TwiStartHandler(void) __attribute__((always_inline));
-inline bool UsiOverflowHandler(void) __attribute__((always_inline));
+inline static void UsiTwiDriverInit(void) __attribute__((always_inline));
+inline static void TwiStartHandler(void) __attribute__((always_inline));
+inline static bool UsiOverflowHandler(void) __attribute__((always_inline));
 
 // USI TWI driver basic operations prototypes
-inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
-inline void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
-inline void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
-inline void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
-inline void SET_USI_TO_RECEIVE_ACK(void) __attribute__((always_inline));
-inline void SET_USI_TO_DETECT_TWI_START(void) __attribute__((always_inline));
-inline void SET_USI_TO_DETECT_TWI_RESTART(void) __attribute__((always_inline));
-inline void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) __attribute__((always_inline));
-inline void SET_USI_TO_SHIFT_8_DATA_BITS(void) __attribute__((always_inline));
-inline void SET_USI_TO_SHIFT_1_ACK_BIT(void) __attribute__((always_inline));
+inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
+inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
+inline static void SET_USI_TO_RECEIVE_ACK(void) __attribute__((always_inline));
+inline static void SET_USI_TO_DETECT_TWI_START(void) __attribute__((always_inline));
+inline static void SET_USI_TO_DETECT_TWI_RESTART(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_8_DATA_BITS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_1_ACK_BIT(void) __attribute__((always_inline));
 
 // USI TWI driver direction setting prototypes
-inline void SET_USI_SDA_AS_OUTPUT(void) __attribute__((always_inline));
-inline void SET_USI_SDA_AS_INPUT(void) __attribute__((always_inline));
-inline void SET_USI_SCL_AS_OUTPUT(void) __attribute__((always_inline));
-inline void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
-inline void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
-inline void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AS_INPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SCL_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
 
 // Main function
 int main(void) {
@@ -218,10 +216,10 @@ int main(void) {
                     for (;;) {};
 #endif /* !USE_WDT_RESET */
                 }
-#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))
                 // =========================================================================
                 // = Write the received page to memory and prepare for a new one (Slow Op) =
-                // =========================================================================    
+                // =========================================================================
+#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))                
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START)) {
 #else
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START - PAGE_SIZE)) {
@@ -306,26 +304,20 @@ int main(void) {
    |________________________|
 */
 inline void ReceiveEvent(uint8_t received_bytes) {
+    // Read the received bytes from RX buffer
+    static uint8_t command[MST_PACKET_SIZE * 2] = { 0 };
     for (uint8_t i = 0; i < received_bytes; i++) {
-        command[i] = UsiTwiReceiveByte();               /* Store the data sent by the TWI master in the data buffer */
+        command[i] = UsiTwiReceiveByte();
     }
-}
-
-/*  ________________________
-   |                        |
-   | TWI data request event |
-   |________________________|
-*/
-inline void RequestEvent(void) {
+    // If there is a valid bootloader command, execute it
     switch (command[0]) {
         // ******************
         // * GETTMNLV Reply *
         // ******************
         case GETTMNLV: {
-            #define GETTMNLV_RPLYLN 10
             const __flash uint8_t *mem_position;
             mem_position = (void *)(TIMONEL_START - 1); 
-            uint8_t reply[GETTMNLV_RPLYLN] = { 0 };
+            uint8_t reply[GETTMNLV_RPLYLN];
             reply[0] = ACKTMNLV;
             reply[1] = ID_CHAR_3;                       /* "T" Signature */
             reply[2] = TIMONEL_VER_MJR;                 /* Major version number */
@@ -333,18 +325,18 @@ inline void RequestEvent(void) {
             reply[4] = TML_FEATURES;                    /* Optional features */
             reply[5] = ((TIMONEL_START & 0xFF00) >> 8); /* Start address MSB */
             reply[6] = (TIMONEL_START & 0xFF);          /* Start address LSB */
-            reply[7] = (*mem_position & 0xFF);          /* Trampoline second byte (MSB) */
-            reply[8] = (*(--mem_position) & 0xFF);      /* Trampoline first byte (LSB) */
+            reply[7] = *mem_position;                   /* Trampoline second byte (MSB) */
+            reply[8] = *(--mem_position);               /* Trampoline first byte (LSB) */
+            reply[9] = boot_lock_fuse_bits_get(0);   /* Low fuse setting */            
 #if CHECK_EMPTY_FL
             // Check the first 100 memory positions to determine if
             // there is an application (or some other data) loaded.
             for (uint16_t mem_ix = 0; mem_ix < 100; mem_ix++) {
                 mem_position = (void *)(mem_ix);
-                reply[9] += (uint8_t)~(*mem_position);                    
+                reply[10] += (uint8_t)~(*mem_position);                    
             }
 #else
-            //reply[9] = OSCCAL;                          /* Internal RC oscillator calibration */
-            reply[9] = boot_lock_fuse_bits_get(0);
+            reply[10] = OSCCAL;                         /* Internal RC oscillator calibration */
 #endif /* CHECK_EMPTY_FL */
             flags |= (1 << FL_INIT_1);                  /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
@@ -376,7 +368,6 @@ inline void RequestEvent(void) {
         // * STPGADDR Reply *
         // ******************
         case STPGADDR: {
-            #define STPGADDR_RPLYLN 2
             uint8_t reply[STPGADDR_RPLYLN] = { 0 };
             page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
             page_addr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
@@ -392,7 +383,6 @@ inline void RequestEvent(void) {
         // * WRITPAGE Reply *
         // ******************
         case WRITPAGE: {
-            #define WRITPAGE_RPLYLN 2
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = ACKWTPAG;
             if ((page_addr + page_ix) == RESET_PAGE) {
@@ -560,10 +550,11 @@ inline bool UsiOverflowHandler(void) {
         case STATE_CHECK_RECEIVED_ADDRESS: {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
-                    // ***********************| = = = |***********************
-                    ReceiveEvent(rx_byte_count);    /* Call a main function to process the received data */
-                    RequestEvent();                 /* Call a main function to prepare the reply data */
-                    // ***********************| = = = |***********************
+                    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                    //                                                                   >>
+                    ReceiveEvent(rx_byte_count); // Call a main function to process data   >>
+                    //                                                                   >>
+                    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
                 } else {                /* If data register low-order bit = 0, start the receive data mode */
@@ -585,11 +576,11 @@ inline bool UsiOverflowHandler(void) {
         case STATE_CHECK_RECEIVED_ACK: {
             if (USIDR) {                /* NACK - handshake complete ... */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                //                                                                 >>
-                return true;        // Enable slow operations in main!               >>
-                //                                                                 >> 
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                //                                                                   >>
+                return true; // Enable slow operations in main!                        >>
+                //                                                                   >> 
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
              }
              // Just drop straight into STATE_SEND_DATA_BYTE (no break) ...
         }
