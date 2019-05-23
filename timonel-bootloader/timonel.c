@@ -327,7 +327,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             reply[6] = (TIMONEL_START & 0xFF);          /* Start address LSB */
             reply[7] = *mem_position;                   /* Trampoline second byte (MSB) */
             reply[8] = *(--mem_position);               /* Trampoline first byte (LSB) */
-            reply[9] = boot_lock_fuse_bits_get(0);   /* Low fuse setting */            
+            reply[9] = boot_lock_fuse_bits_get(0);      /* Low fuse setting */            
 #if CHECK_EMPTY_FL
             // Check the first 100 memory positions to determine if
             // there is an application (or some other data) loaded.
