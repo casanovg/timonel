@@ -45,8 +45,8 @@
     #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
 
-#if (!(AUTO_TPL_CALC) && !(CMD_STPGADDR))
-    #error "If the AUTO_TPL_CALC option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
+#if (!(AUTO_PAGE_ADDR) && !(CMD_STPGADDR))
+    #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
@@ -72,10 +72,10 @@ typedef enum {                                          /* TWI driver operationa
 uint8_t flags = 0;                                      /* Bit: 8, 7, 6, 5: not used; 4: exit; 3: delete app; 2, 1: initialized */
 uint8_t page_ix = 0;                                    /* Flash memory page index */
 uint16_t page_addr = 0x0000;                            /* Flash memory page address */
-#if AUTO_TPL_CALC
+#if AUTO_PAGE_ADDR
 uint8_t app_reset_lsb = 0xFF;                           /* Application first byte: reset vector LSB */
 uint8_t app_reset_msb = 0xFF;                           /* Application second byte: reset vector MSB */
-#endif /* AUTO_TPL_CALC */
+#endif /* AUTO_PAGE_ADDR */
 static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to trampoline-to-application */
 #if !(USE_WDT_RESET)
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);       /* Pointer to bootloader start address */
@@ -133,6 +133,14 @@ int main(void) {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
+
+#if AUTO_SPEED
+// ------
+uint8_t low_fuse = boot_lock_fuse_bits_get(0);          /* Low fuse setting */
+if ((low_fuse & 0x0F) != 0x01)      // TODO TODO TODO
+
+#else
+
 #if ((LOW_FUSE & 0x0F) != 0x01)
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
@@ -141,6 +149,9 @@ int main(void) {
     CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
     CLKPR = 0x00;
 #endif /* SET PRESCALER */
+
+#endif /* AUTO_SPEED */
+
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));                    /* Clear the temporary page buffer */
@@ -155,18 +166,18 @@ int main(void) {
     */
     for (;;) {
         /* ......................................................
-           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>> .
-           . Check the USI status register to verify whether    .
-           . a TWI start condition handler should be triggered  .
+           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>>  .
+           . Check the USI status register to verify whether      .
+           . a TWI start condition handler should be triggered   .
            ......................................................
         */
         if (((USISR >> TWI_START_COND_FLAG) & true) && ((USICR >> TWI_START_COND_INT) & true)) {
             TwiStartHandler();                          /* If so, run the USI start handler ... */
         }       
         /* ......................................................
-           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>> .
-           . Check the USI status register to verify whether a  .
-           . 4-bit counter overflow handler should be triggered .
+           . TWI Interrupt Emulation >>>>>>>>>>>>>>>>>>>>>>>>>>  .
+           . Check the USI status register to verify whether a    .
+           . 4-bit counter overflow handler should be triggered  .
            ......................................................
         */
         if (((USISR >> USI_OVERFLOW_FLAG) & true) && ((USICR >> USI_OVERFLOW_INT) & true)) {
@@ -219,11 +230,11 @@ int main(void) {
                 // =========================================================================
                 // = Write the received page to memory and prepare for a new one (Slow Op) =
                 // =========================================================================
-#if (APP_USE_TPL_PG || !(AUTO_TPL_CALC))                
+#if (APP_USE_TPL_PG || !(AUTO_PAGE_ADDR))                
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START)) {
 #else
                 if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START - PAGE_SIZE)) {
-#endif /* APP_USE_TPL_PG || !(AUTO_TPL_CALC) */
+#endif /* APP_USE_TPL_PG || !(AUTO_PAGE_ADDR) */
 #if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
@@ -231,7 +242,7 @@ int main(void) {
                     boot_page_erase(page_addr);
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(page_addr);
-#if AUTO_TPL_CALC
+#if AUTO_PAGE_ADDR
                     if (page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
@@ -267,7 +278,7 @@ int main(void) {
                         }
                     }
 #endif /* APP_USE_TPL_PG */
-#endif /* AUTO_TPL_CALC */
+#endif /* AUTO_PAGE_ADDR */
 #if !(CMD_STPGADDR)
                     page_addr += PAGE_SIZE;
 #endif /* !CMD_STPGADDR */
@@ -305,7 +316,7 @@ int main(void) {
 */
 inline void ReceiveEvent(uint8_t received_bytes) {
     // Read the received bytes from RX buffer
-    static uint8_t command[MST_PACKET_SIZE * 2] = { 0 };
+    static uint8_t command[MST_PACKET_SIZE * 2];
     for (uint8_t i = 0; i < received_bytes; i++) {
         command[i] = UsiTwiReceiveByte();
     }
@@ -327,7 +338,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             reply[6] = (TIMONEL_START & 0xFF);          /* Start address LSB */
             reply[7] = *mem_position;                   /* Trampoline second byte (MSB) */
             reply[8] = *(--mem_position);               /* Trampoline first byte (LSB) */
-            reply[9] = boot_lock_fuse_bits_get(0);      /* Low fuse setting */            
+            reply[9] = boot_lock_fuse_bits_get(0);      /* Low fuse setting */
 #if CHECK_EMPTY_FL
             // Check the first 100 memory positions to determine if
             // there is an application (or some other data) loaded.
@@ -363,7 +374,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             flags |= (1 << FL_DEL_FLASH);
             return;
         }
-#if (CMD_STPGADDR || !(AUTO_TPL_CALC))
+#if (CMD_STPGADDR || !(AUTO_PAGE_ADDR))
         // ******************
         // * STPGADDR Reply *
         // ******************
@@ -378,7 +389,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             }
             return;
         }
-#endif /* CMD_STPGADDR || !AUTO_TPL_CALC */
+#endif /* CMD_STPGADDR || !AUTO_PAGE_ADDR */
         // ******************
         // * WRITPAGE Reply *
         // ******************
@@ -386,10 +397,10 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
             reply[0] = ACKWTPAG;
             if ((page_addr + page_ix) == RESET_PAGE) {
-#if AUTO_TPL_CALC
+#if AUTO_PAGE_ADDR
                 app_reset_lsb = command[1];
                 app_reset_msb = command[2];
-#endif /* AUTO_TPL_CALC */
+#endif /* AUTO_PAGE_ADDR */
                 // This section modifies the reset vector to point to this bootloader.
                 // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
                 // the reset vector modification MUST BE done by the TWI master's upload program.
@@ -424,7 +435,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t reply_len = (command[3] + 2);         /* Reply lenght: ack + memory positions requested + checksum */
+            const uint8_t reply_len = (command[3] + 2);         /* Reply length: ack + memory positions requested + checksum */
             uint8_t reply[reply_len];
             reply[0] = ACKRDFSH;
             reply[reply_len - 1] = 0;                           /* Checksum initialization */
@@ -475,8 +486,8 @@ inline void ReceiveEvent(uint8_t received_bytes) {
 */
 void UsiTwiTransmitByte(uint8_t data_byte) {
     tx_head = ((tx_head + 1) & TWI_TX_BUFFER_MASK); /* Update the TX buffer index */
-    while (tx_head == tx_tail) {};  /* Wait until there is free space in the TX buffer */
-    tx_buffer[tx_head] = data_byte; /* Write the data byte into the TX buffer */
+    while (tx_head == tx_tail) {};          /* Wait until there is free space in the TX buffer */
+    tx_buffer[tx_head] = data_byte;         /* Write the data byte into the TX buffer */
 }
 
 /*  ___________________________
@@ -485,9 +496,9 @@ void UsiTwiTransmitByte(uint8_t data_byte) {
    |___________________________|
 */
 uint8_t UsiTwiReceiveByte(void) {
-    while (rx_byte_count-- == 0) {};    /* Wait until a byte is received into the RX buffer */
+    while (rx_byte_count-- == 0) {};        /* Wait until a byte is received into the RX buffer */
     rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); /* Update the RX buffer index */
-    return rx_buffer[rx_tail];          /* Return data from the buffer */
+    return rx_buffer[rx_tail];              /* Return data from the buffer */
 }
 
 /*  _______________________________
@@ -499,11 +510,11 @@ void UsiTwiDriverInit(void) {
     // Initialize USI for TWI Slave mode.
     tx_tail = tx_head = 0;                  /* Flush TWI TX buffers */
     rx_tail = rx_head = rx_byte_count = 0;  /* Flush TWI RX buffers */
-    SET_USI_SDA_AND_SCL_AS_OUTPUT();    /* Set SCL and SDA as output */
-    PORT_USI |= (1 << PORT_USI_SDA);    /* Set SDA high */
-    PORT_USI |= (1 << PORT_USI_SCL);    /* Set SCL high */
-    SET_USI_SDA_AS_INPUT();             /* Set SDA as input */
-    SET_USI_TO_WAIT_FOR_TWI_ADDRESS();  /* Wait for TWI start condition and address from master */
+    SET_USI_SDA_AND_SCL_AS_OUTPUT();        /* Set SCL and SDA as output */
+    PORT_USI |= (1 << PORT_USI_SDA);        /* Set SDA high */
+    PORT_USI |= (1 << PORT_USI_SCL);        /* Set SCL high */
+    SET_USI_SDA_AS_INPUT();                 /* Set SDA as input */
+    SET_USI_TO_WAIT_FOR_TWI_ADDRESS();      /* Wait for TWI start condition and address from master */
 }
 
 /*  _______________________________________________________
@@ -512,7 +523,7 @@ void UsiTwiDriverInit(void) {
    |_______________________________________________________|
 */
 inline void TwiStartHandler(void) {
-    SET_USI_SDA_AS_INPUT();             /* Float the SDA line */
+    SET_USI_SDA_AS_INPUT();                 /* Float the SDA line */
     // Following a start condition, the device shifts the address present on the TWI bus in and
     // a 4-bit counter overflow is triggered. Afterward, within the overflow handler, the device
     // should check whether it has to reply. Prepare the next overflow handler state for it.    

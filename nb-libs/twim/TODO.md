@@ -1,9 +1,9 @@
-* no delays values in code
-* standardized error codes
-* errors handled by main
-* no automatic resets in libraries
-* conditional code by feature
+* no delay values in code - done
+* standardized error codes - done
+* errors handled by main - review
+* no automatic resets in libraries - done
+* conditional code by feature - review
 
-Bootloader init is not working after delete if two step init is enabled!
+Bootloader init is not working after delete if two step init is enabled! - solved
 
 

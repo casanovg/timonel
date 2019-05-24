@@ -30,41 +30,27 @@
 #include <avr/interrupt.h>
 #include "../nb-libs/cmd/nb-twi-cmd.h"
 
-/* -------------------------------------- */
-/* Timonel settings and optional features */
-/* -------------------------------------- */
-
-// TWI Commands Xmit data block size
-#define MST_PACKET_SIZE 32          /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 32 */
-#define SLV_PACKET_SIZE 32          /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 32 */
-
-// Command reply length constants
-#define GETTMNLV_RPLYLN 11          /* GETTMNLV command reply length */
-#define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
-#define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
-
-/* ====== [   The configuration of the next optional features can be checked   ] ====== */
-/* ====== [   from the I2C master by using the GETTMNLV command. Please do NOT ] ====== */        
-/* VVVVVV [   modify this options directly, change "tml-config.mak" instead!   ] VVVVVV */
+/* ====== [   The configuration of the next optional features can be checked   ] ====== */        
+/* VVVVVV [   from the I2C master by using the GETTMNLV command.               ] VVVVVV */
 
 #ifndef ENABLE_LED_UI               /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
 #define ENABLE_LED_UI   false       /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
 #endif /* ENABLE_LED_UI */          /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
            
-#ifndef AUTO_TPL_CALC               /* Automatic trampoline calculation & flash. If this is disabled,      */
-#define AUTO_TPL_CALC   true        /* the trampoline has to be calculated and written by the I2C master.  */
-#endif /* AUTO_TPL_CALC */          /* Therefore, enabling CMD_STPGADDR becomes mandatory.                 */
+#ifndef AUTO_PAGE_ADDR              /* Automatic page and trampoline address calculation. If this option   */
+#define AUTO_PAGE_ADDR  true        /* is disabled, the trampoline has to be calculated and written by the */
+#endif /* AUTO_PAGE_ADDR */         /* I2C master. Therefore, enabling CMD_STPGADDR becomes mandatory.     */
                                 
-#ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_TPL_CALC  */
+#ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_PAGE_ADDR  */
 #define APP_USE_TPL_PG  false       /* is enabled. This is a safety measure since enabling this takes 2    */
 #endif /* APP_USE_TPL_PG */         /* extra memory pages. In the end, disabling this allows 1 extra page. */
-                                    /* When AUTO_TPL_CALC is disabled, this option is irrelevant since the */
+                                    /* When AUTO_PAGE_ADDR is disabled, this option is irrelevant since the */
                                     /* duty to write the trampoline page is transferred to the I2C master. */
                                 
 #ifndef CMD_STPGADDR                /* If this is disabled, applications can only be flashed starting      */
 #define CMD_STPGADDR    false       /* from page 0, this is OK for most applications.                      */
 #endif /* CMD_STPGADDR */           /* If this is enabled, Timonel expects STPGADDR before each data page. */
-                                    /* Enabling this option is MANDATORY when AUTO_TPL_CALC is disabled.   */
+                                    /* Enabling this option is MANDATORY when AUTO_PAGE_ADDR is disabled.   */
                                 
 #ifndef TWO_STEP_INIT               /* If this is enabled, Timonel expects a two-step initialization from  */
 #define TWO_STEP_INIT   false       /* an I2C master for starting. Otherwise, single-step init is enough   */
@@ -82,41 +68,48 @@
 #define CMD_READFLASH   true        /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
-/* ^^^^^^ [   ..............  End of feature settings shown  ...............   ] ^^^^^^ */
-/* ====== [                   in the GETTMNLV command.                         ] ====== */
-/* ====== [   ..............................................................   ] ====== */
+/* ^^^^^^ [       End of feature settings shown in the GETTMNLV command.        ] ^^^^^^ */
+/* ====== [       ......................................................        ] ====== */
 
-#ifndef LED_UI_PIN
-#define LED_UI_PIN      PB1         /* Use >>>PB1<<< to monitor activity. */
-#endif /* LED_UI_PIN */
+/* ------------------------------------------------------------------------------------ */
+/* ---    Timonel internal configuration. Do not change anything below this line    --- */
+/* ---    unless you know how to customize or adapt it to another microcontroller.  --- */
+/* ------------------------------------------------------------------------------------ */
+
+// Timonel optional features
+#ifndef AUTO_CLK_SPEED              /* When this feature is enabled, the clock speed adjustment is made at */
+#define AUTO_CLK_SPEED false        /* run time based on the low fuse setup. It works only for internal    */
+#endif /* AUTO_CLK_SPEED */         /* CPU clock configurations: RC oscillator or HF PLL.                  */
 
 #ifndef FORCE_ERASE_PG              /* If this option is enabled, each flash memory page is erased before  */
 #define FORCE_ERASE_PG  false       /* writing new data. Normally, it shouldn't be necessary to enable it. */
 #endif /* FORCE_ERASE_PG */
 
 #ifndef CLEAR_BIT_7_R31             /* Extra safety measure to avoid that the first bootloader instruction */
-#define CLEAR_BIT_7_R31 false       /* is skipped after restarting without an application in memory.       */
+#define CLEAR_BIT_7_R31 false       /* is skipped after restarting without an user application in memory.  */
 #endif /* CLEAR_BIT_7_R31 */        /* See http://www.avrfreaks.net/comment/2561866#comment-2561866        */
 
-/* ---------------------------------------------------------------------------------- */
-/* ---   Timonel internal configuration. Do not change anything below this line   --- */
-/* ---   unless you're adding a new feature or adapting Timonel to another MCU.   --- */
-/* ---------------------------------------------------------------------------------- */
+// TWI commands Xmit packet size
+#define MST_PACKET_SIZE 32          /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
+#define SLV_PACKET_SIZE 32          /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
 
 // flash memory definitions
-#define PAGE_SIZE       64          /* SPM Flash memory page size */
-#define RESET_PAGE      0           /* Interrupt vector table address start location */
+#define PAGE_SIZE       64          /* SPM Flash memory page size. This have to match the MCU datasheet.   */
+#define RESET_PAGE      0           /* Interrupt vector table address start location.                      */
 
-// Led UI Port
-#define LED_UI_DDR      DDRB        /* >>> WARNING!!! This is NOT <<< */
-#define LED_UI_PORT     PORTB       /* >>> for use in production. <<< */
+// Led UI settings
+#define LED_UI_PIN      PB1         /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
+                                    /* bootloader commands could activate it at run time. Please check the */
+                                    /* connections to be sure that there are no power circuits attached.   */
+#define LED_UI_DDR      DDRB        /* Activity monitor led data register.                                 */
+#define LED_UI_PORT     PORTB       /* Activity monitor led port.                                          */
 
 // Timonel ID characters
 #define ID_CHAR_1       78          /* N */
 #define ID_CHAR_2       66          /* B */
 #define ID_CHAR_3       84          /* T */
 
-// Status byte
+// Flags byte
 #define FL_INIT_1       0           /* Flag Bit 1 (1)  : Two-step initialization STEP 1 */
 #define FL_INIT_2       1           /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
 #define FL_DEL_FLASH    2           /* Flag Bit 3 (4)  : Delete flash memory            */
@@ -126,13 +119,18 @@
 #define FL_BIT_7        6           /* Flag Bit 7 (64) : Not used */
 #define FL_BIT_8        7           /* Flag Bit 8 (128): Not used */
 
-// Low-fuse dependent settings
+// Command reply length constants
+#define GETTMNLV_RPLYLN 11          /* GETTMNLV command reply length */
+#define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
+#define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
+
+// Low-fuse dependent settings. These options are used only when AUTO_CLK_SPEED is disabled!
 #if ((LOW_FUSE & 0x0F) == 0x01)     /* HF PLL (16 MHz) clock selected */
     #define CLOCK_MODE PLL
-    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided */
+    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided -> 16 MHz system clock */
         #pragma message "HF PLL (16 MHz) not divided -> 16 MHz  >>>>>  OK for Timonel ..."
         #define CLOCK_SPEED 16_MHZ
-    #else                           /* Clock divided by 8 */
+    #else                           /* Clock divided by 8 -> 2 MHz system clock */
         #pragma message "HF PLL (16 MHz) divided by 8 -> 2 MHz  >>>>>  Disable prescaler ..."
         #define CLOCK_SPEED 2_MHZ
     #endif
@@ -144,10 +142,10 @@
     #endif /* CYCLESTOEXIT */    
 #elif ((LOW_FUSE & 0x0F) == 0x02)   /* RC oscillator (8 MHz) clock selected */
     #define CLOCK_MODE RC
-    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided */
+    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided -> 8 MHz system clock */
         #pragma message "RC oscillator (8 MHz) not divided -> 8 MHz  >>>>>  Set OSCCAL to speed-up ..."
         #define CLOCK_SPEED 8_MHZ
-    #else                           /* Clock divided by 8 */
+    #else                           /* Clock divided by 8 -> 1 MHz system clock */
         #pragma message "RC oscillator (8 MHz) divided by 8 -> 1 MHz  >>>>>  Disable prescaler and set OSCCAL to speed-up ..."
         #define CLOCK_SPEED 1_MHZ
     #endif
@@ -184,11 +182,11 @@
 #else
     #define FT_BIT_0    0
 #endif /* ENABLE_LED_UI */
-#if (AUTO_TPL_CALC == true)
+#if (AUTO_PAGE_ADDR == true)
     #define FT_BIT_1    2
 #else
     #define FT_BIT_1    0
-#endif /* AUTO_TPL_CALC */
+#endif /* AUTO_PAGE_ADDR */
 #if (APP_USE_TPL_PG == true)
     #define FT_BIT_2    4
 #else

@@ -55,19 +55,19 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct
 CFLAGS += -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
-CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
 CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
+CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
+
 CFLAGS += -DENABLE_LED_UI=$(ENABLE_LED_UI)
-CFLAGS += -DAUTO_TPL_CALC=$(AUTO_TPL_CALC)
+CFLAGS += -DAUTO_PAGE_ADDR=$(AUTO_PAGE_ADDR)
 CFLAGS += -DAPP_USE_TPL_PG=$(APP_USE_TPL_PG)
 CFLAGS += -DCMD_STPGADDR=$(CMD_STPGADDR)
 CFLAGS += -DTWO_STEP_INIT=$(TWO_STEP_INIT)
 CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
 CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
+
 CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
-# CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
-# CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
 CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
 CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
 
@@ -137,7 +137,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo ===================================================================
 
 	@echo \| ... ENABLE_LED_UI = $(ENABLE_LED_UI)
-	@echo \| ... AUTO_TPL_CALC = $(AUTO_TPL_CALC)
+	@echo \| ... AUTO_PAGE_ADDR = $(AUTO_PAGE_ADDR)
 	@echo \| ... APP_USE_TPL_PG = $(APP_USE_TPL_PG)
 	@echo \| ... CMD_STPGADDR = $(CMD_STPGADDR)
 	@echo \| ... TWO_STEP_INIT = $(TWO_STEP_INIT)
