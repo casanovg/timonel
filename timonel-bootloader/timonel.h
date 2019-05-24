@@ -41,11 +41,11 @@
 #define AUTO_PAGE_ADDR  true        /* is disabled, the trampoline has to be calculated and written by the */
 #endif /* AUTO_PAGE_ADDR */         /* I2C master. Therefore, enabling CMD_STPGADDR becomes mandatory.     */
                                 
-#ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_PAGE_ADDR  */
+#ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_PAGE_ADDR */
 #define APP_USE_TPL_PG  false       /* is enabled. This is a safety measure since enabling this takes 2    */
 #endif /* APP_USE_TPL_PG */         /* extra memory pages. In the end, disabling this allows 1 extra page. */
-                                    /* When AUTO_PAGE_ADDR is disabled, this option is irrelevant since the */
-                                    /* duty to write the trampoline page is transferred to the I2C master. */
+                                    /* If AUTO_PAGE_ADDR is disabled, this option is irrelevant since the  */
+                                    /* trampoline page writing is to be made by the I2C master.            */
                                 
 #ifndef CMD_STPGADDR                /* If this is disabled, applications can only be flashed starting      */
 #define CMD_STPGADDR    false       /* from page 0, this is OK for most applications.                      */
@@ -124,43 +124,42 @@
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
 
-// Low-fuse dependent settings. These options are used only when AUTO_CLK_SPEED is disabled!
-#if ((LOW_FUSE & 0x0F) == 0x01)     /* HF PLL (16 MHz) clock selected */
-    #define CLOCK_MODE PLL
-    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided -> 16 MHz system clock */
+// Low-fuse dependent settings.
+// These options are used only when AUTO_CLK_SPEED is disabled!
+#if ((LOW_FUSE & 0x0F) == 0x01)
+    // 16 MHz HF PLL clock source selected
+    //#define CLOCK_MODE PLL
+    #if ((LOW_FUSE & 0x80) == 0x80)
+        // Clock NOT divided -> 16 MHz system clock
         #pragma message "HF PLL (16 MHz) not divided -> 16 MHz  >>>>>  OK for Timonel ..."
-        #define CLOCK_SPEED 16_MHZ
-    #else                           /* Clock divided by 8 -> 2 MHz system clock */
+        #define CLOCK_SPEED 16
+    #else
+        // Clock divided by 8 -> 2 MHz system clock
         #pragma message "HF PLL (16 MHz) divided by 8 -> 2 MHz  >>>>>  Disable prescaler ..."
-        #define CLOCK_SPEED 2_MHZ
-    #endif
-    #ifndef CYCLESTOBLINK   
+        #define CLOCK_SPEED 2
+    #endif /* LOW_FUSE: prescaler */
     #define CYCLESTOBLINK   0x1FF   /* Long led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
     #define CYCLESTOEXIT    0x30    /* Long exit delay */
-    #endif /* CYCLESTOEXIT */    
-#elif ((LOW_FUSE & 0x0F) == 0x02)   /* RC oscillator (8 MHz) clock selected */
+#elif ((LOW_FUSE & 0x0F) == 0x02)
+    // 8 MHz RC oscillator clock source selected
     #define CLOCK_MODE RC
-    #if ((LOW_FUSE & 0x80) == 0x80) /* Clock NOT divided -> 8 MHz system clock */
+    #if ((LOW_FUSE & 0x80) == 0x80)
+        // Clock NOT divided -> 8 MHz system clock
         #pragma message "RC oscillator (8 MHz) not divided -> 8 MHz  >>>>>  Set OSCCAL to speed-up ..."
-        #define CLOCK_SPEED 8_MHZ
-    #else                           /* Clock divided by 8 -> 1 MHz system clock */
+        #define CLOCK_SPEED 8
+    #else
+        //Clock divided by 8 -> 1 MHz system clock */
         #pragma message "RC oscillator (8 MHz) divided by 8 -> 1 MHz  >>>>>  Disable prescaler and set OSCCAL to speed-up ..."
-        #define CLOCK_SPEED 1_MHZ
-    #endif
-    #ifndef OSC_FAST
+        #define CLOCK_SPEED 1
+    #endif /* LOW_FUSE: prescaler */
     #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
-    #endif /* OSC_FAST */
-    #ifndef CYCLESTOBLINK   
     #define CYCLESTOBLINK   0xFF    /* Short led delay */
-    #endif /* CYCLESTOBLINK */
-    #ifndef CYCLESTOEXIT
     #define CYCLESTOEXIT    0x0A    /* Short exit delay */
-    #endif /* CYCLESTOEXIT */    
-#else                               /* WARNING!!! Invalid clock setting */
+#else                               
+    // WARNING!!! Invalid clock setting
     #error "**** INVALID LOW FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
-#endif /* Clock setting */
+    #define CLOCK_SPEED 0
+#endif /* Clock source setting */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))

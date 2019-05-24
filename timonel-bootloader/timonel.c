@@ -135,21 +135,24 @@ int main(void) {
 #endif /* ENABLE_LED_UI */
 
 #if AUTO_SPEED
-// ------
-uint8_t low_fuse = boot_lock_fuse_bits_get(0);          /* Low fuse setting */
-if ((low_fuse & 0x0F) != 0x01)      // TODO TODO TODO
+    // AUTO SPEED FROM LOW FUSE
+    uint8_t low_fuse = boot_lock_fuse_bits_get(0);          /* Low fuse setting */
 
 #else
-
-#if ((LOW_FUSE & 0x0F) != 0x01)
+    // SPEED SETTING FROM VARIABLE
+ #if (CLOCK_SPEED > 0) 
+  #if ((CLOCK_SPEED == 8) || (CLOCK_SPEED == 1))
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
-#endif /* LOW_FUSE UNDER 16 MHZ */
-#if ((LOW_FUSE & 0x80) != 0x80)
+  #endif /* (CLOCK_SPEED == 8) || (CLOCK_SPEED == 1) */
+  #if ((CLOCK_SPEED == 2) || (CLOCK_SPEED == 1))
     CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
-    CLKPR = 0x00;
-#endif /* SET PRESCALER */
-
+    CLKPR = 0x00;    
+  #endif /* (CLOCK_SPEED == 2) || (CLOCK_SPEED == 1) */
+ #else
+    #error "LOW_FUSE is not set to use an internal clock source! Unable to determine time-dependent settings"
+  #endif /* CLOCK SPEED */
+  
 #endif /* AUTO_SPEED */
 
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
