@@ -136,31 +136,54 @@ int main(void) {
 
 #if AUTO_SPEED
     // AUTO SPEED FROM LOW FUSE
-    uint8_t low_fuse = boot_lock_fuse_bits_get(0);          /* Low fuse setting */
-
+    uint8_t low_fuse = boot_lock_fuse_bits_get(0);      /* Low fuse setting */
+    
+ #if ((boot_lock_fuse_bits_get(L_FUSE_ADDR)) == 0x01)   /* HF PLL (16 MHz) clock source */
+    // #pragma message "HF PLL (16 MHz) clock source selected ..."
+    uint8_t exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
+    uint16_t led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
+ #elif ((LOW_FUSE & 0x0F) == 0x02)                      /* RC oscillator (8 MHz) clock source */
+    // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+    uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator */
+    OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.         */
+    uint8_t exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
+    uint16_t led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
+ #else                               
+    #error "**** INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+ #endif /* Clock source setting */
+ #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+    // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
+    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor to 1 */
+    CLKPR = 0x00;  
+ #endif /* Prescaler setting */    
+    
 #else
-    // SPEED SETTING FROM VARIABLE
- #if (CLOCK_SPEED > 0) 
-  #if ((CLOCK_SPEED == 8) || (CLOCK_SPEED == 1))
-    uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
-    OSCCAL += OSC_FAST;                                 /* With clock settings below 16MHz, speed up for better TWI performance */
-  #endif /* (CLOCK_SPEED == 8) || (CLOCK_SPEED == 1) */
-  #if ((CLOCK_SPEED == 2) || (CLOCK_SPEED == 1))
-    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor = 1 */
-    CLKPR = 0x00;    
-  #endif /* (CLOCK_SPEED == 2) || (CLOCK_SPEED == 1) */
- #else
-    #error "LOW_FUSE is not set to use an internal clock source! Unable to determine time-dependent settings"
-  #endif /* CLOCK SPEED */
-  
+    
+ #if ((LOW_FUSE & 0x0F) == 0x01)                         /* HF PLL (16 MHz) clock source */
+    // #pragma message "HF PLL (16 MHz) clock source selected ..."
+    uint8_t exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
+    uint16_t led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
+ #elif ((LOW_FUSE & 0x0F) == 0x02)                       /* RC oscillator (8 MHz) clock source */
+    // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+    uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator */
+    OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.         */
+    uint8_t exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
+    uint16_t led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
+ #else                               
+    #error "**** INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+ #endif /* Clock source setting */
+ #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+    // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
+    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor to 1 */
+    CLKPR = 0x00;  
+ #endif /* Prescaler setting */
+    
 #endif /* AUTO_SPEED */
 
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
                  _BV(__SPM_ENABLE));                    /* Clear the temporary page buffer */
     asm volatile("spm");
-    uint8_t exit_delay = CYCLESTOEXIT;                  /* Delay to exit bootloader and run the application if not initialized */
-    uint16_t led_delay = CYCLESTOBLINK;                 /* Delay for led blink */
     bool slow_ops_enabled = false;                      /* Run slow operations only after completing TWI handshake */
     /*  ___________________
        |                   | 

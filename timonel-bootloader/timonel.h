@@ -124,42 +124,16 @@
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
 
-// Low-fuse dependent settings.
-// These options are used only when AUTO_CLK_SPEED is disabled!
-#if ((LOW_FUSE & 0x0F) == 0x01)
-    // 16 MHz HF PLL clock source selected
-    //#define CLOCK_MODE PLL
-    #if ((LOW_FUSE & 0x80) == 0x80)
-        // Clock NOT divided -> 16 MHz system clock
-        #pragma message "HF PLL (16 MHz) not divided -> 16 MHz  >>>>>  OK for Timonel ..."
-        #define CLOCK_SPEED 16
-    #else
-        // Clock divided by 8 -> 2 MHz system clock
-        #pragma message "HF PLL (16 MHz) divided by 8 -> 2 MHz  >>>>>  Disable prescaler ..."
-        #define CLOCK_SPEED 2
-    #endif /* LOW_FUSE: prescaler */
-    #define CYCLESTOBLINK   0x1FF   /* Long led delay */
-    #define CYCLESTOEXIT    0x30    /* Long exit delay */
-#elif ((LOW_FUSE & 0x0F) == 0x02)
-    // 8 MHz RC oscillator clock source selected
-    #define CLOCK_MODE RC
-    #if ((LOW_FUSE & 0x80) == 0x80)
-        // Clock NOT divided -> 8 MHz system clock
-        #pragma message "RC oscillator (8 MHz) not divided -> 8 MHz  >>>>>  Set OSCCAL to speed-up ..."
-        #define CLOCK_SPEED 8
-    #else
-        //Clock divided by 8 -> 1 MHz system clock */
-        #pragma message "RC oscillator (8 MHz) divided by 8 -> 1 MHz  >>>>>  Disable prescaler and set OSCCAL to speed-up ..."
-        #define CLOCK_SPEED 1
-    #endif /* LOW_FUSE: prescaler */
-    #define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
-    #define CYCLESTOBLINK   0xFF    /* Short led delay */
-    #define CYCLESTOEXIT    0x0A    /* Short exit delay */
-#else                               
-    // WARNING!!! Invalid clock setting
-    #error "**** INVALID LOW FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
-    #define CLOCK_SPEED 0
-#endif /* Clock source setting */
+#define L_FUSE_ADDR         0x0000
+#define H_FUSE_ADDR         0x0003
+#define E_FUSE_ADDR         0x0002
+
+#define SHORT_EXIT_DELAY    0x0A    /* Long exit delay */
+#define LONG_EXIT_DELAY     0x30    /* Short exit delay */
+#define SHORT_LED_DELAY     0xFF    /* Long led delay */
+#define LONG_LED_DELAY      0x1FF   /* Short led delay */
+
+#define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
