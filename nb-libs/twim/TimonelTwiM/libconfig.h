@@ -73,7 +73,6 @@
 #define ERR_CHECKSUM_D 4    /* Error: Too much checksum errors */
 #define DLY_1_SECOND 1000   /* 1 second delay */
 #define DLY_PKT_REQUEST 150 /* Delay between data packet requests */
-//#define DLY_PKT_REQUEST 350 /* Delay between data packet requests */
 // End Timonel::DumpMemory
 
 // Timonel::SendDataPacket defs
@@ -84,6 +83,10 @@
 #define DLY_PKT_SEND 10     /* Delay after sending a data packet */
 #define DLY_FLASH_PG 100    /* Delay to allow memory page flashing */
 // End Timonel::UploadApplication defs
+
+// Timonel::DeleteApplication defs
+#define DLY_DEL_INIT 750    /* Delay to allow deleting the app before initializing Timonel */
+// End Timonel::DeleteApplication defs
 
 /////////////////////////////////////////////////////////////////////////////
 ////////////                    End settings                     ////////////

@@ -6,6 +6,7 @@
 #
 
 CONFIG ?= tml-t85-std
+SETUPS ?= setups
 
 ##########################################################
 # Configure the following variables according to your AVR.
@@ -18,7 +19,7 @@ CONFIG ?= tml-t85-std
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 CFLAGS =
-CONFIGPATH = $(CONFIG)
+CONFIGPATH = $(SETUPS)/$(CONFIG)
 include $(CONFIGPATH)/tml-config.mak
 
 ##########################################################
@@ -36,6 +37,10 @@ endif
 
 ifeq ($(TARGET),)
 	TIMONEL_START = 1B00
+endif
+
+ifeq ($(TARGET),)
+	LOW_FUSE = 0x62
 endif
 
 ifeq ($(TARGET),)
@@ -71,15 +76,13 @@ CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
 CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
 
-CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
+CFLAGS += -DAUTO_CLK_TWEAK=$(AUTO_CLK_TWEAK)
 CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
-CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
+CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
 
 LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map
 
-#OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
-
-SOURCES=$(wildcard $(LIBDIR)/*.c $(CONFIGPATH)/*.S *.c)
+SOURCES=$(wildcard $(LIBDIR)/*.c *.S *.c)
 OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
@@ -136,7 +139,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo 
 	@echo ===================================================================
 	@echo \| Building Timonel configuration: $(CONFIG)
-	@echo \|------------------------------------------------------------------        
+	@echo \|------------------------------------------------------------------
 	@echo \| TIMONEL_START = 0x$(TIMONEL_START) \| TWI_ADDRESS = $(TIMONEL_TWI_ADDR) \| \"""$(TARGET).hex\"
 	@echo ===================================================================
 
@@ -148,13 +151,11 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo \| ... USE_WDT_RESET = $(USE_WDT_RESET)
 	@echo \| ... CHECK_EMPTY_FL = $(CHECK_EMPTY_FL)
 	@echo \| ... CMD_READFLASH = $(CMD_READFLASH)
-	@echo \|------------------------------------------------------------------    
+	@echo \|------------------------------------------------------------------
+	@echo \| ... AUTO_CLK_TWEAK = $(AUTO_CLK_TWEAK)
+	@echo \| ... LOW_FUSE = $(LOW_FUSE)	
 	@echo \| ... LED_UI_PIN = $(LED_UI_PIN)
-#	@echo \| ... CYCLESTOEXIT = $(CYCLESTOEXIT)
-#	@echo \| ... SET_PRESCALER = $(SET_PRESCALER)
-	@echo \| ... LOW_FUSE = $(LOW_FUSE)
-	@echo \| ... FORCE_ERASE_PG = $(FORCE_ERASE_PG)
-	@echo -------------------------------------------------------------------    
+	@echo -------------------------------------------------------------------
 	@rm -f $(TARGET).hex $(TARGET).eep.hex
 	@avr-objcopy -j .text -j .data -O ihex $(TARGET).bin $(TARGET).hex
 	@echo [Sections]
@@ -162,7 +163,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo
 	@echo [Hexfile] Use the "data" size to calculate the bootloader address!
 	@avr-size $(TARGET).hex
-	@echo -------------------------------------------------------------------     
+	@echo -------------------------------------------------------------------
 
 upgrade: $(TARGET).bin
 	avr-objcopy -O binary $(TARGET).bin $(TARGET).raw

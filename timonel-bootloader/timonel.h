@@ -8,12 +8,12 @@
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
- 
+
 /*
  *****************************************************************************
  * Please do NOT modify this file directly, change "tml-config.mak" instead! *
  *****************************************************************************
-*/
+ */
 
 #ifndef _TML_CONFIG_H_
 #define _TML_CONFIG_H_
@@ -65,41 +65,40 @@
 #endif /* CHECK_EMPTY_FL */
 
 #ifndef CMD_READFLASH               /* This option enables the READFLSH command. It can be useful for      */
-#define CMD_READFLASH   true        /* backing up the flash memory before flashing a new firmware.         */
+#define CMD_READFLASH   false       /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
 
-/* ^^^^^^ [       End of feature settings shown in the GETTMNLV command.        ] ^^^^^^ */
-/* ====== [       ......................................................        ] ====== */
+/* ^^^^^^ [       End of feature settings shown in the GETTMNLV command.       ] ^^^^^^ */
+/* ====== [       ......................................................       ] ====== */
+
+/* ------------------------------------------------------------------------------------ */
+/* ---                    Timonel general features and settings                     --- */
+/* ------------------------------------------------------------------------------------ */
+
+// Timonel optional features
+#ifndef AUTO_CLK_TWEAK              /* When this feature is enabled, the clock speed adjustment is made at */
+#define AUTO_CLK_TWEAK  false       /* run time based on the low fuse setup. It works only for internal    */
+#endif /* AUTO_CLK_TWEAK */         /* CPU clock configurations: RC oscillator or HF PLL.                  */
+
+#ifndef LOW_FUSE                    /* If AUTO_CLK_TWEAK is disabled (default), this value defines all the */
+#define LOW_FUSE        0x62        /* speed adjustments that are fixed at compile time. It has to match   */
+#endif /* LOW_FUSE */               /* the actual low fuse setup, otherwise Timonel probably won't work.   */
+
+#ifndef LED_UI_PIN
+#define LED_UI_PIN      PB1         /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
+#endif /* LED_UI_PIN */             /* bootloader commands could activate it at run time. Please check the */
+                                    /* connections to be sure that there are no power circuits attached.   */
 
 /* ------------------------------------------------------------------------------------ */
 /* ---    Timonel internal configuration. Do not change anything below this line    --- */
 /* ---    unless you know how to customize or adapt it to another microcontroller.  --- */
 /* ------------------------------------------------------------------------------------ */
 
-// Timonel optional features
-#ifndef AUTO_CLOCK_TWEAK            /* When this feature is enabled, the clock speed adjustment is made at */
-#define AUTO_CLOCK_TWEAK false      /* run time based on the low fuse setup. It works only for internal    */
-#endif /* AUTO_CLOCK_TWEAK */       /* CPU clock configurations: RC oscillator or HF PLL.                  */
-
-#ifndef FORCE_ERASE_PG              /* If this option is enabled, each flash memory page is erased before  */
-#define FORCE_ERASE_PG  false       /* writing new data. Normally, it shouldn't be necessary to enable it. */
-#endif /* FORCE_ERASE_PG */
-
-#ifndef CLEAR_BIT_7_R31             /* Extra safety measure to avoid that the first bootloader instruction */
-#define CLEAR_BIT_7_R31 false       /* is skipped after restarting without an user application in memory.  */
-#endif /* CLEAR_BIT_7_R31 */        /* See http://www.avrfreaks.net/comment/2561866#comment-2561866        */
-
 // TWI commands Xmit packet size
 #define MST_PACKET_SIZE 32          /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
 #define SLV_PACKET_SIZE 32          /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
 
-// flash memory definitions
-#define RESET_PAGE      0           /* Interrupt vector table address start location.                      */
-
-// Led UI settings
-#define LED_UI_PIN      PB1         /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
-                                    /* bootloader commands could activate it at run time. Please check the */
-                                    /* connections to be sure that there are no power circuits attached.   */
+// Led UI settings                           
 #define LED_UI_DDR      DDRB        /* Activity monitor led data register.                                 */
 #define LED_UI_PORT     PORTB       /* Activity monitor led port.                                          */
 
@@ -123,19 +122,33 @@
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
 
+// Memory page definitions
+#define RESET_PAGE      0           /* Interrupt vector table address start location. */
+
 // Fuses' constants
 #define L_FUSE_ADDR     0x0000      /* Low fuse register address */
 #define H_FUSE_ADDR     0x0003      /* High fuse register address */
 #define E_FUSE_ADDR     0x0002      /* Extended fuse register address */
+#define HFPLL_CLK_SRC   0x01        /* HF PLL (16 MHz) clock source low fuse value */
+#define RCOSC_CLK_SRC   0x02        /* RC oscillator (8 MHz) clock source low fuse value */
 #define LFUSE_PRESC_BIT 7           /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
 
 // Non-blocking delays
-#define SHORT_EXIT_DELAY    0x0A    /* Long exit delay */
-#define LONG_EXIT_DELAY     0x30    /* Short exit delay */
-#define SHORT_LED_DELAY     0xFF    /* Long led delay */
-#define LONG_LED_DELAY      0x1FF   /* Short led delay */
+#define SHORT_EXIT_DLY  0x0A        /* Long exit delay */
+#define LONG_EXIT_DLY   0x30        /* Short exit delay */
+#define SHORT_LED_DLY   0xFF        /* Long led delay */
+#define LONG_LED_DLY    0x1FF       /* Short led delay */
 
-#define OSC_FAST        0x4C    /* Internal oscillator offset when running @ 8 MHz. */
+// CPU clock calibration value
+#define OSC_FAST        0x4C        /* Offset for when the low fuse is set below 16 MHz. */
+
+// Extra safety measures
+#define FORCE_ERASE_PG  false       /* If this option is enabled, each flash memory page is erased before  */
+                                    /* writing new data. Normally, it shouldn't be necessary to enable it. */
+
+#define CLEAR_BIT_7_R31 false       /* This is to avoid that the first bootloader instruction is skipped   */
+                                    /* after restarting without an user application in memory. See:        */
+                                    /* http://www.avrfreaks.net/comment/2561866#comment-2561866            */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))

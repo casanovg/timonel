@@ -1,11 +1,12 @@
 #!/bin/sh
 echo ""
-echo "*******************************"
-echo "*                             *"
-echo "* AVR microcontroller fuses   *"
-echo "* =========================   *"
-echo "* 2019-06-06 Gustavo Casanova *"
-echo "*******************************"
+echo "****************************************"
+echo "*                                      *"
+echo "*  AVR microcontroller fuses settings  *"
+echo "*  ..................................  *"
+echo "*  2019-06-06 Gustavo Casanova         *"
+echo "*                                      *"
+echo "****************************************"
 echo ""
 ARG1=${1:-fuse_settings.txt}
 LF="0x62"
@@ -16,19 +17,19 @@ then
 	echo "AVR microcontroller fuses" > $ARG1;
 	echo "=========================" >> $ARG1;
     if [ "`cat lfuse.hex`" == $LF ]; then
-        echo "Low fuse = [$LF] <- OK for Timonel" | tee -a $ARG1;
+        echo "Low fuse = [$LF] <- OK: default setting" | tee -a $ARG1;
     else
         echo "Low fuse = [`cat lfuse.hex`] <- Timonel default is $LF" | tee -a $ARG1;
     fi;
     echo "................................................." | tee -a $ARG1;
     if [ "`cat hfuse.hex`" == $HF ]; then
-        echo "High fuse = [$HF] <- OK for Timonel" | tee -a $ARG1;
+        echo "High fuse = [$HF] <- OK: default setting" | tee -a $ARG1;
     else
         echo "High fuse = [`cat hfuse.hex`] <- Timonel default is $HF" | tee -a $ARG1;
     fi;
     echo "................................................." | tee -a $ARG1;
     if [ "`cat efuse.hex`" == $EF ]; then
-        echo "Extended fuse = [$EF] <- OK for Timonel" | tee -a $ARG1;
+        echo "Extended fuse = [$EF] <- OK: default setting" | tee -a $ARG1;
     else
         echo "Extended fuse = [`cat efuse.hex`] <- Timonel default is $EF" | tee -a $ARG1;
     fi;

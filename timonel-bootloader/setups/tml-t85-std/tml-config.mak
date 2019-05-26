@@ -23,24 +23,24 @@ TIMONEL_START = 1B80
 # -------------------------------------
 # Allowed range: 8 to 35 (0x08 to 0x23)
 
-TIMONEL_TWI_ADDR = 8
+TIMONEL_TWI_ADDR = 11
 
 # Bootloader optional features:
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
 ENABLE_LED_UI  = false
-AUTO_PAGE_ADDR = false
+AUTO_PAGE_ADDR = true
 APP_USE_TPL_PG = false
-CMD_STPGADDR   = true
+CMD_STPGADDR   = false
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = false
+USE_WDT_RESET  = true
 CHECK_EMPTY_FL = false
 CMD_READFLASH  = false
-# Warning: By modifying the below options Timonel may become unresponsive!
-LED_UI_PIN     = PB1
+# Warning: Please modify the below options with caution ...
+AUTO_CLK_TWEAK = false
 LOW_FUSE       = 0x62
-FORCE_ERASE_PG = false
+LED_UI_PIN     = PB1
 
 # Project name:
 # -------------
@@ -53,7 +53,7 @@ CMDDIR = ../../nb-libs/cmd
 
 # Settings for running at 1 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
-FUSEOPT_DISABLERESET = -U lfuse:w:$(LOW:FUSE):m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
+FUSEOPT_DISABLERESET = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
 
 #---------------------------------------------------------------------
 # ATtiny85

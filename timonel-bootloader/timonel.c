@@ -27,9 +27,9 @@
           -----------------------------------------------------------------------------------
 */
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
-    #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
-    #undef TWI_ADDR
-    #define TWI_ADDR    8                               /* Timonel TWI default address: 08 (0x08) */
+ #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
+ #undef TWI_ADDR
+ #define TWI_ADDR   11                                  /* Timonel TWI default address: 11 (0x0B) */
 #endif /* 8 <= TWI_ADDR <= 35 */
 
 /* This bootloader ... */
@@ -38,23 +38,23 @@
 
 /* Configuration checks */
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
-    #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
+ #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
 #if (SPM_PAGESIZE > 64)
-    #error "Timonel only supports pagesizes up to 64 bytes"
+ #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
 
 #if (!(AUTO_PAGE_ADDR) && !(CMD_STPGADDR))
-    #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
+ #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
 #endif
                                 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
-    #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
+ #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
-    #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
+ #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
 // Type definitions
@@ -134,23 +134,20 @@ int main(void) {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
-
-    uint8_t exit_delay = 0;
-    uint16_t led_delay = 0;
-
-#if AUTO_CLOCK_TWEAK
+    uint8_t exit_delay = 0;                             /* Exit-to-app delay when the bootloader isn't initialized */                           
+    uint16_t led_delay = 0;                             /* Blinking delay when the bootloader isn't initialized */  
+#if AUTO_CLK_TWEAK
  #pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
-    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == 0x01) {
+    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == HFPLL_CLK_SRC) {
         // HF PLL (16 MHz) clock source set in low fuse ...
-        exit_delay = LONG_EXIT_DELAY;           /* Long bootloader exit delay */
-        led_delay = LONG_LED_DELAY;            /* Long led blinking delay */
-    } else if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == 0x02) {
+        exit_delay = LONG_EXIT_DLY;                     /* Long bootloader exit delay */
+        led_delay = LONG_LED_DLY;                       /* Long led blinking delay */
+    } else if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
         // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
-        //uint8_t factory_osccal = OSCCAL;              /* With 8 MHz clock source, preserve factory oscillator */
         OSCCAL += OSC_FAST;                             /* Speed oscillator up for TWI to work */
-        exit_delay = SHORT_EXIT_DELAY;          /* Short bootloader exit delay */
-        led_delay = SHORT_LED_DELAY;           /* Short led blinking delay */
+        exit_delay = SHORT_EXIT_DLY;                    /* Short bootloader exit delay */
+        led_delay = SHORT_LED_DLY;                      /* Short led blinking delay */
     } else {                               
         // Unknown clock source set in low fuse! the prescaler will be reset to 1 to use the external clock as is
         ResetPrescaler();                               /* If using an external CPU clock source, don't reduce its frequency */
@@ -158,38 +155,34 @@ int main(void) {
     if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
         // Prescaler fuse bit set to divide clock by 8, setting the CPU prescaler division factor to 1
         ResetPrescaler();                               /* Reset prescaler to divide by 1 */
-    } 
-    
+    }
 #else
- // #define XSTR(x) STR(x)
- // #define STR(x) #x
- // #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
- #if ((LOW_FUSE & 0x0F) == 0x01)                        /* HF PLL (16 MHz) clock source */
-  // #pragma message "HF PLL (16 MHz) clock source selected ..."
-    exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
-    led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
- #elif ((LOW_FUSE & 0x0F) == 0x02)                      /* RC oscillator (8 MHz) clock source */
-  // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+ #define XSTR(x) STR(x)
+ #define STR(x) #x
+ #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
+ #if ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                        /* HF PLL (16 MHz) clock source */
+  #pragma message "HF PLL (16 MHz) clock source selected ..."
+    exit_delay = LONG_EXIT_DLY;                         /* Long bootloader exit delay */
+    led_delay = LONG_LED_DLY;                           /* Long led blinking delay */
+ #elif ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)             /* RC oscillator (8 MHz) clock source */
+  #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator  */
-    OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.         */
-    exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
-    led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
+    OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.          */
+    exit_delay = SHORT_EXIT_DLY;                        /* Short bootloader exit delay */
+    led_delay = SHORT_LED_DLY;                          /* Short led blinking delay */    
  #else                               
-  // #pragma GCC warning "INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+  #pragma GCC warning "INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
     ResetPrescaler();                                   /* If using an external CPU clock source, don't reduce its frequency */
  #endif /* Clock source setting */
  #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
-  // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
+  #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                                   /* Reset prescaler to divide by 1 */
  #endif /* Prescaler setting */
-    
-#endif /* AUTO_CLOCK_TWEAK */
-
+#endif /* AUTO_CLK_TWEAK */
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
-    __SPM_REG = (_BV(CTPB) | \
-                 _BV(__SPM_ENABLE));                    /* Clear the temporary page buffer */
-    asm volatile("spm");
-    bool slow_ops_enabled = false;                      /* Run slow operations only after completing TWI handshake */
+    __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Prepare to clear the temporary page buffer */                 
+    asm volatile("spm");                                /* Run SPM instruction to complete the clearing */
+    bool slow_ops_enabled = false;                      /* Allow slow operations only after completing TWI handshake */
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -231,13 +224,15 @@ int main(void) {
 #if CLEAR_BIT_7_R31
                     asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
 #endif /* CLEAR_BIT_7_R31 */
-#if AUTO_CLOCK_TWEAK
-
+#if AUTO_CLK_TWEAK
+                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                        OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
+                    }
 #else
- #if ((LOW_FUSE & 0x0F) == 0x02)
+ #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
  #endif /* LOW_FUSE RC OSC */
-#endif /* AUTO_CLOCK_TWEAK */
+#endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Exit to the application */
                 }
                 // ================================================
@@ -252,13 +247,15 @@ int main(void) {
                         page_to_del -= SPM_PAGESIZE;
                         boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
-#if AUTO_CLOCK_TWEAK
-
+#if AUTO_CLK_TWEAK
+                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                        OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
+                    }
 #else
- #if ((LOW_FUSE & 0x0F) == 0x02)
+ #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
  #endif /* LOW_FUSE RC OSC */
-#endif /* AUTO_CLOCK_TWEAK */
+#endif /* AUTO_CLK_TWEAK */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
@@ -290,7 +287,7 @@ int main(void) {
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - SPM_PAGESIZE);                        
                     }
-#if APP_USE_TPL_PG
+ #if APP_USE_TPL_PG
                     if (page_addr == (TIMONEL_START - SPM_PAGESIZE)) {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
@@ -316,7 +313,7 @@ int main(void) {
                             flags |= (1 << FL_DEL_FLASH);
                         }
                     }
-#endif /* APP_USE_TPL_PG */
+ #endif /* APP_USE_TPL_PG */
 #endif /* AUTO_PAGE_ADDR */
 #if !(CMD_STPGADDR)
                     page_addr += SPM_PAGESIZE;
@@ -331,19 +328,21 @@ int main(void) {
             // ======================================
             if (led_delay-- == 0) {
 #if ENABLE_LED_UI               
-                LED_UI_PORT ^= (1 << LED_UI_PIN);       /* Blinks on each main loop pass at CYCLESTOWAIT intervals */
+                LED_UI_PORT ^= (1 << LED_UI_PIN);       /* If Timonel isn't initialized, led blinks at LED_DLY intervals */
 #endif /* ENABLE_LED_UI */                
                 if (exit_delay-- == 0) {
                     // ========================================
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
-#if AUTO_CLOCK_TWEAK
-
+#if AUTO_CLK_TWEAK
+                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                        OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
+                    }
 #else
- #if ((LOW_FUSE & 0x0F) == 0x02)
+ #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
  #endif /* LOW_FUSE RC OSC */
-#endif /* AUTO_CLOCK_TWEAK */
+#endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
@@ -423,10 +422,10 @@ inline void ReceiveEvent(uint8_t received_bytes) {
         // ******************
         case STPGADDR: {
             uint8_t reply[STPGADDR_RPLYLN] = { 0 };
-            page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-            page_addr &= ~(SPM_PAGESIZE - 1);                      /* Keep only pages' base addresses */
+            page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
+            page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);      /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (uint8_t)(command[1] + command[2]);  /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -478,25 +477,25 @@ inline void ReceiveEvent(uint8_t received_bytes) {
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t reply_len = (command[3] + 2);         /* Reply length: ack + memory positions requested + checksum */
+            const uint8_t reply_len = (command[3] + 2);             /* Reply length: ack + memory positions requested + checksum */
             uint8_t reply[reply_len];
             reply[0] = ACKRDFSH;
-            reply[reply_len - 1] = 0;                           /* Checksum initialization */
+            reply[reply_len - 1] = 0;                               /* Checksum initialization */
             // Point the initial memory position to the received address, then
             // advance to fill the reply with the requested data amount.
             const __flash uint8_t *mem_position;
             mem_position = (void *)((command[1] << 8) + command[2]);
             for (uint8_t i = 1; i < command[3] + 1; i++) {
-                reply[i] = (*(mem_position++) & 0xFF);          /* Actual memory position data */
-                reply[reply_len - 1] += (uint8_t)(reply[i]);    /* Checksum accumulator */
+                reply[i] = (*(mem_position++) & 0xFF);              /* Actual memory position data */
+                reply[reply_len - 1] += (uint8_t)(reply[i]);        /* Checksum accumulator */
             }
-            reply[reply_len - 1] += (uint8_t)(command[1]);      /* Add Received address MSB to checksum */
-            reply[reply_len - 1] += (uint8_t)(command[2]);      /* Add Received address MSB to checksum */
+            reply[reply_len - 1] += (uint8_t)(command[1]);          /* Add Received address MSB to checksum */
+            reply[reply_len - 1] += (uint8_t)(command[2]);          /* Add Received address MSB to checksum */
             for (uint8_t i = 0; i < reply_len; i++) {
                 UsiTwiTransmitByte(reply[i]);                   
             }
 #if ENABLE_LED_UI               
-            LED_UI_PORT ^= (1 << LED_UI_PIN);                   /* Blinks whenever a memory data block is sent */
+            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks whenever a memory data block is sent */
 #endif /* ENABLE_LED_UI */          
             return;
         }        
@@ -506,13 +505,13 @@ inline void ReceiveEvent(uint8_t received_bytes) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            flags |= (1 << FL_INIT_2);                          /* Two-step init step 1: receive INITSOFT command */
+            flags |= (1 << FL_INIT_2);                              /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
             return;
         }
 #endif /* TWO_STEP_INIT */
         default: {
-            UsiTwiTransmitByte(UNKNOWNC);                       /* Command not recognized */
+            UsiTwiTransmitByte(UNKNOWNC);                           /* Command not recognized */
             return;
         }
     }

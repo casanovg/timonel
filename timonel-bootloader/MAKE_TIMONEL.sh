@@ -16,13 +16,16 @@
 
 # Command line arguments
 # ARG1: Timonel .hex filename. Default = timonel
-# ARG2: Timonel TWI (I2C) address. Default = 8
-# ARG3: Timonel start memory position. Default = 1B00 (hex)
+# ARG2: Timonel TWI (I2C) address. Default = 11
+# ARG3: Timonel start memory position. Default = 1B80 (hex)
+# ARG4: LOW_FUSE clock adjustments. Valid options = 16, 8, 2, 1. Default = 1 (1 MHz)
+# ARG5: Automatic clock tweaking. When is enabled, it overrides LOW_FUSE value. Default = false
 
 ARG1=${1:-timonel}
 ARG2=${2:-11}
-ARG3=${3:-1B00}
+ARG3=${3:-1B80}
 ARG4=${4:-1}
+ARG5=${5:-false}
 
 case $ARG4 in
 	16)
@@ -61,7 +64,7 @@ echo "**************************************************************************
 
 make clean_all
 make clean_all TARGET=$ARG1
-make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3 LOW_FUSE=$LOW_FUSE
+make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3 LOW_FUSE=$LOW_FUSE AUTO_CLK_TWEAK=$ARG5
 cp *.hex releases
 make clean_all TARGET=$ARG1
 

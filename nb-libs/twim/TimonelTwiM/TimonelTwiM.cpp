@@ -94,7 +94,7 @@ byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> 0x%02X\r\n", __func__, DELFLASH);
 #endif /* DEBUG_LEVEL */
     byte twi_errors = TwiCmdXmit(DELFLASH, ACKDELFL);
-    twi_errors += BootloaderInit(500);
+    twi_errors += BootloaderInit(DLY_DEL_INIT);
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     if (twi_errors > 0) {
         USE_SERIAL.printf_P("\n\n\r###################################################\n\r");

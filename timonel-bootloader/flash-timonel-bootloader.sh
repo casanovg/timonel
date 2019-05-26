@@ -11,7 +11,10 @@
 ARG1=${1:-timonel}
 ARG2=${2:-1}
 
-FIRMWARE=".\\releases\\$ARG1.hex";
+FIRMWARE="./releases/$ARG1.hex";
+
+HIGH_FUSE=0xDD;
+EXTENDED_FUSE=0xFE;
 
 case $ARG2 in
 	16)
@@ -44,7 +47,7 @@ if [ -f "$FIRMWARE" ]
 then
     echo "";
 	echo "[[[ Flashing Timonel for operating @ $ARG2 MHz ]]]";
-	avrdude -c USBasp -p attiny85 -B3 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m;
+	avrdude -c USBasp -p attiny85 -B3 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 else
 	echo ""
 	echo "WARNING: Firmware file \"$FIRMWARE\" not found, please check it!" >&2
