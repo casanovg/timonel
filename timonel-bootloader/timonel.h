@@ -77,9 +77,9 @@
 /* ------------------------------------------------------------------------------------ */
 
 // Timonel optional features
-#ifndef AUTO_CLK_SPEED              /* When this feature is enabled, the clock speed adjustment is made at */
-#define AUTO_CLK_SPEED false        /* run time based on the low fuse setup. It works only for internal    */
-#endif /* AUTO_CLK_SPEED */         /* CPU clock configurations: RC oscillator or HF PLL.                  */
+#ifndef AUTO_CLOCK_TWEAK            /* When this feature is enabled, the clock speed adjustment is made at */
+#define AUTO_CLOCK_TWEAK false      /* run time based on the low fuse setup. It works only for internal    */
+#endif /* AUTO_CLOCK_TWEAK */       /* CPU clock configurations: RC oscillator or HF PLL.                  */
 
 #ifndef FORCE_ERASE_PG              /* If this option is enabled, each flash memory page is erased before  */
 #define FORCE_ERASE_PG  false       /* writing new data. Normally, it shouldn't be necessary to enable it. */
@@ -94,7 +94,6 @@
 #define SLV_PACKET_SIZE 32          /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
 
 // flash memory definitions
-#define PAGE_SIZE       64          /* SPM Flash memory page size. This have to match the MCU datasheet.   */
 #define RESET_PAGE      0           /* Interrupt vector table address start location.                      */
 
 // Led UI settings
@@ -110,24 +109,27 @@
 #define ID_CHAR_3       84          /* T */
 
 // Flags byte
-#define FL_INIT_1       0           /* Flag Bit 1 (1)  : Two-step initialization STEP 1 */
-#define FL_INIT_2       1           /* Flag Bit 2 (2)  : Two-step initialization STEP 2 */
-#define FL_DEL_FLASH    2           /* Flag Bit 3 (4)  : Delete flash memory            */
-#define FL_EXIT_TML     3           /* Flag Bit 4 (8)  : Exit Timonel & run application */
-#define FL_BIT_5        4           /* Flag Bit 5 (16) : Not used */
-#define FL_BIT_6        5           /* Flag Bit 6 (32) : Not used */
-#define FL_BIT_7        6           /* Flag Bit 7 (64) : Not used */
-#define FL_BIT_8        7           /* Flag Bit 8 (128): Not used */
+#define FL_INIT_1       0           /* Flag bit 1 (1)  : Two-step initialization STEP 1 */
+#define FL_INIT_2       1           /* Flag bit 2 (2)  : Two-step initialization STEP 2 */
+#define FL_DEL_FLASH    2           /* Flag bit 3 (4)  : Delete flash memory            */
+#define FL_EXIT_TML     3           /* Flag bit 4 (8)  : Exit Timonel & run application */
+#define FL_BIT_5        4           /* Flag bit 5 (16) : Not used */
+#define FL_BIT_6        5           /* Flag bit 6 (32) : Not used */
+#define FL_BIT_7        6           /* Flag bit 7 (64) : Not used */
+#define FL_BIT_8        7           /* Flag bit 8 (128): Not used */
 
 // Command reply length constants
 #define GETTMNLV_RPLYLN 11          /* GETTMNLV command reply length */
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
 
-#define L_FUSE_ADDR         0x0000
-#define H_FUSE_ADDR         0x0003
-#define E_FUSE_ADDR         0x0002
+// Fuses' constants
+#define L_FUSE_ADDR     0x0000      /* Low fuse register address */
+#define H_FUSE_ADDR     0x0003      /* High fuse register address */
+#define E_FUSE_ADDR     0x0002      /* Extended fuse register address */
+#define LFUSE_PRESC_BIT 7           /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
 
+// Non-blocking delays
 #define SHORT_EXIT_DELAY    0x0A    /* Long exit delay */
 #define LONG_EXIT_DELAY     0x30    /* Short exit delay */
 #define SHORT_LED_DELAY     0xFF    /* Long led delay */

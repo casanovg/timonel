@@ -22,6 +22,34 @@
 ARG1=${1:-timonel}
 ARG2=${2:-11}
 ARG3=${3:-1B00}
+ARG4=${4:-1}
+
+case $ARG4 in
+	16)
+		# echo "";
+		# echo "Low fuse set for sixteen MHz internal clock source.";
+		LOW_FUSE=0xE1;
+		;;
+	8)
+		# echo "";
+		# echo "Low fuse set for eight MHz internal clock source.";
+		LOW_FUSE=0xE2;
+		;;
+	2)
+		# echo "";
+		# echo "Low fuse set for two MHz internal clock source.";
+		LOW_FUSE=0x61;
+		;;
+	1)
+		# echo "";
+		# echo "Low fuse set for one MHz internal clock source.";
+		LOW_FUSE=0x62;
+		;;
+	*)
+		echo ""
+		echo $"Usage: $0 firmware twi_address start_address {16|8|2|1}";
+        exit 2;
+esac
 
 echo "**************************************************************************"
 echo "* Starting Timonel compilation with these parameters: "
@@ -33,7 +61,7 @@ echo "**************************************************************************
 
 make clean_all
 make clean_all TARGET=$ARG1
-make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3
+make all TARGET=$ARG1 TIMONEL_TWI_ADDR=$ARG2 TIMONEL_START=$ARG3 LOW_FUSE=$LOW_FUSE
 cp *.hex releases
 make clean_all TARGET=$ARG1
 

@@ -33,12 +33,16 @@ endif
 ifeq ($(TARGET),)
 	TIMONEL_TWI_ADDR = 8
 endif
-# End of command line parameters
-##########################################################
 
 ifeq ($(TARGET),)
 	TIMONEL_START = 1B00
 endif
+
+ifeq ($(TARGET),)
+	LOW_FUSE = 0x62
+endif
+# End of command line parameters
+##########################################################
 
 PROGRAMMER ?= -c USBasp
 # PROGRAMMER contains AVRDUDE options to address your programmer

@@ -1,0 +1,142 @@
+
+TWI bus successfully initialized!
+
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Please enter the Timonel TWI address (0 to 127): 33
+
+TWI Address set to: 33, please press 3 to initialize Timonel ...
+
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Initializing Timonel with address: 33
+
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+[GetStatus] Getting Timonel device 33 status ...
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+ Timonel v1.3 "Sandra" (TWI: 33)
+ ====================================
+ Bootloader address: 0x1C00
+  Application start: 0xFFFF (Not Set)
+      Features code: 8
+           Low fuse: 0xE2
+             RC osc: 0xE9
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+[UploadApplication] Writing payload to flash, starting at 0x0000 (addresses set by TWI master) ...
+[UploadApplication] Application doesn't use trampoline page ...
+[FillSpecialPage] Type 2: Calculating the trampoline address and filling the last page ...
+ (a:1BC0) ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ (a:0000) ................................................................ P1  (a:0040) ................................................................ P2  (a:0080) ................................................................ P3  (a:00C0) ................................................................ P4  (a:0100) ................................................................ P5  (a:0140) ................................................................ P6  (a:0180) ................................................................ P7  (a:01C0) ................................................................ P8  (a:0200) ................................................................ P9  (a:0240) ................................................................ P10  (a:0280) ................................................................ P11  (a:02C0) ................................................................ P12  (a:0300) ................................................................ P13  (a:0340) ................................................................ P14  (a:0380) ................................................................ P15  (a:03C0) ................................................................ P16  (a:0400) ................................................................ P17  (a:0440)
+[UploadApplication] Application was successfully uploaded, please select 'run app' command to start it ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Initializing Timonel with address: 33
+
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+[GetStatus] Getting Timonel device 33 status ...
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+ Timonel v1.3 "Sandra" (TWI: 33)
+ ====================================
+ Bootloader address: 0x1C00
+  Application start: 0xFC2 (0x1E)
+      Features code: 8
+           Low fuse: 0xE2
+             RC osc: 0xE9
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+[DeleteApplication] Delete Flash Memory >>> 0x83
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Initializing Timonel with address: 33
+
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+[GetStatus] Getting Timonel device 33 status ...
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+ Timonel v1.3 "Sandra" (TWI: 33)
+ ====================================
+ Bootloader address: 0x1C00
+  Application start: 0xFFFF (Not Set)
+      Features code: 8
+           Low fuse: 0xE2
+             RC osc: 0xE9
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+[RunApplication] Exit bootloader & run application >>> 0x86
+
+. . .
+ . .
+  .
+
+[ Timonel Bootloader Testbed (v1.1 "MA'82") ]
+[ 2019-04-02 Gustavo Casanova ............. ]
+
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+TWI bus successfully initialized!
+
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Please enter the Timonel TWI address (0 to 127): 33
+
+TWI Address set to: 33, please press 3 to initialize Timonel ...
+
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):
+
+Initializing Timonel with address: 33
+
+[NbMicro] Reusing the TWI connection with address 33
+[Timonel] Bootloader instance created with TWI address 33.
+[BootloaderInit] Timonel device 33 * Initialization Step 1 required by features *
+[QueryStatus] Querying Timonel device 33 to get status ...
+[GetStatus] Getting Timonel device 33 status ...
+[QueryStatus] Querying Timonel device 33 to get status ...
+
+ Timonel v1.3 "Sandra" (TWI: 33)
+ ====================================
+ Bootloader address: 0x1C00
+  Application start: 0xFFFF (Not Set)
+      Features code: 8
+           Low fuse: 0xE2
+             RC osc: 0xE9
+
+[~NbMicro] Freeing TWI address 33 ...
+[~NbMicro] Freeing TWI address 33 ...
+Test command ('1' wire begin, '2' set addr, '3' init Timonel, '4' dump mem, '5' upload, 6 'delete', 7 'run'):

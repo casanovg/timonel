@@ -37,11 +37,11 @@
 #define TIMONEL_VER_MNR 3                               /* Timonel version major number   */
 
 /* Configuration checks */
-#if (TIMONEL_START % PAGE_SIZE != 0)
+#if (TIMONEL_START % SPM_PAGESIZE != 0)
     #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
-#if (PAGE_SIZE > 64)
+#if (SPM_PAGESIZE > 64)
     #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
 
@@ -76,7 +76,7 @@ uint16_t page_addr = 0x0000;                            /* Flash memory page add
 uint8_t app_reset_lsb = 0xFF;                           /* Application first byte: reset vector LSB */
 uint8_t app_reset_msb = 0xFF;                           /* Application second byte: reset vector MSB */
 #endif /* AUTO_PAGE_ADDR */
-static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to trampoline-to-application */
+static const fptr_t RunApplication = (const fptr_t)((TIMONEL_START - 2) / 2); /* Pointer to trampoline to app address */
 #if !(USE_WDT_RESET)
 static const fptr_t RestartTimonel = (const fptr_t)(TIMONEL_START / 2);       /* Pointer to bootloader start address */
 #endif /* !USE_WDT_RESET */
@@ -91,6 +91,7 @@ OverflowState device_state;
 
 // Bootloader prototypes
 inline static void ReceiveEvent(uint8_t) __attribute__((always_inline));
+inline static void ResetPrescaler(void) __attribute__((always_inline));
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
@@ -134,51 +135,55 @@ int main(void) {
     LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
 
-#if AUTO_SPEED
-    // AUTO SPEED FROM LOW FUSE
-    uint8_t low_fuse = boot_lock_fuse_bits_get(0);      /* Low fuse setting */
-    
- #if ((boot_lock_fuse_bits_get(L_FUSE_ADDR)) == 0x01)   /* HF PLL (16 MHz) clock source */
-    // #pragma message "HF PLL (16 MHz) clock source selected ..."
-    uint8_t exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
-    uint16_t led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
- #elif ((LOW_FUSE & 0x0F) == 0x02)                      /* RC oscillator (8 MHz) clock source */
-    // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
-    uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator */
-    OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.         */
-    uint8_t exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
-    uint16_t led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
- #else                               
-    #error "**** INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
- #endif /* Clock source setting */
- #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
-    // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
-    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor to 1 */
-    CLKPR = 0x00;  
- #endif /* Prescaler setting */    
+    uint8_t exit_delay = 0;
+    uint16_t led_delay = 0;
+
+#if AUTO_CLOCK_TWEAK
+ #pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
+    uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
+    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == 0x01) {
+        // HF PLL (16 MHz) clock source set in low fuse ...
+        exit_delay = LONG_EXIT_DELAY;           /* Long bootloader exit delay */
+        led_delay = LONG_LED_DELAY;            /* Long led blinking delay */
+    } else if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == 0x02) {
+        // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
+        //uint8_t factory_osccal = OSCCAL;              /* With 8 MHz clock source, preserve factory oscillator */
+        OSCCAL += OSC_FAST;                             /* Speed oscillator up for TWI to work */
+        exit_delay = SHORT_EXIT_DELAY;          /* Short bootloader exit delay */
+        led_delay = SHORT_LED_DELAY;           /* Short led blinking delay */
+    } else {                               
+        // Unknown clock source set in low fuse! the prescaler will be reset to 1 to use the external clock as is
+        ResetPrescaler();                               /* If using an external CPU clock source, don't reduce its frequency */
+    }
+    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+        // Prescaler fuse bit set to divide clock by 8, setting the CPU prescaler division factor to 1
+        ResetPrescaler();                               /* Reset prescaler to divide by 1 */
+    } 
     
 #else
-    
- #if ((LOW_FUSE & 0x0F) == 0x01)                         /* HF PLL (16 MHz) clock source */
-    // #pragma message "HF PLL (16 MHz) clock source selected ..."
-    uint8_t exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
-    uint16_t led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
- #elif ((LOW_FUSE & 0x0F) == 0x02)                       /* RC oscillator (8 MHz) clock source */
-    // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
-    uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator */
+ // #define XSTR(x) STR(x)
+ // #define STR(x) #x
+ // #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
+ #if ((LOW_FUSE & 0x0F) == 0x01)                        /* HF PLL (16 MHz) clock source */
+  // #pragma message "HF PLL (16 MHz) clock source selected ..."
+    exit_delay = LONG_EXIT_DELAY;               /* Long bootloader exit delay */
+    led_delay = LONG_LED_DELAY;                /* Long led blinking delay */
+ #elif ((LOW_FUSE & 0x0F) == 0x02)                      /* RC oscillator (8 MHz) clock source */
+  // #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+    uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator  */
     OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.         */
-    uint8_t exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
-    uint16_t led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
+    exit_delay = SHORT_EXIT_DELAY;              /* Short bootloader exit delay */
+    led_delay = SHORT_LED_DELAY;               /* Short led blinking delay */    
  #else                               
-    #error "**** INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+  // #pragma GCC warning "INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+    ResetPrescaler();                                   /* If using an external CPU clock source, don't reduce its frequency */
  #endif /* Clock source setting */
  #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
-    // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
-    CLKPR = (1 << CLKPCE);                              /* Set the CPU prescaler division factor to 1 */
-    CLKPR = 0x00;  
+  // #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1"
+    ResetPrescaler();                                   /* Reset prescaler to divide by 1 */
  #endif /* Prescaler setting */
     
-#endif /* AUTO_SPEED */
+#endif /* AUTO_CLOCK_TWEAK */
 
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | \
@@ -226,9 +231,13 @@ int main(void) {
 #if CLEAR_BIT_7_R31
                     asm volatile("cbr r31, 0x80");      /* Clear bit 7 of r31 */
 #endif /* CLEAR_BIT_7_R31 */
-#if ((LOW_FUSE & 0x0F) != 0x01)
+#if AUTO_CLOCK_TWEAK
+
+#else
+ #if ((LOW_FUSE & 0x0F) == 0x02)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* LOW_FUSE UNDER 16 MHZ */
+ #endif /* LOW_FUSE RC OSC */
+#endif /* AUTO_CLOCK_TWEAK */
                     RunApplication();                   /* Exit to the application */
                 }
                 // ================================================
@@ -240,12 +249,16 @@ int main(void) {
 #endif /* ENABLE_LED_UI */
                     uint16_t page_to_del = TIMONEL_START;
                     while (page_to_del != RESET_PAGE) {
-                        page_to_del -= PAGE_SIZE;
+                        page_to_del -= SPM_PAGESIZE;
                         boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
-#if ((LOW_FUSE & 0x0F) != 0x01)
+#if AUTO_CLOCK_TWEAK
+
+#else
+ #if ((LOW_FUSE & 0x0F) == 0x02)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* LOW_FUSE UNDER 16 MHZ */
+ #endif /* LOW_FUSE RC OSC */
+#endif /* AUTO_CLOCK_TWEAK */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
@@ -257,9 +270,9 @@ int main(void) {
                 // = Write the received page to memory and prepare for a new one (Slow Op) =
                 // =========================================================================
 #if (APP_USE_TPL_PG || !(AUTO_PAGE_ADDR))                
-                if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START)) {
+                if ((page_ix == SPM_PAGESIZE) && (page_addr < TIMONEL_START)) {
 #else
-                if ((page_ix == PAGE_SIZE) && (page_addr < TIMONEL_START - PAGE_SIZE)) {
+                if ((page_ix == SPM_PAGESIZE) && (page_addr < TIMONEL_START - SPM_PAGESIZE)) {
 #endif /* APP_USE_TPL_PG || !(AUTO_PAGE_ADDR) */
 #if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
@@ -271,22 +284,22 @@ int main(void) {
 #if AUTO_PAGE_ADDR
                     if (page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
-                        for (int i = 0; i < PAGE_SIZE - 2; i += 2) {
-                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, 0xFFFF);
+                        for (int i = 0; i < SPM_PAGESIZE - 2; i += 2) {
+                            boot_page_fill((TIMONEL_START - SPM_PAGESIZE) + i, 0xFFFF);
                         }
                         boot_page_fill((TIMONEL_START - 2), tpl);
-                        boot_page_write(TIMONEL_START - PAGE_SIZE);                        
+                        boot_page_write(TIMONEL_START - SPM_PAGESIZE);                        
                     }
 #if APP_USE_TPL_PG
-                    if (page_addr == (TIMONEL_START - PAGE_SIZE)) {
+                    if (page_addr == (TIMONEL_START - SPM_PAGESIZE)) {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
                         const __flash uint8_t *mem_position;
-                        for (uint8_t i = 0; i < PAGE_SIZE - 2; i += 2) {
-                            mem_position = (void *)((TIMONEL_START - PAGE_SIZE) + i);
+                        for (uint8_t i = 0; i < SPM_PAGESIZE - 2; i += 2) {
+                            mem_position = (void *)((TIMONEL_START - SPM_PAGESIZE) + i);
                             uint16_t page_data = (*mem_position & 0xFF);
                             page_data += ((*(++mem_position) & 0xFF) << 8); 
-                            boot_page_fill((TIMONEL_START - PAGE_SIZE) + i, page_data);
+                            boot_page_fill((TIMONEL_START - SPM_PAGESIZE) + i, page_data);
                         }
                         // - Check if the last two bytes of the trampoline page are 0xFF.
                         mem_position = (void *)(TIMONEL_START - 2);
@@ -295,8 +308,8 @@ int main(void) {
                         if (page_data == 0xFFFF) {
                             // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
                             boot_page_fill(TIMONEL_START - 2, tpl);
-                            boot_page_erase(TIMONEL_START - PAGE_SIZE);
-                            boot_page_write(TIMONEL_START - PAGE_SIZE);
+                            boot_page_erase(TIMONEL_START - SPM_PAGESIZE);
+                            boot_page_write(TIMONEL_START - SPM_PAGESIZE);
                         }
                         else {
                             // -- If no, it means that the application is too big for this setup, erase it! 
@@ -306,7 +319,7 @@ int main(void) {
 #endif /* APP_USE_TPL_PG */
 #endif /* AUTO_PAGE_ADDR */
 #if !(CMD_STPGADDR)
-                    page_addr += PAGE_SIZE;
+                    page_addr += SPM_PAGESIZE;
 #endif /* !CMD_STPGADDR */
                     page_ix = 0;
                 }
@@ -324,9 +337,13 @@ int main(void) {
                     // ========================================
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
-#if ((LOW_FUSE & 0x0F) != 0x01)
+#if AUTO_CLOCK_TWEAK
+
+#else
+ #if ((LOW_FUSE & 0x0F) == 0x02)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
-#endif /* LOW_FUSE UNDER 16 MHZ */
+ #endif /* LOW_FUSE RC OSC */
+#endif /* AUTO_CLOCK_TWEAK */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
             }
@@ -407,7 +424,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
         case STPGADDR: {
             uint8_t reply[STPGADDR_RPLYLN] = { 0 };
             page_addr = ((command[1] << 8) + command[2]);       /* Sets the flash memory page base address */
-            page_addr &= ~(PAGE_SIZE - 1);                      /* Keep only pages' base addresses */
+            page_addr &= ~(SPM_PAGESIZE - 1);                      /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
             reply[1] = (uint8_t)(command[1] + command[2]);      /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
@@ -447,7 +464,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
                     page_ix += 2;
                 }
             }
-            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (page_ix > PAGE_SIZE)) {
+            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (page_ix > SPM_PAGESIZE)) {
                 flags |= (1 << FL_DEL_FLASH);                       /* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
@@ -499,6 +516,13 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             return;
         }
     }
+}
+
+// Function ResetPrescaler
+inline void ResetPrescaler(void) {
+    // Set the CPU prescaler division factor to 1
+    CLKPR = (1 << CLKPCE);
+    CLKPR = 0x00;   
 }
 
 /////////////////////////////////////////////////////////////////////////////
