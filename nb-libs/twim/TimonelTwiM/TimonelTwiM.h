@@ -17,7 +17,6 @@
 #define _TIMONELTWIM_H_
 
 #include "../../cmd/nb-twi-cmd.h"
-#include "Arduino.h"
 #include "NbMicro.h"
 #include "libconfig.h"
 #include "stdbool.h"
