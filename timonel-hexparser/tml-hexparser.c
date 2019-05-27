@@ -200,8 +200,9 @@ static int parseIntelHex(char *hexfile, unsigned char *buffer, int *startAddr, i
   printf("// Start Address: 0x%x \n", *startAddr);
   printf("// End Address: 0x%x \n//\n", *endAddr);
   // GC: Printing payload array definition ...
-  printf("const byte payldType = 0;    /* Application Payload */\n\n");
-  printf("const byte payload[%i] = {", *endAddr + 1);  
+  //printf("const byte payldType = 0;    /* Application Payload */\n\n");
+  //printf("const byte payload[%i] = {", *endAddr + 1);
+  printf("uint8_t payload[%i] = {", *endAddr + 1);  
 
   
   // GC: Printing loaded buffer ...
