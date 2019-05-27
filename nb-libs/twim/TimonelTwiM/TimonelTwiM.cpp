@@ -133,7 +133,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     // This section is dependant on the Timonel impossibility of calculating mem addresses, not on
     // the set page address command. This one MUST be enabled when AUTO_TPL_CALC is disabled
     if ((status_.features_code >> F_CMD_SETPGADDR) & true) { /* If CMD_STPGADDR is enabled */
-        if (start_address >= PAGE_SIZE) {                   /* If application start address is not 0 */
+        if (start_address >= PAGE_SIZE) {                    /* If application start address is not 0 */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
@@ -237,10 +237,10 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #endif /* DEBUG_LEVEL */
 #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
             if ((status_.features_code >> F_CMD_SETPGADDR) & true) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
-                delay(DLY_FLASH_PG);                                /* delay to allow memory flashing, then set the next   */
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))                   /* page address before sending new data.               */
-                                                                    //USE_SERIAL.printf_P("\n\r");
-#endif                                                              /* DEBUG_LEVEL */
+                delay(DLY_FLASH_PG);                                 /* delay to allow memory flashing, then set the next   */
+#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))                    /* page address before sending new data.               */
+                                                                     //USE_SERIAL.printf_P("\n\r");
+#endif                                                               /* DEBUG_LEVEL */
                 twi_errors += SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
 #endif /* FEATURES_CODE >> F_CMD_SETPGADDR */

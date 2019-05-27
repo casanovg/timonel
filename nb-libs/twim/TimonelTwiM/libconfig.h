@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 // General defs
-#define DEBUG_LEVEL 1       /* Debug level 0: No debug info over serial terminal */
+#define DEBUG_LEVEL 1       /* Debug level: 0 = No debug info over serial terminal, 1+ = Progressively increasing verbosity */
 #define USE_SERIAL Serial   /* Console output */
 #define FEATURES_CODE 255   /* Features enebled (NOTE: This must match the bootloader, If you aren't sure, keep 255 to include all!) */
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
