@@ -1,6 +1,6 @@
 AVR microcontroller fuses
 =========================
-Low fuse = [0x62] <- OK: default setting
+Low fuse = [0xe1] <- Timonel default is 0x62
 .................................................
 High fuse = [0xdd] <- OK: default setting
 .................................................

@@ -56,14 +56,14 @@ class Timonel : public NbMicro {
     byte BootloaderInit(const word delay_ms = 0);
     byte QueryStatus(void);
     byte SendDataPacket(const byte data_packet[]);
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
     byte SetPageAddress(const word page_addr);
     byte FillSpecialPage(const byte page_type,
                          const byte app_reset_msb = 0,
                          const byte app_reset_lsb = 0);
     word CalculateTrampoline(const word bootloader_start,
                              const word application_start);
-#endif /* FEATURES_CODE >> F_CMD_STPGADDR */
+#endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
 };
 
 #endif /* _TIMONELTWIM_H_ */

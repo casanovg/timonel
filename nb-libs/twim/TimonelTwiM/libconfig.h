@@ -47,7 +47,7 @@
 #define F_ENABLE_LED_UI 0   /* Features 1 (1)  : LED UI enabled */
 #define F_AUTO_TPL_CALC 1   /* Features 2 (2)  : Automatic trampoline and addr handling */
 #define F_APP_USE_TPL_PG 2  /* Features 3 (4)  : Application can use trampoline page */
-#define F_CMD_STPGADDR 3    /* Features 4 (8)  : Set page address command enabled */
+#define F_CMD_SETPGADDR 3   /* Features 4 (8)  : Set page address command enabled */
 #define F_TWO_STEP_INIT 4   /* Features 5 (16) : Two-step initialization required */
 #define F_USE_WDT_RESET 5   /* Features 6 (32) : Reset by watchdog timer enabled */
 #define F_CHECK_EMPTY_FL 6  /* Features 7 (64) : Empty flash checking enabled */

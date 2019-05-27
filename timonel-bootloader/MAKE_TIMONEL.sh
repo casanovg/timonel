@@ -8,13 +8,14 @@
 # ......................................................... #
 # 2019-06-06 Gustavo Casanova                               #
 # ......................................................... #
-# From Linux: it runs directly.                             #
+# From Linux: it should run directly.                       #
 # From Windows/Mac: you need to install the Git Bash tool   #
 # for your system (git-scm.com/downloads).                  #
 #                                                           #
 #############################################################
 
 # Command line arguments
+# ----------------------
 # ARG1: Timonel .hex filename. Default = timonel
 # ARG2: Timonel TWI (I2C) address. Default = 11
 # ARG3: Timonel start memory position. Default = 1B80 (hex)
@@ -32,21 +33,25 @@ case $ARG4 in
 		# echo "";
 		# echo "Low fuse set for sixteen MHz internal clock source.";
 		LOW_FUSE=0xE1;
+        CLK_SOURCE="HF PLL";
 		;;
 	8)
 		# echo "";
 		# echo "Low fuse set for eight MHz internal clock source.";
 		LOW_FUSE=0xE2;
+        CLK_SOURCE="RC OSC";
 		;;
 	2)
 		# echo "";
 		# echo "Low fuse set for two MHz internal clock source.";
 		LOW_FUSE=0x61;
+        CLK_SOURCE="HF PLL";
 		;;
 	1)
 		# echo "";
 		# echo "Low fuse set for one MHz internal clock source.";
 		LOW_FUSE=0x62;
+        CLK_SOURCE="RC OSC";
 		;;
 	*)
 		echo ""
@@ -60,7 +65,10 @@ echo "* --------------------------------------------------- "
 echo "* Binary file: $ARG1.hex"
 echo "* TWI address: $ARG2"
 echo "* Flash position: $ARG3 <- use lower positions if make errors pop up below"
+echo "* CPU clock speed: $ARG4 MHz <- $CLK_SOURCE (low fuse = $LOW_FUSE)"
+echo "* Automatic clock tweaking: $ARG5"
 echo "**************************************************************************"
+echo ""
 
 make clean_all
 make clean_all TARGET=$ARG1

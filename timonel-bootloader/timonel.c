@@ -45,8 +45,8 @@
  #error "Timonel only supports pagesizes up to 64 bytes"
 #endif
 
-#if (!(AUTO_PAGE_ADDR) && !(CMD_STPGADDR))
- #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_STPGADDR must be enabled in tml-config.h!"
+#if (!(AUTO_PAGE_ADDR) && !(CMD_SETPGADDR))
+ #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_SETPGADDR must be enabled in tml-config.h!"
 #endif
                                 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
@@ -91,7 +91,10 @@ OverflowState device_state;
 
 // Bootloader prototypes
 inline static void ReceiveEvent(uint8_t) __attribute__((always_inline));
-inline static void ResetPrescaler(void) __attribute__((always_inline));
+//inline static void ResetPrescaler(void) __attribute__((always_inline));
+//inline static void RestorePrescaler(void) __attribute__((always_inline));
+void ResetPrescaler(void);
+void RestorePrescaler(void);
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
@@ -101,7 +104,7 @@ inline static void TwiStartHandler(void) __attribute__((always_inline));
 inline static bool UsiOverflowHandler(void) __attribute__((always_inline));
 
 // USI TWI driver basic operations prototypes
-inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
+void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void);
 inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
@@ -160,7 +163,7 @@ int main(void) {
  #define XSTR(x) STR(x)
  #define STR(x) #x
  #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
- #if ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                        /* HF PLL (16 MHz) clock source */
+ #if ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)               /* HF PLL (16 MHz) clock source */
   #pragma message "HF PLL (16 MHz) clock source selected ..."
     exit_delay = LONG_EXIT_DLY;                         /* Long bootloader exit delay */
     led_delay = LONG_LED_DLY;                           /* Long led blinking delay */
@@ -232,6 +235,9 @@ int main(void) {
  #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
  #endif /* LOW_FUSE RC OSC */
+ #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+                    RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
+ #endif /* Prescaler setting */
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Exit to the application */
                 }
@@ -247,15 +253,6 @@ int main(void) {
                         page_to_del -= SPM_PAGESIZE;
                         boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
-#if AUTO_CLK_TWEAK
-                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
-                        OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
-                    }
-#else
- #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
-                    OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
- #endif /* LOW_FUSE RC OSC */
-#endif /* AUTO_CLK_TWEAK */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
@@ -315,9 +312,9 @@ int main(void) {
                     }
  #endif /* APP_USE_TPL_PG */
 #endif /* AUTO_PAGE_ADDR */
-#if !(CMD_STPGADDR)
+#if !(CMD_SETPGADDR)
                     page_addr += SPM_PAGESIZE;
-#endif /* !CMD_STPGADDR */
+#endif /* !CMD_SETPGADDR */
                     page_ix = 0;
                 }
             }
@@ -342,6 +339,9 @@ int main(void) {
  #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
  #endif /* LOW_FUSE RC OSC */
+ #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+                    RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
+ #endif /* Prescaler setting */ 
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
@@ -416,7 +416,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             flags |= (1 << FL_DEL_FLASH);
             return;
         }
-#if (CMD_STPGADDR || !(AUTO_PAGE_ADDR))
+#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
         // ******************
         // * STPGADDR Reply *
         // ******************
@@ -431,7 +431,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
             }
             return;
         }
-#endif /* CMD_STPGADDR || !AUTO_PAGE_ADDR */
+#endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
         // ******************
         // * WRITPAGE Reply *
         // ******************
@@ -444,7 +444,7 @@ inline void ReceiveEvent(uint8_t received_bytes) {
                 app_reset_msb = command[2];
 #endif /* AUTO_PAGE_ADDR */
                 // This section modifies the reset vector to point to this bootloader.
-                // WARNING: This only works when CMD_STPGADDR is disabled. If CMD_STPGADDR is enabled,
+                // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
                 // the reset vector modification MUST BE done by the TWI master's upload program.
                 // Otherwise, Timonel won't have the execution control after power-on reset.
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
@@ -518,10 +518,17 @@ inline void ReceiveEvent(uint8_t received_bytes) {
 }
 
 // Function ResetPrescaler
-inline void ResetPrescaler(void) {
+ void ResetPrescaler(void) {
     // Set the CPU prescaler division factor to 1
-    CLKPR = (1 << CLKPCE);
-    CLKPR = 0x00;   
+    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
+    CLKPR = 0x00;                                                   /* Clock division factor 1 (0000) */
+}
+
+// Function RestorePrescaler
+ void RestorePrescaler(void) {
+    // Set the CPU prescaler division factor to 8
+    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
+    CLKPR = ((1 << CLKPS1) | (1 << CLKPS0));                        /* Clock division factor 8 (0011) */
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -706,7 +713,7 @@ inline bool UsiOverflowHandler(void) {
 // USI TWI basic operations functions
 // ----------------------------------------------------------------------------
 // Set USI to detect start and shift 7 address bits + 1 direction bit in.
-inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
+void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
     SET_USI_TO_DETECT_TWI_START();  /* Detect start condition */
     SET_USI_TO_SHIFT_8_DATA_BITS(); /* Shift 8 bits */
 }
@@ -766,7 +773,7 @@ inline void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) {
 }
 // ............................................................................
 // Clear all USI status register interrupt flags, except start condition.
-inline void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
+void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
     USISR = (0 << TWI_START_COND_FLAG) |
             (1 << USI_OVERFLOW_FLAG) |
             (1 << TWI_STOP_COND_FLAG) |

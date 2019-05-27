@@ -123,7 +123,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r");
 #endif /* DEBUG_LEVEL */
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
 #pragma GCC warning "Address manipulation code included in Timonel::UploadApplication!"
     /////////////////////////////////////////////////////////////////////////////
     ////    ONLY IF REQUESTED BY CMD_STPGADDR AND AUTO_TPL_CALC FEATURES     ////
@@ -132,7 +132,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     // ---- TODO: Replace below condition by this one ---> (!((status_.features_code >> F_AUTO_TPL_CALC) & true))
     // This section is dependant on the Timonel impossibility of calculating mem addresses, not on
     // the set page address command. This one MUST be enabled when AUTO_TPL_CALC is disabled
-    if ((status_.features_code >> F_CMD_STPGADDR) & true) { /* If CMD_STPGADDR is enabled */
+    if ((status_.features_code >> F_CMD_SETPGADDR) & true) { /* If CMD_STPGADDR is enabled */
         if (start_address >= PAGE_SIZE) {                   /* If application start address is not 0 */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
@@ -185,14 +185,14 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     /////////////////////////////////////////////////////////////////////////////
 #else
 #pragma GCC warning "Address manipulation code NOT INCLUDED in Timonel::UploadApplication!"
-#endif /* FEATURES_CODE >> F_CMD_STPGADDR */
+#endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
     // If the payload doesn't use an exact number of pages, resize it to fit padding data
     if ((payload_size % PAGE_SIZE) != 0) {
         padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
         payload_size += padding;
     }
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-    if ((status_.features_code >> F_CMD_STPGADDR) & true) {
+    if ((status_.features_code >> F_CMD_SETPGADDR) & true) {
         // ------ USE_SERIAL.printf_P(" (--a:0000) ");
     } else {
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
@@ -235,15 +235,15 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P(" P%d ", page_count);
 #endif /* DEBUG_LEVEL */
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
-            if ((status_.features_code >> F_CMD_STPGADDR) & true) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
+            if ((status_.features_code >> F_CMD_SETPGADDR) & true) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
                 delay(DLY_FLASH_PG);                                /* delay to allow memory flashing, then set the next   */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))                   /* page address before sending new data.               */
                                                                     //USE_SERIAL.printf_P("\n\r");
 #endif                                                              /* DEBUG_LEVEL */
                 twi_errors += SetPageAddress(start_address + (page_count * PAGE_SIZE));
             }
-#endif /* FEATURES_CODE >> F_CMD_STPGADDR */
+#endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
             // ......................................................................
             // With Timonel running at 8 and 16 MHz, 100 ms is OK for flashing the page to memory
             delay(DLY_FLASH_PG); /* ###### DELAY AFTER SENDING A FULL PAGE TO ALLOW SAFE WRITING ###### */
@@ -439,7 +439,7 @@ byte Timonel::SendDataPacket(const byte data_packet[]) {
     return (twi_errors);
 }
 
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
 #pragma GCC warning "Timonel::SetPageAddress, FillSpecialPage and CalculateTrampoline functions code included in TWI master!"
 // Function SetPageAddres (Sets the start address of a flash memory page)
 byte Timonel::SetPageAddress(const word page_addr) {
@@ -548,4 +548,4 @@ word Timonel::CalculateTrampoline(word bootloader_start, word application_start)
 }
 #else
 #pragma GCC warning "Timonel::SetPageAddress, FillSpecialPage and CalculateTrampoline functions code NOT INCLUDED in TWI master!"
-#endif /* FEATURES_CODE >> F_CMD_STPGADDR */
+#endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
