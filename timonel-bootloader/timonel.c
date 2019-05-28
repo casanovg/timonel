@@ -27,9 +27,9 @@
           -----------------------------------------------------------------------------------
 */
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
- #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
- #undef TWI_ADDR
- #define TWI_ADDR   11                                  /* Timonel TWI default address: 11 (0x0B) */
+#pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
+#undef TWI_ADDR
+#define TWI_ADDR   11                                  /* Timonel TWI default address: 11 (0x0B) */
 #endif /* 8 <= TWI_ADDR <= 35 */
 
 /* This bootloader ... */
@@ -38,23 +38,23 @@
 
 /* Configuration checks */
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
- #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
+#error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
 #if (SPM_PAGESIZE > 64)
- #error "Timonel only supports pagesizes up to 64 bytes"
+#error "Timonel only supports pagesizes up to 64 bytes"
 #endif
 
 #if (!(AUTO_PAGE_ADDR) && !(CMD_SETPGADDR))
- #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_SETPGADDR must be enabled in tml-config.h!"
+#error "If the AUTO_PAGE_ADDR option is disabled, then CMD_SETPGADDR must be enabled in tml-config.h!"
 #endif
                                 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
- #pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
+#pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
- #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
+#pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
 // Type definitions
@@ -138,7 +138,7 @@ int main(void) {
     uint8_t exit_delay = SHORT_EXIT_DLY;                /* Exit-to-app delay when the bootloader isn't initialized */                           
     uint16_t led_delay = SHORT_LED_DLY;                 /* Blinking delay when the bootloader isn't initialized */
 #if AUTO_CLK_TWEAK                                      /* Automatic clock tweaking made at run time, based on low fuse value */
- #pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
+#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
         // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
@@ -154,23 +154,23 @@ int main(void) {
         ResetPrescaler();                               /* Reset prescaler to divide by 1 */
     }
 #else                                                   /* Clock tweaking made at compile time, based on LOW_FUSE variable */
- #define XSTR(x) STR(x)
- #define STR(x) #x
- #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
- #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)               /* RC oscillator (8 MHz) clock source */
-  #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+#define XSTR(x) STR(x)
+#define STR(x) #x
+#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
+#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)               /* RC oscillator (8 MHz) clock source */
+#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator  */
     OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.          */
- #elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)             /* HF PLL (16 MHz) clock source */
-  #pragma message "HF PLL (16 MHz) clock source selected. No clock tweaking needed ..."
- #else                                                  /* Unknown clock source */
-  #pragma GCC warning "UNKNOWN LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
+#elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)             /* HF PLL (16 MHz) clock source */
+#pragma message "HF PLL (16 MHz) clock source selected. No clock tweaking needed ..."
+#else                                                  /* Unknown clock source */
+#pragma GCC warning "UNKNOWN LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
     ResetPrescaler();                                   /* If using an external CPU clock source, don't reduce its frequency */
- #endif /* LOW_FUSE CLOCK SOURCE */
- #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
-  #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
+#endif /* LOW_FUSE CLOCK SOURCE */
+#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                                   /* Reset prescaler to divide by 1 */
- #endif /* LOW_FUSE PRESCALER BIT */
+#endif /* LOW_FUSE PRESCALER BIT */
 #endif /* AUTO_CLK_TWEAK */
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Prepare to clear the temporary page buffer */                 
@@ -225,12 +225,12 @@ int main(void) {
                         RestorePrescaler();             /* Restore prescaler to divide by 8 */
                     }                    
 #else
- #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
+#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
- #endif /* LOW_FUSE RC OSC */
- #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#endif /* LOW_FUSE RC OSC */
+#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
- #endif /* PRESCALER BIT */
+#endif /* PRESCALER BIT */
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Exit to the application */
                 }
@@ -251,9 +251,9 @@ int main(void) {
                         OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
                     }
 #else
- #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
+#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
- #endif /* LOW_FUSE RC OSC */
+#endif /* LOW_FUSE RC OSC */
 #endif /* AUTO_CLK_TWEAK */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
@@ -286,7 +286,7 @@ int main(void) {
                         boot_page_fill((TIMONEL_START - 2), tpl);
                         boot_page_write(TIMONEL_START - SPM_PAGESIZE);                        
                     }
- #if APP_USE_TPL_PG
+#if APP_USE_TPL_PG
                     if (page_addr == (TIMONEL_START - SPM_PAGESIZE)) {
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((app_reset_msb << 8) | app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         // - Read the previous page to the bootloader start, write it to the temporary buffer.
@@ -306,13 +306,12 @@ int main(void) {
                             boot_page_fill(TIMONEL_START - 2, tpl);
                             boot_page_erase(TIMONEL_START - SPM_PAGESIZE);
                             boot_page_write(TIMONEL_START - SPM_PAGESIZE);
-                        }
-                        else {
+                        } else {
                             // -- If no, it means that the application is too big for this setup, erase it! 
                             flags |= (1 << FL_DEL_FLASH);
                         }
                     }
- #endif /* APP_USE_TPL_PG */
+#endif /* APP_USE_TPL_PG */
 #endif /* AUTO_PAGE_ADDR */
 #if !(CMD_SETPGADDR)
                     page_addr += SPM_PAGESIZE;
@@ -320,8 +319,7 @@ int main(void) {
                     page_ix = 0;
                 }
             }
-        }
-        else {
+        } else {
             // ======================================
             // = *\* Bootloader not initialized */* =
             // ======================================
@@ -341,12 +339,12 @@ int main(void) {
                         RestorePrescaler();             /* Restore prescaler to divide by 8 */
                     }
 #else
- #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
+#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
- #endif /* LOW_FUSE RC OSC */
- #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#endif /* LOW_FUSE RC OSC */
+#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
- #endif /* PRESCALER BIT */ 
+#endif /* PRESCALER BIT */ 
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
