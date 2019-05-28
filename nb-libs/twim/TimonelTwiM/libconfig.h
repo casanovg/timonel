@@ -20,7 +20,8 @@
 #define FEATURES_CODE 255   /* Features enebled (NOTE: This must match the bootloader, If you aren't sure, keep 255 to include all!) */
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
 #define HIG_TML_ADDR 35     /* Highest allowed TWI address for Timonel devices */
-#define T_SIGNATURE 84      /* Timonel signature "T" */
+#define T_SIGNATURE_CTM 84  /* Timonel signature "T" (Uppercase means clock tweaking made at compile time*/
+#define T_SIGNATURE_AUT 116 /* Timonel signature "t" (Lowercase means automatic clock tweaking made at run time*/
 #define MST_PACKET_SIZE 32  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 32 */
 #define SLV_PACKET_SIZE 32  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 32 */
 #define PAGE_SIZE 64        /* Tiny85 flash page buffer size */
@@ -29,7 +30,6 @@
 
 // Timonel::QueryStatus defs
 #define CMD_ACK_POS 0       /* Command acknowledge reply position */
-#define T_SIGNATURE 84      /* Timonel signature "T" */
 // *** Status reply (10 bytes)
 #define S_REPLY_LENGTH 11   /* Timonel status reply lenght (1 bit ACK + 8 status bytes + 1 checksum byte) */
 #define S_SIGNATURE 1       /* Status: signature byte position */

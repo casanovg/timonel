@@ -381,7 +381,8 @@ byte Timonel::QueryStatus(void) {
 #endif /* DEBUG_LEVEL */
         return (twi_errors);
     } else {
-        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE)) {
+        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && ((twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_CTM) \
+                                                     ||  (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT))) {
             status_.signature = twi_reply_arr[S_SIGNATURE];
             status_.version_major = twi_reply_arr[S_MAJOR];
             status_.version_minor = twi_reply_arr[S_MINOR];
@@ -398,6 +399,11 @@ byte Timonel::QueryStatus(void) {
             } else {
                 status_.check_empty_fl = 0;
                 status_.oscillator_cal = twi_reply_arr[S_OSCCAL];
+            }
+            if (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT) {
+                status_.auto_clock_tweak = true;    
+            } else {
+                status_.auto_clock_tweak = false;
             }
         }
         return OK;

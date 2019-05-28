@@ -36,6 +36,7 @@ class Timonel : public NbMicro {
         byte low_fuse_setting = 0;
         byte oscillator_cal = 0;
         byte check_empty_fl = 0;
+        bool auto_clock_tweak = false;
     } Status;
     Status GetStatus(void);
     byte SetTwiAddress(byte twi_address);

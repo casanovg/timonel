@@ -334,7 +334,8 @@ void PrintStatus(Timonel timonel) {
     byte twi_address = timonel.GetTwiAddress();
     byte version_major = tml_status.version_major;
     byte version_minor = tml_status.version_minor;
-    if ((tml_status.signature == T_SIGNATURE) && ((version_major != 0) || (version_minor != 0))) {
+    if (((tml_status.signature == T_SIGNATURE_CTM) || (tml_status.signature == T_SIGNATURE_AUT)) && \
+       ((version_major != 0) || (version_minor != 0))) {
         String version_mj_nick = "";
         switch (version_major) {
             case 0: {
@@ -360,7 +361,11 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("      Features code: %d ", tml_status.features_code);
+        if (tml_status.auto_clock_tweak == true) {
+            USE_SERIAL.printf_P("(Auto-Twk)");
+        }
+        USE_SERIAL.printf_P("\n\r");
         USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
         USE_SERIAL.printf_P("             RC osc: 0x%02X\n\n\r", tml_status.oscillator_cal);
     } else {
