@@ -178,7 +178,7 @@ int main(void) {
  #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
   #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                                   /* Reset prescaler to divide by 1 */
- #endif /* Prescaler setting */
+ #endif /* PRESCALER BIT */
 #endif /* AUTO_CLK_TWEAK */
     UsiTwiDriverInit();                                 /* Initialize the TWI driver */
     __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));        /* Prepare to clear the temporary page buffer */                 
@@ -238,7 +238,7 @@ int main(void) {
  #endif /* LOW_FUSE RC OSC */
  #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
- #endif /* Prescaler setting */
+ #endif /* PRESCALER BIT */
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Exit to the application */
                 }
@@ -354,7 +354,7 @@ int main(void) {
  #endif /* LOW_FUSE RC OSC */
  #if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
- #endif /* Prescaler setting */ 
+ #endif /* PRESCALER BIT */ 
 #endif /* AUTO_CLK_TWEAK */
                     RunApplication();                   /* Count from CYCLESTOEXIT to 0, then exit to the application */
                 }
