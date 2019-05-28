@@ -27,9 +27,9 @@
           -----------------------------------------------------------------------------------
 */
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
-#pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 8 (valid range: 8 to 35 decimal)"
+#pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 11 (valid range: 8 to 35 decimal)"
 #undef TWI_ADDR
-#define TWI_ADDR   11                                  /* Timonel TWI default address: 11 (0x0B) */
+#define TWI_ADDR   11                                   /* Timonel TWI default address: 11 (0x0B) */
 #endif /* 8 <= TWI_ADDR <= 35 */
 
 /* This bootloader ... */
@@ -157,17 +157,17 @@ int main(void) {
 #define XSTR(x) STR(x)
 #define STR(x) #x
 #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
-#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)               /* RC oscillator (8 MHz) clock source */
+#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)                /* RC oscillator (8 MHz) clock source */
 #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator  */
     OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.          */
-#elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)             /* HF PLL (16 MHz) clock source */
+#elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)              /* HF PLL (16 MHz) clock source */
 #pragma message "HF PLL (16 MHz) clock source selected. No clock tweaking needed ..."
-#else                                                  /* Unknown clock source */
+#else                                                   /* Unknown clock source */
 #pragma GCC warning "UNKNOWN LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
     ResetPrescaler();                                   /* If using an external CPU clock source, don't reduce its frequency */
 #endif /* LOW_FUSE CLOCK SOURCE */
-#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#if ((LOW_FUSE & 0x80) == 0)                            /* Prescaler dividing clock by 8 */                      
 #pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                                   /* Reset prescaler to divide by 1 */
 #endif /* LOW_FUSE PRESCALER BIT */
@@ -228,7 +228,7 @@ int main(void) {
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
 #endif /* LOW_FUSE RC OSC */
-#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#if ((LOW_FUSE & 0x80) == 0)                            /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
 #endif /* PRESCALER BIT */
 #endif /* AUTO_CLK_TWEAK */
@@ -342,7 +342,7 @@ int main(void) {
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
 #endif /* LOW_FUSE RC OSC */
-#if ((LOW_FUSE & 0x80) == 0)                           /* Prescaler dividing clock by 8 */                      
+#if ((LOW_FUSE & 0x80) == 0)                            /* Prescaler dividing clock by 8 */                      
                     RestorePrescaler();                 /* Restore prescaler factor to divide by 8 */
 #endif /* PRESCALER BIT */ 
 #endif /* AUTO_CLK_TWEAK */
