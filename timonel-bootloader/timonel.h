@@ -92,6 +92,7 @@
 /* ------------------------------------------------------------------------------------ */
 /* ---    Timonel internal configuration. Do not change anything below this line    --- */
 /* ---    unless you know how to customize or adapt it to another microcontroller.  --- */
+/* ---    Below options cannot be modified in "tml-config.mak", only in this file.  --- */
 /* ------------------------------------------------------------------------------------ */
 
 // TWI commands Xmit packet size
@@ -103,9 +104,15 @@
 #define LED_UI_PORT     PORTB       /* Activity monitor led port.                                          */
 
 // Timonel ID characters
+#if !(AUTO_CLK_TWEAK)               /* If clock tweaking is made at compile time, use uppercase ID chars.  */
 #define ID_CHAR_1       78          /* N */
 #define ID_CHAR_2       66          /* B */
 #define ID_CHAR_3       84          /* T */
+#else                               /* If automatic clock tweaking is made at run time, use lowercase ID.  */
+#define ID_CHAR_1       110         /* n */
+#define ID_CHAR_2       98          /* b */
+#define ID_CHAR_3       116         /* t */
+#endif /* !(AUTO_CLK_TWEAK) */
 
 // Flags byte
 #define FL_INIT_1       0           /* Flag bit 1 (1)  : Two-step initialization STEP 1 */
