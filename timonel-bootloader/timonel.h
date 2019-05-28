@@ -39,7 +39,7 @@
            
 #ifndef AUTO_PAGE_ADDR              /* Automatic page and trampoline address calculation. If this option   */
 #define AUTO_PAGE_ADDR  true        /* is disabled, the trampoline has to be calculated and written by the */
-#endif /* AUTO_PAGE_ADDR */         /* I2C master. Therefore, enabling CMD_SETPGADDR becomes mandatory.     */
+#endif /* AUTO_PAGE_ADDR */         /* I2C master. Therefore, enabling CMD_SETPGADDR becomes mandatory.    */
                                 
 #ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_PAGE_ADDR */
 #define APP_USE_TPL_PG  false       /* is enabled. This is a safety measure since enabling this takes 2    */
@@ -50,7 +50,7 @@
 #ifndef CMD_SETPGADDR               /* If this is disabled, applications can only be flashed starting      */
 #define CMD_SETPGADDR   false       /* from page 0, this is OK for most applications.                      */
 #endif /* CMD_SETPGADDR */          /* If this is enabled, Timonel expects STPGADDR before each data page. */
-                                    /* Enabling this option is MANDATORY when AUTO_PAGE_ADDR is disabled.   */
+                                    /* Enabling this option is MANDATORY when AUTO_PAGE_ADDR is disabled.  */
                                 
 #ifndef TWO_STEP_INIT               /* If this is enabled, Timonel expects a two-step initialization from  */
 #define TWO_STEP_INIT   false       /* an I2C master for starting. Otherwise, single-step init is enough   */
