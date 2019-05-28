@@ -91,10 +91,8 @@ OverflowState device_state;
 
 // Bootloader prototypes
 inline static void ReceiveEvent(uint8_t) __attribute__((always_inline));
-//inline static void ResetPrescaler(void) __attribute__((always_inline));
-//inline static void RestorePrescaler(void) __attribute__((always_inline));
-void ResetPrescaler(void);
-void RestorePrescaler(void);
+inline static void ResetPrescaler(void) __attribute__((always_inline));
+inline static void RestorePrescaler(void) __attribute__((always_inline));
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
@@ -137,20 +135,20 @@ int main(void) {
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);                    /* Set led pin data direction register for output */
 #endif /* ENABLE_LED_UI */
-    uint8_t exit_delay = 0;                             /* Exit-to-app delay when the bootloader isn't initialized */                           
-    uint16_t led_delay = 0;                             /* Blinking delay when the bootloader isn't initialized */  
+    uint8_t exit_delay = SHORT_EXIT_DLY;                /* Exit-to-app delay when the bootloader isn't initialized */                           
+    uint16_t led_delay = SHORT_LED_DLY;                 /* Blinking delay when the bootloader isn't initialized */  
 #if AUTO_CLK_TWEAK
  #pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
     uint8_t factory_osccal = OSCCAL;                    /* Preserve factory oscillator calibration */
     if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == HFPLL_CLK_SRC) {
         // HF PLL (16 MHz) clock source set in low fuse ...
-        exit_delay = LONG_EXIT_DLY;                     /* Long bootloader exit delay */
-        led_delay = LONG_LED_DLY;                       /* Long led blinking delay */
+        //exit_delay = LONG_EXIT_DLY;                   /* Long bootloader exit delay */
+        //led_delay = LONG_LED_DLY;                     /* Long led blinking delay */
     } else if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
         // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
         OSCCAL += OSC_FAST;                             /* Speed oscillator up for TWI to work */
-        exit_delay = SHORT_EXIT_DLY;                    /* Short bootloader exit delay */
-        led_delay = SHORT_LED_DLY;                      /* Short led blinking delay */
+        //exit_delay = SHORT_EXIT_DLY;                  /* Short bootloader exit delay */
+        //led_delay = SHORT_LED_DLY;                    /* Short led blinking delay */
     } else {                               
         // Unknown clock source set in low fuse! the prescaler will be reset to 1 to use the external clock as is
         ResetPrescaler();                               /* If using an external CPU clock source, don't reduce its frequency */
@@ -165,14 +163,14 @@ int main(void) {
  #pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
  #if ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)               /* HF PLL (16 MHz) clock source */
   #pragma message "HF PLL (16 MHz) clock source selected ..."
-    exit_delay = LONG_EXIT_DLY;                         /* Long bootloader exit delay */
-    led_delay = LONG_LED_DLY;                           /* Long led blinking delay */
+    //exit_delay = LONG_EXIT_DLY;                       /* Long bootloader exit delay */
+    //led_delay = LONG_LED_DLY;                         /* Long led blinking delay */
  #elif ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)             /* RC oscillator (8 MHz) clock source */
   #pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;                    /* With 8 MHz clock source, preserve factory oscillator  */
     OSCCAL += OSC_FAST;                                 /* calibration and speed it up for TWI to work.          */
-    exit_delay = SHORT_EXIT_DLY;                        /* Short bootloader exit delay */
-    led_delay = SHORT_LED_DLY;                          /* Short led blinking delay */    
+    //exit_delay = SHORT_EXIT_DLY;                      /* Short bootloader exit delay */
+    //led_delay = SHORT_LED_DLY;                        /* Short led blinking delay */    
  #else                               
   #pragma GCC warning "INVALID LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
     ResetPrescaler();                                   /* If using an external CPU clock source, don't reduce its frequency */
@@ -231,6 +229,9 @@ int main(void) {
                     if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
                         OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
                     }
+                    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+                        RestorePrescaler();             /* Restore prescaler to divide by 8 */
+                    }                    
 #else
  #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
                     OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
@@ -253,6 +254,15 @@ int main(void) {
                         page_to_del -= SPM_PAGESIZE;
                         boot_page_erase(page_to_del);   /* Erase flash memory ... */
                     }
+#if AUTO_CLK_TWEAK
+                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                        OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
+                    }
+#else
+ #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
+                    OSCCAL = factory_osccal;            /* Back the oscillator calibration to its original setting */
+ #endif /* LOW_FUSE RC OSC */
+#endif /* AUTO_CLK_TWEAK */
 #if !(USE_WDT_RESET)
                     RestartTimonel();                   /* Restart by jumping to Timonel start */
 #else
@@ -334,6 +344,9 @@ int main(void) {
 #if AUTO_CLK_TWEAK
                     if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
                         OSCCAL = factory_osccal;        /* Back the oscillator calibration to its original setting */
+                    }
+                    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+                        RestorePrescaler();             /* Restore prescaler to divide by 8 */
                     }
 #else
  #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)
@@ -455,15 +468,18 @@ inline void ReceiveEvent(uint8_t received_bytes) {
                     reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     page_ix += 2;
                 }                
-            }
-            else {
+            } else {
                 for (uint8_t i = 1; i < (MST_PACKET_SIZE + 1); i += 2) {
                     boot_page_fill((page_addr + page_ix), ((command[i + 1] << 8) | command[i]));
                     reply[1] += (uint8_t)((command[i + 1]) + command[i]);
                     page_ix += 2;
                 }
             }
+#if CHECK_PAGE_IX
             if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (page_ix > SPM_PAGESIZE)) {
+#else
+            if (reply[1] != command[MST_PACKET_SIZE + 1]) {
+#endif /* CHECK_PAGE_IX */
                 flags |= (1 << FL_DEL_FLASH);                       /* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
@@ -518,14 +534,14 @@ inline void ReceiveEvent(uint8_t received_bytes) {
 }
 
 // Function ResetPrescaler
- void ResetPrescaler(void) {
+inline void ResetPrescaler(void) {
     // Set the CPU prescaler division factor to 1
     CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
     CLKPR = 0x00;                                                   /* Clock division factor 1 (0000) */
 }
 
 // Function RestorePrescaler
- void RestorePrescaler(void) {
+inline void RestorePrescaler(void) {
     // Set the CPU prescaler division factor to 8
     CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
     CLKPR = ((1 << CLKPS1) | (1 << CLKPS0));                        /* Clock division factor 8 (0011) */
@@ -595,8 +611,7 @@ inline void TwiStartHandler(void) {
     if (!(PIN_USI & (1 << PIN_USI_SDA))) {
         // ==> Stop condition NOT DETECTED
         SET_USI_TO_DETECT_TWI_RESTART();
-    }
-    else {
+    } else {
         // ==> Stop condition DETECTED
         SET_USI_TO_DETECT_TWI_START();
     }
@@ -629,8 +644,7 @@ inline bool UsiOverflowHandler(void) {
                     device_state = STATE_RECEIVE_DATA_BYTE;
                 }
                 SET_USI_TO_SEND_ACK();
-            }
-            else {
+            } else {
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
             }
             return false;
@@ -659,8 +673,7 @@ inline bool UsiOverflowHandler(void) {
                 // If the TX buffer has data, copy the next byte to USI data register for sending                
                 tx_tail = ((tx_tail + 1) & TWI_TX_BUFFER_MASK);
                 USIDR = tx_buffer[tx_tail];
-            }
-            else {
+            } else {
                 // If the buffer is empty ...
                 SET_USI_TO_RECEIVE_ACK();  /* This might be necessary (http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227) */
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();

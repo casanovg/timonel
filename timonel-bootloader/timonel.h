@@ -149,6 +149,10 @@
 #define CLEAR_BIT_7_R31 false       /* This is to avoid that the first bootloader instruction is skipped   */
                                     /* after restarting without an user application in memory. See:        */
                                     /* http://www.avrfreaks.net/comment/2561866#comment-2561866            */
+                                    
+#define CHECK_PAGE_IX   false       /* If this option is enabled, the page index size is checked to ensure */
+                                    /* that isn't bigger than SPM_PAGESIZE (usually 64 bytes). This keeps  */
+                                    /* the app data integrity in case the master sends wrong page sizes.   */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE         (_BV(__SPM_ENABLE) | _BV(CTPB))
@@ -215,7 +219,7 @@
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE  128
+#define TWI_RX_BUFFER_SIZE  64
 #endif /* TWI_RX_BUFFER_SIZE */
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
@@ -226,7 +230,7 @@
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE  128
+#define TWI_TX_BUFFER_SIZE  64
 #endif /* TWI_TX_BUFFER_SIZE */
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
