@@ -5,7 +5,7 @@
  *      | |_| | | | | |_| | | | | ____| |
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
- *  Timonel - TWI Bootloader for ATtiny85 MCUs
+ *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
  *  Version: 1.3 "Sandra" / 2019-06-06
