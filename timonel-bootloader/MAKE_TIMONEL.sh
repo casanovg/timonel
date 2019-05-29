@@ -29,33 +29,33 @@ ARG4=${4:-1}
 ARG5=${5:-false}
 
 case $ARG4 in
-	16)
-		# echo "";
-		# echo "Low fuse set for sixteen MHz internal clock source.";
-		LOW_FUSE=0xE1;
+    16)
+        # echo "";
+        # echo "Low fuse set for sixteen MHz internal clock source.";
+        LOW_FUSE=0xE1;
         CLK_SOURCE="HF PLL";
-		;;
-	8)
-		# echo "";
-		# echo "Low fuse set for eight MHz internal clock source.";
-		LOW_FUSE=0xE2;
+        ;;
+    8)
+        # echo "";
+        # echo "Low fuse set for eight MHz internal clock source.";
+        LOW_FUSE=0xE2;
         CLK_SOURCE="RC OSC";
-		;;
-	2)
-		# echo "";
-		# echo "Low fuse set for two MHz internal clock source.";
-		LOW_FUSE=0x61;
+        ;;
+    2)
+        # echo "";
+        # echo "Low fuse set for two MHz internal clock source.";
+        LOW_FUSE=0x61;
         CLK_SOURCE="HF PLL";
-		;;
-	1)
-		# echo "";
-		# echo "Low fuse set for one MHz internal clock source.";
-		LOW_FUSE=0x62;
+        ;;
+    1)
+        # echo "";
+        # echo "Low fuse set for one MHz internal clock source.";
+        LOW_FUSE=0x62;
         CLK_SOURCE="RC OSC";
-		;;
-	*)
-		echo ""
-		echo $"Usage: $0 firmware twi_address start_address {16|8|2|1}";
+        ;;
+    *)
+        echo ""
+        echo $"Usage: $0 firmware twi_address start_address {16|8|2|1}";
         exit 2;
 esac
 
