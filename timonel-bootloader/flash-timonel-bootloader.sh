@@ -17,28 +17,23 @@ HIGH_FUSE=0xDD;
 EXTENDED_FUSE=0xFE;
 
 case $ARG2 in
-	16)
-		# echo "";
+	16) # echo "";
 		# echo "Low fuse set for sixteen MHz internal clock source.";
 		LOW_FUSE=0xE1;
 		;;
-	8)
-		# echo "";
+	8)  # echo "";
 		# echo "Low fuse set for eight MHz internal clock source.";
 		LOW_FUSE=0xE2;
 		;;
-	2)
-		# echo "";
+	2)	# echo "";
 		# echo "Low fuse set for two MHz internal clock source.";
 		LOW_FUSE=0x61;
 		;;
-	1)
-		# echo "";
+	1)	# echo "";
 		# echo "Low fuse set for one MHz internal clock source.";
 		LOW_FUSE=0x62;
 		;;
-	*)
-		echo ""
+	*)	echo ""
 		echo $"Usage: $0 firmware {16|8|2|1}";
         exit 2;
 esac

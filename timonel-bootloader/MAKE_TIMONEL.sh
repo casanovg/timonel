@@ -55,7 +55,7 @@ case $ARG4 in
         ;;
     *)
         echo ""
-        echo $"Usage: $0 firmware twi_address start_address {16|8|2|1}";
+        echo $"Usage: $0 firmware twi_address start_address {16|8|2|1} ";
         exit 2;
 esac
 
