@@ -6,7 +6,7 @@
 #
 
 CONFIG ?= tml-t85-std
-SETUPS ?= setups
+CFG_DIR ?= configs
 
 ##########################################################
 # Configure the following variables according to your AVR.
@@ -19,7 +19,7 @@ SETUPS ?= setups
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 CFLAGS =
-CONFIGPATH = $(SETUPS)/$(CONFIG)
+CONFIGPATH = $(CFG_DIR)/$(CONFIG)
 include $(CONFIGPATH)/tml-config.mak
 
 ##########################################################
@@ -32,7 +32,7 @@ ifeq ($(TARGET),)
 endif
 
 ifeq ($(TARGET),)
-	TIMONEL_TWI_ADDR = 8
+	TIMONEL_TWI_ADDR = 11
 endif
 
 ifeq ($(TARGET),)
