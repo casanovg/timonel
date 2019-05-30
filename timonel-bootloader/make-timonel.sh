@@ -23,17 +23,19 @@
 # ARG5: LOW_FUSE clock adjustments. Valid options = 16, 8, 2, 1. Default [ ARG5=${5:-1} ]
 # ARG6: Automatic clock tweaking. When is enabled, it overrides LOW_FUSE value. Default [ ARG6=${6:-false} ]
 
-ARG1=${1:-tml-t85-std};
+BIN_DIR="releases";
+CFG_DIR="configs";
+CFG_DFT="tml-t85-std"
+TML_CFG="tml-config.mak";
+HEX_SFX=".hex";
+MAK_OPT="";
+
+ARG1=${1:-$CFG_DFT};
 ARG2=$2;    # ARG2=${2:-timonel};
 ARG3=$3;    # ARG3=${3:-13};
 ARG4=$4;    # ARG4=${4:-1B80};
 ARG5=$5;    # ARG5=${5:-1};
 ARG6=$6;    # ARG6=${6:-false};
-
-BIN_DIR="releases";
-CFG_DIR="configs";
-TML_CFG="tml-config.mak";
-MAK_OPT="";
 
 function print_help {
     echo "";
@@ -54,8 +56,8 @@ function print_help {
     echo "              run time. Valid options: false-true (Def=false).";    
     echo "";
     echo "Options:";
-    echo "  -h --a -help --help     Prints this help.";
-    echo "  -a --a -all --all       Generates all Timonel configurations.";    
+    echo "  -h --help   Prints this help.";
+    echo "  -a --all    Generates all Timonel configurations.";    
     echo "";
     echo "Examples:";
     echo "  $" $0;
@@ -72,7 +74,7 @@ function print_help {
     echo "  and disabling automatic clock tweaking.";
 }
 
-case $ARG1 in
+case ${ARG1} in
     -h|-help|--h|--help)
         print_help;
         exit;
@@ -82,27 +84,27 @@ case $ARG1 in
         echo "******************************************************"
         echo "* Starting compilation of all Timonel configurations *"
         echo "******************************************************"
-        for TML_CFG in `ls -l $CFG_DIR | awk '{print $9}'`; do
+        for TML_CFG in `ls -l ${CFG_DIR} | awk '{print $9}'`; do
             echo "";
             echo "MAKING ->" ${TML_CFG};
             echo "";
             make all CONFIG=${TML_CFG} TARGET=${TML_CFG};
-            mv ${TML_CFG}.hex ./$BIN_DIR;
+            mv ${TML_CFG}${HEX_SFX} ./$BIN_DIR;
             make clean_all CONFIG=${TML_CFG} TARGET=${TML_CFG};
         done
         exit;
         ;;
     *)
-        if [ ! -f "./$CFG_DIR/$ARG1/$TML_CFG" ]; then
+        if [ ! -f "./${CFG_DIR}/${ARG1}/${TML_CFG}" ]; then
             echo "";
-            echo "Configuration \"$ARG1\" not found in \"$CFG_DIR\" directory!";
+            echo "Configuration \"${ARG1}\" not found in \"${CFG_DIR}\" directory!";
             exit 1;
         fi
         ;;
 esac
 
-if [ ! -z "$ARG5" ]; then
-    case $ARG5 in
+if [ ! -z "${ARG5}" ]; then
+    case ${ARG5} in
         16)
             # echo "";
             # echo "Low fuse set for sixteen MHz internal clock source.";
@@ -132,9 +134,6 @@ if [ ! -z "$ARG5" ]; then
             exit 2;
             ;;
     esac
-# else
-    # LOW_FUSE=0x62;
-    # CLK_SOURCE="RC OSC";    
 fi
 
 echo "";
@@ -148,23 +147,23 @@ if [ ! -z "$ARG1" ]; then
 fi
 if [ ! -z "$ARG2" ]; then
     MAK_OPT+=" TARGET=$ARG2";
-    echo "*      Binary file: $ARG2.hex";
+    echo "*      Binary file: ${ARG2}${HEX_SFX}";
 fi
 if [ ! -z "$ARG3" ]; then
     MAK_OPT+=" TIMONEL_TWI_ADDR=$ARG3";
-    echo "*      TWI address: $ARG3";
+    echo "*      TWI address: ${ARG3}";
 fi
 if [ ! -z "$ARG4" ]; then
     MAK_OPT+=" TIMONEL_START=$ARG4";
-    echo "*   Flash position: $ARG4 <- use lower positions if make errors pop up below";
+    echo "*   Flash position: ${ARG4} <- use lower positions if make errors pop up below";
 fi
 if [ ! -z "$ARG5" ]; then
     MAK_OPT+=" LOW_FUSE=$LOW_FUSE";
-    echo "*  CPU clock speed: $ARG5 MHz <- $CLK_SOURCE (low fuse = $LOW_FUSE)";
+    echo "*  CPU clock speed: $ARG5 MHz <- ${CLK_SOURCE} (low fuse = ${LOW_FUSE})";
 fi
 if [ ! -z "$ARG6" ]; then
     MAK_OPT+=" AUTO_CLK_TWEAK=$ARG6";
-    echo "* Auto clock tweak: $ARG6";
+    echo "* Auto clock tweak: ${ARG6}";
 fi
 
 echo "**************************************************************************";
@@ -172,7 +171,7 @@ echo "";
 
 make clean_all;
 make clean_all CONFIG=$ARG1 TARGET=$ARG2;
-echo "RUNNING: make all $MAK_OPT";
+echo "RUNNING: make all ${MAK_OPT}";
 echo "";
 make all $MAK_OPT;
 # make all CONFIG=$ARG1
@@ -181,5 +180,5 @@ make all $MAK_OPT;
          # TIMONEL_START=$ARG4
          # LOW_FUSE=$LOW_FUSE
          # AUTO_CLK_TWEAK=$ARG5
-cp *.hex $BIN_DIR;
+cp *${HEX_SFX} ${BIN_DIR};
 make clean_all CONFIG=$ARG1 TARGET=$ARG2;
