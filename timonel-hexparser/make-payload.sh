@@ -5,7 +5,7 @@
 # This script generates Application Payloads to be included  #
 # into the i2cmaster source code before compiling it.        #
 # .......................................................... #
-# 2018-09-09 Gustavo Casanova                                #
+# 2018-12-04 Gustavo Casanova                                #
 # .......................................................... #
 # From Linux: it runs directly.                              #
 # From Windows/Mac: you need to install the Git Bash tool    #

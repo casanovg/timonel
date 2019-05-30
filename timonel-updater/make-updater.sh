@@ -5,7 +5,7 @@
 # This script generates Timonel bootloader updates that are  #
 # flashable through Timonel itself.                          #
 # .......................................................... #
-# 2018-09-09 Gustavo Casanova                                #
+# 2019-01-16 Gustavo Casanova                                #
 # .......................................................... #
 # From Linux: it runs directly.                              #
 # From Windows/Mac: you need to install the Git Bash tool    #
@@ -13,9 +13,15 @@
 #                                                            #
 ##############################################################
 
+# Command line arguments
+# ----------------------
+# ARG1: Timonel configuration file. Default [ ARG1=${1:-tml-t85-std} ]
+
+ARG1=${1:-tml-t85-std};
+
 # 1) If there is no Timonel bootloader .hex, we make a new one ...
 cd ../timonel-bootloader
-./MAKE_TIMONEL.sh
+./make-timonel.sh $ARG1
 # 2) We generate the Timonel+Updater .hex from the Timonel's .hex.
 #    This file is placed in the "flashable-releases" folder and is
 #    intended to be flashed with an AVR programmer (e.g. USBasp).
