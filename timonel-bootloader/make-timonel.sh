@@ -89,7 +89,7 @@ case ${ARG1} in
             echo "MAKING ->" ${TML_CFG};
             echo "";
             make all CONFIG=${TML_CFG} TARGET=${TML_CFG};
-            mv ${TML_CFG}${HEX_SFX} ./$BIN_DIR;
+            mv ${TML_CFG}${HEX_SFX} ./${BIN_DIR};
             make clean_all CONFIG=${TML_CFG} TARGET=${TML_CFG};
         done
         exit;
@@ -142,27 +142,27 @@ echo "* Starting Timonel compilation with these parameters: ";
 echo "* --------------------------------------------------- ";
 echo "*    Configuration: $ARG1";
 
-if [ ! -z "$ARG1" ]; then
-    MAK_OPT+="CONFIG=$ARG1";
+if [ ! -z "${ARG1}" ]; then
+    MAK_OPT+="CONFIG=${ARG1}";
 fi
-if [ ! -z "$ARG2" ]; then
-    MAK_OPT+=" TARGET=$ARG2";
+if [ ! -z "${ARG2}" ]; then
+    MAK_OPT+=" TARGET=${ARG2}";
     echo "*      Binary file: ${ARG2}${HEX_SFX}";
 fi
-if [ ! -z "$ARG3" ]; then
-    MAK_OPT+=" TIMONEL_TWI_ADDR=$ARG3";
+if [ ! -z "${ARG3}" ]; then
+    MAK_OPT+=" TIMONEL_TWI_ADDR=${ARG3}";
     echo "*      TWI address: ${ARG3}";
 fi
-if [ ! -z "$ARG4" ]; then
-    MAK_OPT+=" TIMONEL_START=$ARG4";
+if [ ! -z "${ARG4}" ]; then
+    MAK_OPT+=" TIMONEL_START=${ARG4}";
     echo "*   Flash position: ${ARG4} <- use lower positions if make errors pop up below";
 fi
-if [ ! -z "$ARG5" ]; then
-    MAK_OPT+=" LOW_FUSE=$LOW_FUSE";
-    echo "*  CPU clock speed: $ARG5 MHz <- ${CLK_SOURCE} (low fuse = ${LOW_FUSE})";
+if [ ! -z "${ARG5}" ]; then
+    MAK_OPT+=" LOW_FUSE=${LOW_FUSE}";
+    echo "*  CPU clock speed: ${ARG5} MHz <- ${CLK_SOURCE} (low fuse = ${LOW_FUSE})";
 fi
-if [ ! -z "$ARG6" ]; then
-    MAK_OPT+=" AUTO_CLK_TWEAK=$ARG6";
+if [ ! -z "${ARG6}" ]; then
+    MAK_OPT+=" AUTO_CLK_TWEAK=${ARG6}";
     echo "* Auto clock tweak: ${ARG6}";
 fi
 
@@ -170,15 +170,9 @@ echo "**************************************************************************
 echo "";
 
 make clean_all;
-make clean_all CONFIG=$ARG1 TARGET=$ARG2;
+make clean_all ${MAK_OPT};
 echo "RUNNING: make all ${MAK_OPT}";
 echo "";
-make all $MAK_OPT;
-# make all CONFIG=$ARG1
-         # TARGET=$ARG2
-         # TIMONEL_TWI_ADDR=$ARG3
-         # TIMONEL_START=$ARG4
-         # LOW_FUSE=$LOW_FUSE
-         # AUTO_CLK_TWEAK=$ARG5
+make all ${MAK_OPT};
 cp *${HEX_SFX} ${BIN_DIR};
-make clean_all CONFIG=$ARG1 TARGET=$ARG2;
+make clean_all ${MAK_OPT};
