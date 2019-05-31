@@ -31,15 +31,19 @@ ifeq ($(TARGET),)
 	TARGET = timonel
 endif
 
-ifeq ($(TIMONEL_TWI_ADDR),)
+ifeq ($(TARGET),)
 	TIMONEL_TWI_ADDR = 11
 endif
 
-ifeq ($(TIMONEL_START),)
+ifeq ($(TARGET),)
 	TIMONEL_START = 1B00
 endif
 
-ifeq ($(LOW_FUSE),)
+ifeq ($(TARGET),)
+	LOW_FUSE = 0x62
+endif
+
+ifeq ($(TARGET),)
 	LOW_FUSE = 0x62
 endif
 # End of command line parameters
