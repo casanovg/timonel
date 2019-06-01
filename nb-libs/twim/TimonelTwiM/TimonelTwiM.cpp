@@ -114,6 +114,9 @@ byte Timonel::DeleteApplication(void) {
 */
 // Upload an user application to a microcontroller running Timonel
 byte Timonel::UploadApplication(byte payload[], int payload_size, const int start_address) {
+    // .....................................
+    // ...... Function initialization ......
+    // .....................................
     byte packet_ix = 0;                         /* TWI (I2C) data packet internal byte index */
     byte padding = 0;                           /* Padding byte quantity to add to match the page size */
     byte page_end = 0;                          /* Byte counter to detect the end of flash mem page */
@@ -123,16 +126,15 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r");
 #endif /* DEBUG_LEVEL */
-    // .....................................
-    // ..     Function initialization     ..
-    // .....................................
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
 #pragma GCC warning "Address manipulation code included in Timonel::UploadApplication!"
-    /////////////////////////////////////////////////////////////////////////////
-    ////            ONLY WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED             ////
-    /////////////////////////////////////////////////////////////////////////////
+    // ..........................................................................
+    // .......vvv.. ONLY WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED ..vvv...........
+    // ..........................................................................
     if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If AUTO_PAGE_ADDR is disabled */
-        if (start_address >= PAGE_SIZE) {                    /* If application start address is not 0 */
+        // <-------------------------------------------->
+        // If application start address is not 0
+        if (start_address >= PAGE_SIZE) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
@@ -140,13 +142,14 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             twi_errors += SetPageAddress(start_address); /* Calculate and fill reset page */
             delay(DLY_FLASH_PG);
         }
+        // <-------------------------------------------->
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X (addresses set by TWI master) ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
-        // If AUTO_PAGE_ADDR feature is disabled in Timonel device
+        // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         if (payload_size <= status_.bootloader_start - PAGE_SIZE) {
             // If the user application does NOT EXTEND to the trampoline page, prepare
-            // the page as usual (filled with 0xFF + 2 trampoline bytes at the end)
+            // the page as usual (filled with 0xFF + 2 trampoline bytes at the end)            
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't use trampoline page ...\n\r", __func__);
 #endif                                                                           /* DEBUG_LEVEL */
@@ -154,17 +157,19 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             twi_errors += SetPageAddress(start_address);
         } else {
             // If the user application EXTENDS also to the trampoline page, fill it
-            // with app data and overwrite the last 2 bytes with the trampoline
-            // NOTE: the app will work if it doesn't extend up to the last 2 page
-            // bytes, otherwise it will fail due to the trampoline overwriting
-            if (payload_size <= status_.bootloader_start) {
+            // with app data and overwrite the last 2 bytes with the trampoline.
+            // NOTE: the application will work if it doesn't extend up to the last 2
+            // trampoline page bytes, otherwise it will not be possible to load it.
+            if (payload_size <= (status_.bootloader_start - TRAMPOLINE_LEN) {
+                // The application fits, overwrite the trampoline bytes
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Application uses trampoline page ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
                 word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
                 payload[payload_size - 2] = (byte)(tpl & 0xFF);
                 payload[payload_size - 1] = (byte)((tpl >> 8) & 0xFF);
-            } else { /* if the application overlaps the bootloader */
+            } else {
+                // If the application overlaps the trampoline bytes, exit with error
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Application doesn't fit in flash memory ...\n\r", __func__);
                 USE_SERIAL.printf_P("[%s] Bootloader start: %d\n\r", __func__, status_.bootloader_start);
@@ -175,15 +180,16 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
                 return (2);
             }
         }
+        // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         delay(DLY_FLASH_PG);
     } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))        
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */        
     }
-    /////////////////////////////////////////////////////////////////////////////
-    ////         END OF ONLY WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED         ////
-    /////////////////////////////////////////////////////////////////////////////
+    // ..........................................................................
+    // .....^^^.. END OF ONLY WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED ..^^^......
+    // ..........................................................................
 #else
 #pragma GCC warning "Address manipulation code NOT INCLUDED in Timonel::UploadApplication!"
 #endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
@@ -193,7 +199,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         payload_size += padding;
     }
     // .....................................
-    // ..     Application upload loop     ..
+    // ...... Application upload loop ......
     // .....................................    
     for (int i = 0; i < payload_size; i++) {
         // If there are payload unsent data, place them in a data packet

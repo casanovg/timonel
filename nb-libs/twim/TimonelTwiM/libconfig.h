@@ -82,6 +82,7 @@
 // Timonel::UploadApplication defs
 #define DLY_PKT_SEND 10     /* Delay after sending a data packet */
 #define DLY_FLASH_PG 100    /* Delay to allow memory page flashing */
+#define TRAMPOLINE_LEN 2    /* Trampoline length: two-byte address to jump to the app */
 // End Timonel::UploadApplication defs
 
 // Timonel::DeleteApplication defs
