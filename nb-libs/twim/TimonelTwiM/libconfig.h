@@ -45,7 +45,7 @@
 #define S_CHECK_EMPTY_FL 10 /* Status: Check empty flash value byte position */
 // *** Features byte (8 bits)
 #define F_ENABLE_LED_UI 0   /* Features 1 (1)  : LED UI enabled */
-#define F_AUTO_TPL_CALC 1   /* Features 2 (2)  : Automatic trampoline and addr handling */
+#define F_AUTO_PAGE_ADDR 1   /* Features 2 (2)  : Automatic trampoline and addr handling */
 #define F_APP_USE_TPL_PG 2  /* Features 3 (4)  : Application can use trampoline page */
 #define F_CMD_SETPGADDR 3   /* Features 4 (8)  : Set page address command enabled */
 #define F_TWO_STEP_INIT 4   /* Features 5 (16) : Two-step initialization required */

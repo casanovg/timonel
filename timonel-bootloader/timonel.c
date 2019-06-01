@@ -312,10 +312,8 @@ int main(void) {
                         }
                     }
 #endif /* APP_USE_TPL_PG */
-#endif /* AUTO_PAGE_ADDR */
-#if !(CMD_SETPGADDR)
                     page_addr += SPM_PAGESIZE;
-#endif /* !CMD_SETPGADDR */
+#endif /* AUTO_PAGE_ADDR */
                     page_ix = 0;
                 }
             }
