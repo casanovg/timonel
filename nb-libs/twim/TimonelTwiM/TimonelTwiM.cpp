@@ -160,7 +160,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             // with app data and overwrite the last 2 bytes with the trampoline.
             // NOTE: the application will work if it doesn't extend up to the last 2
             // trampoline page bytes, otherwise it will not be possible to load it.
-            if (payload_size <= (status_.bootloader_start - TRAMPOLINE_LEN) {
+            if (payload_size <= (status_.bootloader_start - TRAMPOLINE_LEN)) {
                 // The application fits, overwrite the trampoline bytes
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Application uses trampoline page ...\n\r", __func__);
