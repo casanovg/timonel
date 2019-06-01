@@ -129,7 +129,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
 #pragma GCC warning "Address manipulation code included in Timonel::UploadApplication!"
     /////////////////////////////////////////////////////////////////////////////
-    ////  ONLY IF REQUESTED BY AUTO_PAGE_ADDR FEATURE (WHEN ISN'T ENABLED)   ////
+    ////           ONLY IF WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED           ////
     /////////////////////////////////////////////////////////////////////////////
     if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If AUTO_PAGE_ADDR is disabled */
         if (start_address >= PAGE_SIZE) {                    /* If application start address is not 0 */
@@ -182,7 +182,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #endif /* DEBUG_LEVEL */        
     }
     /////////////////////////////////////////////////////////////////////////////
-    //// END OF ONLY IF REQUESTED BY CMD_STPGADDR AND AUTO_PAGE_ADDR FEATURES ////
+    ////       END OF ONLY IF WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED        ////
     /////////////////////////////////////////////////////////////////////////////
 #else
 #pragma GCC warning "Address manipulation code NOT INCLUDED in Timonel::UploadApplication!"
