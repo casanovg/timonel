@@ -123,16 +123,12 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r");
 #endif /* DEBUG_LEVEL */
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true))
+#if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
 #pragma GCC warning "Address manipulation code included in Timonel::UploadApplication!"
     /////////////////////////////////////////////////////////////////////////////
-    ////    ONLY IF REQUESTED BY CMD_STPGADDR AND AUTO_PAGE_ADDR FEATURES     ////
+    ////  ONLY IF REQUESTED BY AUTO_PAGE_ADDR FEATURE (WHEN ISN'T ENABLED)   ////
     /////////////////////////////////////////////////////////////////////////////
-    // If CMD_STPGADDR feature is enabled in Timonel device
-    // ---- TODO: Replace below condition by this one ---> (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true))
-    // This section is dependant on the Timonel impossibility of calculating mem addresses, not on
-    // the set page address command. This one MUST be enabled when AUTO_PAGE_ADDR is disabled
-    if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If AUTO_PAGE_ADDR is enabled */
+    if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If AUTO_PAGE_ADDR is disabled */
         if (start_address >= PAGE_SIZE) {                    /* If application start address is not 0 */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
@@ -147,7 +143,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         // If AUTO_PAGE_ADDR feature is disabled in Timonel device
         if (payload_size <= status_.bootloader_start - PAGE_SIZE) {
             // If the user application does NOT EXTEND to the trampoline page, prepare
-            // the page it as usual (filled with 0xFF + 2 trampoline bytes at the end)
+            // the page as usual (filled with 0xFF + 2 trampoline bytes at the end)
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't use trampoline page ...\n\r", __func__);
 #endif                                                                           /* DEBUG_LEVEL */
@@ -230,7 +226,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P(" P%d ", page_count);
 #endif /* DEBUG_LEVEL */
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
+#if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
             if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If CMD_STPGADDR is enabled in Timonel, add a 100 ms */
                 delay(DLY_FLASH_PG);                                 /* delay to allow memory flashing, then set the next   */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))                    /* page address before sending new data.               */
