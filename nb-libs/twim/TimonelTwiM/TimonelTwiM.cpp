@@ -123,6 +123,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r");
 #endif /* DEBUG_LEVEL */
+    // .....................................
+    // ..     Function initialization     ..
+    // .....................................
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
 #pragma GCC warning "Address manipulation code included in Timonel::UploadApplication!"
     /////////////////////////////////////////////////////////////////////////////
@@ -189,6 +192,9 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
         payload_size += padding;
     }
+    // .....................................
+    // ..     Application upload loop     ..
+    // .....................................    
     for (int i = 0; i < payload_size; i++) {
         // If there are payload unsent data, place them in a data packet
         if (i < (payload_size - padding)) {
