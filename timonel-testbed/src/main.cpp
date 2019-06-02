@@ -91,14 +91,16 @@ void loop() {
                 Timonel tml(twi_address);
                 PrintStatus(tml);
                 break;
-            }            
+            }
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
             case '4': {
                 Timonel tml(twi_address);
                 tml.DumpMemory(MCU_TOTAL_MEM, SLV_PACKET_SIZE, VALUES_PER_LINE);
                 //tml.DumpMemory(MCU_TOTAL_MEM, 32, VALUES_PER_LINE);
                 new_byte = false;
                 break;
-            }            
+            }
+#endif /* FEATURES_CODE >> F_CMD_READFLASH */
             // *********************************
             // * Test App ||| RESETINY Command *
             // *********************************
