@@ -10,6 +10,19 @@
  */
 
 /*
+
+NOTE:
+=====
+With the current code, when the bootloader is configured to calculate the pages
+addresses being uploaded (AUTO_PAGE_ADDR), it does not refuse to write applications
+with sizes that exceed the memory address of the trampoline, it simply ignores all
+the data that is found above that direction. The problem this can cause is that
+incomplete applications can remain flashed in memory and, if they're executed, it
+could compromise the integrity of the bootloader.
+
+*/
+
+/*
  *****************************************************************************
  * Please do NOT modify this file directly, change "tml-config.mak" instead! *
  *****************************************************************************
