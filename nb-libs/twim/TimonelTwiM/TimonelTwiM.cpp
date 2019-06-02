@@ -161,7 +161,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
-                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (status_.bootloader_start + TRAMPOLINE_LEN) - payload_size);
+                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - status_.bootloader_start + TRAMPOLINE_LEN));
 #endif /* DEBUG_LEVEL */
                 return (2);
         }

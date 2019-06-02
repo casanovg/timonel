@@ -315,7 +315,25 @@ int main(void) {
                     page_addr += SPM_PAGESIZE;
 #endif /* AUTO_PAGE_ADDR */
                     page_ix = 0;
-				}			
+				}
+// **************************************************************
+// * INVESTIGATE THIS CODE *************************************			
+// **************************************************************
+#if DELETE_OVF_APP
+				else {
+#if (APP_USE_TPL_PG || !(AUTO_PAGE_ADDR))                
+                if (page_addr >= TIMONEL_START) {
+#else
+                if (page_addr >= TIMONEL_START - SPM_PAGESIZE) {
+#endif /* APP_USE_TPL_PG || !(AUTO_PAGE_ADDR) */					
+						// The application is too big for this setup, erase it! 
+                        flags |= (1 << FL_DEL_FLASH);
+					}
+				}
+#endif /* DELETE_OVF_APP */
+// **************************************************************
+// * END OF CODE TO INVESTIGATE ********************************			
+// **************************************************************
             }
         } else {
             // ======================================
