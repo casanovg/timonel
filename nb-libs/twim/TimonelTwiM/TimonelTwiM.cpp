@@ -146,7 +146,6 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X (addresses set by TWI master) ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
-        // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) {
             // If the user application fits in memory (higher position to use = bootloader_start - 2
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
@@ -165,7 +164,6 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #endif /* DEBUG_LEVEL */
                 return ERR_APP_OVF_AU;
         }
-        // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         delay(DLY_FLASH_PG);
     } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))        
