@@ -134,7 +134,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) { /* If AUTO_PAGE_ADDR is disabled */
         // <-------------------------------------------->
         // If application start address is not 0
-        if (start_address >= PAGE_SIZE) {
+        if (start_address >= SPM_PAGESIZE) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Application doesn't start at 0, fixing reset vector to jump to Timonel ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
@@ -147,30 +147,44 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X (addresses set by TWI master) ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
         // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
-        if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) { /* Coconut */
+        if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) {
             // If the user application fits in memory (higher position to use = bootloader_start - 2
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-            USE_SERIAL.printf_P("[%s] Application fits! Coconut! ...\n\r", __func__);
+            USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR flash memory, uploading ...\n\r", __func__, payload_size);
 #endif                                                                           /* DEBUG_LEVEL */
             twi_errors += FillSpecialPage(TPL_PAGE, payload[1], payload[0]); /* Calculate and fill trampoline page */
             twi_errors += SetPageAddress(start_address);
         } else {
             // If the application overlaps the trampoline bytes, exit with error!
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Warning! Application doesn't fit in flash memory ...\n\r", __func__);
+                USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory ...\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
-                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - status_.bootloader_start + TRAMPOLINE_LEN));
+                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start + TRAMPOLINE_LEN)));
 #endif /* DEBUG_LEVEL */
-                return (2);
+                return ERR_APP_OVF_AU;
         }
         // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         delay(DLY_FLASH_PG);
     } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))        
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
-#endif /* DEBUG_LEVEL */        
+#endif /* DEBUG_LEVEL */
+        if (payload_size <= status_.bootloader_start - SPM_PAGESIZE) {
+#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+            USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR flash memory with current Timonel setup, uploading ...\n\r", __func__, payload_size);
+#endif             
+        } else {
+#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+            USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
+            USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
+            USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
+            USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
+            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start + SPM_PAGESIZE)));
+#endif /* DEBUG_LEVEL */            
+            return ERR_APP_OVF_MC;
+        }
     }
     // ..........................................................................
     // .....^^^.. END OF ONLY WHEN AUTO_PAGE_ADDR FEATURE IS DISABLED ..^^^......
@@ -179,8 +193,8 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #pragma GCC warning "Address manipulation code NOT INCLUDED in Timonel::UploadApplication!"
 #endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
     // If the payload doesn't use an exact number of pages, resize it to fit padding data
-    if ((payload_size % PAGE_SIZE) != 0) {
-        padding = ((((int)(payload_size / PAGE_SIZE) + 1) * PAGE_SIZE) - payload_size);
+    if ((payload_size % SPM_PAGESIZE) != 0) {
+        padding = ((((int)(payload_size / SPM_PAGESIZE) + 1) * SPM_PAGESIZE) - payload_size);
         payload_size += padding;
     }
     // .....................................
@@ -219,7 +233,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #endif /* DEBUG_LEVEL */
             return twi_errors;
         }
-        if (page_end++ == (PAGE_SIZE - 1)) { /* When a page end is detected ... */
+        if (page_end++ == (SPM_PAGESIZE - 1)) { /* When a page end is detected ... */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P(" P%d ", page_count);
 #endif /* DEBUG_LEVEL */
@@ -229,7 +243,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))                    /* page address before sending new data.               */
                                                                      //USE_SERIAL.printf_P("\n\r");
 #endif                                                               /* DEBUG_LEVEL */
-                twi_errors += SetPageAddress(start_address + (page_count * PAGE_SIZE));
+                twi_errors += SetPageAddress(start_address + (page_count * SPM_PAGESIZE));
             }
 #endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
             // ......................................................................
@@ -503,10 +517,10 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Type %d: Calculate the trampoline and fill the page with 0xFF + 2-byte jump address ...\n\r", __func__, page_type);
 #endif /* DEBUG_LEVEL */
-            address = status_.bootloader_start - (PAGE_SIZE);
+            address = status_.bootloader_start - (SPM_PAGESIZE);
             word tpl = CalculateTrampoline(status_.bootloader_start, ((app_reset_msb << 8) | app_reset_lsb));
-            special_page[PAGE_SIZE - 1] = (byte)((tpl >> 8) & 0xFF);
-            special_page[PAGE_SIZE - 2] = (byte)(tpl & 0xFF);
+            special_page[SPM_PAGESIZE - 1] = (byte)((tpl >> 8) & 0xFF);
+            special_page[SPM_PAGESIZE - 2] = (byte)(tpl & 0xFF);
             break;
         }
         default: {
@@ -516,7 +530,7 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
     }
     twi_errors += SetPageAddress(address);
     delay(DLY_SET_ADDR);
-    for (byte i = 0; i < PAGE_SIZE; i++) {
+    for (byte i = 0; i < SPM_PAGESIZE; i++) {
         data_packet[packet_ix] = special_page[i];
         if (packet_ix++ == (MST_PACKET_SIZE - 1)) {
             for (int j = 0; j < MST_PACKET_SIZE; j++) {
