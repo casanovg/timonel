@@ -11,8 +11,8 @@
 
 /*
 
-NOTE:
-=====
+NOTE (2019-02-06):
+==================
 With the current code, when the bootloader is configured to calculate the pages
 addresses being uploaded (AUTO_PAGE_ADDR), it does not refuse to write applications
 with sizes that exceed the memory address of the trampoline, it simply ignores all
