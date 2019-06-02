@@ -20,6 +20,12 @@ the data that is found above that direction. The problem this can cause is that
 incomplete applications can remain flashed in memory and, if they're executed, it
 could compromise the integrity of the bootloader.
 
+For the moment, we'll try to solve this problem from the TWI master, making an
+application size control before uploading it, so as not to continue adding control
+code to the bootloader. Probably in future revisions, an optional feature will be
+added to the bootloader so that also makes this control. This is to protect itself
+in case there are errors in the TWI master code.
+
 */
 
 /*
