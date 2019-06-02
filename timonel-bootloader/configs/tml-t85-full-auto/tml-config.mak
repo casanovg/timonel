@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard: Page address calculation and WDT reset enabled
+# Configuration:   Full: Auto CLK + All features enabled, except APP_USE_TPL_PG and CHECK_EMPTY_FL
 
 MCU = attiny85
 
@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1B80
+TIMONEL_START = 1A00
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -29,16 +29,16 @@ TIMONEL_TWI_ADDR = 11
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = false
+ENABLE_LED_UI  = true
 AUTO_PAGE_ADDR = true
 APP_USE_TPL_PG = false
-CMD_SETPGADDR  = false
-TWO_STEP_INIT  = false
+CMD_SETPGADDR  = true
+TWO_STEP_INIT  = true
 USE_WDT_RESET  = true
 CHECK_EMPTY_FL = false
-CMD_READFLASH  = false
+CMD_READFLASH  = true
 # Warning: Please modify the below options with caution ...
-AUTO_CLK_TWEAK = false
+AUTO_CLK_TWEAK = true
 LOW_FUSE       = 0x62
 LED_UI_PIN     = PB1
 

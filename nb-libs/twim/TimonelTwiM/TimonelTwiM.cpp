@@ -147,38 +147,23 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X (addresses set by TWI master) ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
         // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
-        if (payload_size <= status_.bootloader_start - PAGE_SIZE) {
-            // If the user application does NOT EXTEND to the trampoline page, prepare
-            // the page as usual (filled with 0xFF + 2 trampoline bytes at the end)            
+        if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) { /* Coconut */
+            // If the user application fits in memory (higher position to use = bootloader_start - 2
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-            USE_SERIAL.printf_P("[%s] Application doesn't use trampoline page ...\n\r", __func__);
+            USE_SERIAL.printf_P("[%s] Application fits! Coconut! ...\n\r", __func__);
 #endif                                                                           /* DEBUG_LEVEL */
             twi_errors += FillSpecialPage(TPL_PAGE, payload[1], payload[0]); /* Calculate and fill trampoline page */
             twi_errors += SetPageAddress(start_address);
         } else {
-            // If the user application EXTENDS also to the trampoline page, fill it
-            // with app data and overwrite the last 2 bytes with the trampoline.
-            // NOTE: the application will work if it doesn't extend up to the last 2
-            // trampoline page bytes, otherwise it will not be possible to load it.
-            if (payload_size <= (status_.bootloader_start - TRAMPOLINE_LEN)) {
-                // The application fits, overwrite the trampoline bytes
+            // If the application overlaps the trampoline bytes, exit with error!
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Application uses trampoline page ...\n\r", __func__);
-#endif /* DEBUG_LEVEL */
-                word tpl = CalculateTrampoline(status_.bootloader_start, payload[1] | payload[0]);
-                payload[payload_size - 2] = (byte)(tpl & 0xFF);
-                payload[payload_size - 1] = (byte)((tpl >> 8) & 0xFF);
-            } else {
-                // If the application overlaps the trampoline bytes, exit with error
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Application doesn't fit in flash memory ...\n\r", __func__);
-                USE_SERIAL.printf_P("[%s] Bootloader start: %d\n\r", __func__, status_.bootloader_start);
-                USE_SERIAL.printf_P("[%s] Application size: %d\n\r", __func__, payload_size);
-                USE_SERIAL.printf_P("[%s] ----------------------\n\r", __func__);
-                USE_SERIAL.printf_P("[%s]    Overflow size: %d\n\r", __func__, payload_size - status_.bootloader_start);
+                USE_SERIAL.printf_P("[%s] Warning! Application doesn't fit in flash memory ...\n\r", __func__);
+                USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
+                USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
+                USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
+                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (status_.bootloader_start + TRAMPOLINE_LEN) - payload_size);
 #endif /* DEBUG_LEVEL */
                 return (2);
-            }
         }
         // (~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~)
         delay(DLY_FLASH_PG);
@@ -516,7 +501,7 @@ byte Timonel::FillSpecialPage(const byte page_type, const byte app_reset_msb, co
         }
         case TPL_PAGE: { /* Special page type 2: Trampoline Page (addr: TIMONEL_START - 64) */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-            USE_SERIAL.printf_P("[%s] Type %d: Calculating the trampoline address and filling the last page ...\n\r", __func__, page_type);
+            USE_SERIAL.printf_P("[%s] Type %d: Calculate the trampoline and fill the page with 0xFF + 2-byte jump address ...\n\r", __func__, page_type);
 #endif /* DEBUG_LEVEL */
             address = status_.bootloader_start - (PAGE_SIZE);
             word tpl = CalculateTrampoline(status_.bootloader_start, ((app_reset_msb << 8) | app_reset_lsb));
