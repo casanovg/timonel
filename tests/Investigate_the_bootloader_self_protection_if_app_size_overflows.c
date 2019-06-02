@@ -25,8 +25,6 @@ could compromise the integrity of the bootloader.
 
 */
 
-
-
 /* Includes */
 #include "timonel.h"
 
