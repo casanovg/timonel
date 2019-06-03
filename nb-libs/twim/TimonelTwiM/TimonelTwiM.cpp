@@ -169,7 +169,11 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))        
         USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_APP_USE_TPL_PG) & true))
+        if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) {
+#else
         if (payload_size <= status_.bootloader_start - SPM_PAGESIZE) {
+#endif /* FEATURES_CODE >> F_APP_USE_TPL_PG */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR flash memory with current Timonel setup, uploading ...\n\r", __func__, payload_size);
 #endif             
@@ -179,7 +183,11 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
             USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
             USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_APP_USE_TPL_PG) & true))
+            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start + TRAMPOLINE_LEN)));
+#else
             USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start - SPM_PAGESIZE)));
+#endif /* FEATURES_CODE >> F_APP_USE_TPL_PG */
 #endif /* DEBUG_LEVEL */            
             return ERR_APP_OVF_MC;
         }
@@ -192,17 +200,25 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))        
     USE_SERIAL.printf_P("[%s] Writing payload to flash, starting at 0x%04X ...\n\r", __func__, start_address);
 #endif /* DEBUG_LEVEL */
-    if (payload_size <= status_.bootloader_start - SPM_PAGESIZE) {
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_APP_USE_TPL_PG) & true))
+        if (payload_size <= status_.bootloader_start - TRAMPOLINE_LEN) {
+#else
+        if (payload_size <= status_.bootloader_start - SPM_PAGESIZE) {
+#endif /* FEATURES_CODE >> F_APP_USE_TPL_PG */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-        USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR flash memory with current Timonel setup, uploading ...\n\r", __func__, payload_size);
+            USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR flash memory with current Timonel setup, uploading ...\n\r", __func__, payload_size);
 #endif             
-    } else {
+        } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-        USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
-        USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
-        USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
-        USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
-        USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start - SPM_PAGESIZE)));
+            USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
+            USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
+            USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
+            USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_APP_USE_TPL_PG) & true))
+            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start + TRAMPOLINE_LEN)));
+#else
+            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\r", __func__, (payload_size - (status_.bootloader_start - SPM_PAGESIZE)));
+#endif /* FEATURES_CODE >> F_APP_USE_TPL_PG */
 #endif /* DEBUG_LEVEL */            
         return ERR_APP_OVF_MC;
     }
@@ -237,7 +253,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             USE_SERIAL.printf_P("\n\r[%s] Last data packet transmission result: -> %d\n\r", __func__, twi_errors);
 #endif /* DEBUG_LEVEL */
             // ......................................................................
-            // With data packets sizes of 8 to 16 bytes 10 ms is OK (See SLV_PACKET_SIZE)
+            // With data packets sizes of 8 to 32 bytes 10 ms is OK (See SLV_PACKET_SIZE)
             delay(DLY_PKT_SEND); /* ###### DELAY BETWEEN PACKETS SENT TO COMPLETE A PAGE ###### */
         }
         if (twi_errors > 0) {
@@ -283,18 +299,18 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     return twi_errors;
 }
 
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
-#pragma GCC warning "Timonel::DumpMemory function code included in TWI master!"
 /* _________________________
   |                         | 
   |       DumpMemory        |
   |_________________________|
 */
 // Display the microcontroller's entire flash memory contents over a serial connection
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
+#pragma GCC warning "Timonel::DumpMemory function code included in TWI master!"
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     if (!((status_.features_code >> F_CMD_READFLASH) & true)) {
         USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__);
-        return (ERR_NOT_SUPP);
+        return ERR_NOT_SUPP;
     }
     const byte cmd_size = D_CMD_LENGTH;
     byte twi_cmd_arr[cmd_size] = {READFLSH, 0, 0, 0};
@@ -336,12 +352,12 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
                 if (checksum_errors++ == MAXCKSUMERRORS) {
                     USE_SERIAL.printf_P("[%s] Too many Checksum ERRORS [ %d ], stopping! \n\r", __func__, checksum_errors);
                     delay(DLY_1_SECOND);
-                    return (ERR_CHECKSUM_D);
+                    return ERR_CHECKSUM_D;
                 }
             }
         } else {
             USE_SERIAL.printf_P("[%s] Error parsing 0x%02X command <<< 0x%02X\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
-            return (ERR_CMD_PARSE_D);
+            return ERR_CMD_PARSE_D;
         }
         delay(DLY_PKT_REQUEST);
     }
@@ -350,7 +366,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         USE_SERIAL.printf_P(" Checksum errors: %d", checksum_errors);
     }
     USE_SERIAL.printf_P("\n\n\r");
-    return (OK);
+    return OK;
 }
 #else
 #pragma GCC warning "Timonel::DumpMemory function code NOT INCLUDED in TWI master!"
@@ -385,7 +401,7 @@ byte Timonel::BootloaderInit(const word delay_ms) {
     return twi_errors;
 }
 
-// Member Function QueryStatus (Retrieves the bootloader running parameters from the microcontroller)
+// Function QueryStatus (Retrieves the bootloader running parameters from the microcontroller)
 byte Timonel::QueryStatus(void) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Querying Timonel device %02d to get status ...\r\n", __func__, addr_);
@@ -396,7 +412,7 @@ byte Timonel::QueryStatus(void) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Error querying Timonel device %02d to get status (%d) ...\r\n", __func__, addr_, twi_errors);
 #endif /* DEBUG_LEVEL */
-        return (twi_errors);
+        return twi_errors;
     } else {
         if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && ((twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_CTM) \
                                                      ||  (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT))) {
@@ -456,15 +472,15 @@ byte Timonel::SendDataPacket(const byte data_packet[]) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("\n\r[%s] Opcode Reply Errors, Exiting!\n\r", __func__);
 #endif /* DEBUG_LEVEL */
-            return (twi_errors);
+            return twi_errors;
         }
     }
-    return (twi_errors);
+    return twi_errors;
 }
 
+// Function SetPageAddres (Sets the start address of a flash memory page)
 #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
 #pragma GCC warning "Timonel::SetPageAddress, FillSpecialPage and CalculateTrampoline functions code included in TWI master!"
-// Function SetPageAddres (Sets the start address of a flash memory page)
 byte Timonel::SetPageAddress(const word page_addr) {
     const byte cmd_size = 4;
     const byte reply_size = 2;

@@ -226,7 +226,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
 #endif /* DEBUG_LEVEL */
                 *p_app_mode = true;
             }
-            return (twi_addr);
+            return twi_addr;
         }
         delay(DLY_SCAN_BUS);
         twi_addr++;
