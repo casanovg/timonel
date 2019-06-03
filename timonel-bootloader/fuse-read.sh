@@ -8,7 +8,7 @@ echo "*  2018-10-20 Gustavo Casanova         *"
 echo "*                                      *"
 echo "****************************************"
 echo ""
-ARG1=${1:-fuse_settings.txt}
+ARG1=${1:-fuse-settings.txt}
 LF="0x62"
 HF="0xdd"
 EF="0xfe"
