@@ -315,7 +315,7 @@ int main(void) {
                     page_addr += SPM_PAGESIZE;
 #endif /* AUTO_PAGE_ADDR */
                     page_ix = 0;
-				}			
+                }           
             }
         } else {
             // ======================================
