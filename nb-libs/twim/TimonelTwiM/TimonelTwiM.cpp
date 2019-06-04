@@ -140,7 +140,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             return ERR_SETADDRESS;
         }
         if (start_address >= SPM_PAGESIZE) {
-            // If the application starts at an address other than 0 ...
+            // If the application is to be flashed at an address other than 0 ...
             // NOTES:
             // 1) Any address different than a 64-bit page start address will be converted
             //    by Timonel to the start address of the page it belongs to by using this mask:
