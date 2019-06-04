@@ -56,7 +56,7 @@ class Timonel : public NbMicro {
     byte BootloaderInit(const word delay_ms = 0);
     byte QueryStatus(void);
     byte SendDataPacket(const byte data_packet[]);
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))
+#if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
     byte SetPageAddress(const word page_addr);
     byte FillSpecialPage(const byte page_type,
                          const byte app_reset_msb = 0,

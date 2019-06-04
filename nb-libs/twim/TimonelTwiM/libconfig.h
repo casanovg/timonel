@@ -17,14 +17,14 @@
 // General defs
 #define DEBUG_LEVEL 1       /* Debug level: 0 = No debug info over serial terminal, 1+ = Progressively increasing verbosity */
 #define USE_SERIAL Serial   /* Console output */
-#define FEATURES_CODE 249   /* Features enebled (NOTE: This must match the bootloader, If you aren't sure, keep 249 as default */
+#define FEATURES_CODE 253   /* Features enebled (NOTE: This must match the bootloader, If you aren't sure, keep 249 as default */
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
 #define HIG_TML_ADDR 35     /* Highest allowed TWI address for Timonel devices */
 #define T_SIGNATURE_CTM 84  /* Timonel signature "T" (Uppercase means clock tweaking made at compile time*/
 #define T_SIGNATURE_AUT 116 /* Timonel signature "t" (Lowercase means automatic clock tweaking made at run time*/
 #define MST_PACKET_SIZE 32  /* Master-to-Slave Xmit data block size: always even values, min = 2, max = 32 */
 #define SLV_PACKET_SIZE 32  /* Slave-to-Master Xmit data block size: always even values, min = 2, max = 32 */
-#define SPM_PAGESIZE 64        /* Tiny85 flash page buffer size */
+#define SPM_PAGESIZE 64     /* Tiny85 flash page buffer size */
 #define OK 0                /* No error in function execution */
 // End General defs
 
@@ -83,6 +83,7 @@
 #define DLY_PKT_SEND 10     /* Delay after sending a data packet */
 #define DLY_FLASH_PG 100    /* Delay to allow memory page flashing */
 #define TRAMPOLINE_LEN 2    /* Trampoline length: two-byte address to jump to the app */
+#define ERR_SETADDRESS 1    /* Error: AUTO_PAGE_ADDR and CMD_SETPGADDR are disabled, can't set page addresses */
 #define ERR_APP_OVF_AU 2    /* Error: the payload doesn't fit in AVR memory (auto page addr calculation) */
 #define ERR_APP_OVF_MC 3    /* Error: the payload doesn't fit in AVR memory (page addr calculated by TWI master) */
 // End Timonel::UploadApplication defs
