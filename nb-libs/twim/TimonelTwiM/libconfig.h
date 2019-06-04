@@ -17,7 +17,7 @@
 // General defs
 #define DEBUG_LEVEL 1       /* Debug level: 0 = No debug info over serial terminal, 1+ = Progressively increasing verbosity */
 #define USE_SERIAL Serial   /* Console output */
-#define FEATURES_CODE 253   /* Features enebled (NOTE: This must match the bootloader, If you aren't sure, use 253 (default) */
+#define FEATURES_CODE 253   /* Enabled features (NOTE: This must match the bootloader, If you aren't sure, use 253 (default) */
 #define LOW_TML_ADDR 8      /* Lowest allowed TWI address for Timonel devices */
 #define HIG_TML_ADDR 35     /* Highest allowed TWI address for Timonel devices */
 #define T_SIGNATURE_CTM 84  /* Timonel signature "T" (Uppercase means clock tweaking made at compile time*/
