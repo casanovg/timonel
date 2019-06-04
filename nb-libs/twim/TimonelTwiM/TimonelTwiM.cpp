@@ -383,7 +383,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         }
         delay(DLY_PKT_REQUEST);
     }
-    USE_SERIAL.printf_P("\n\r[%s] Timonel (TWI %d) flash memory dump successful!", __func__);
+    USE_SERIAL.printf_P("\n\r[%s] Timonel (TWI %d) flash memory dump successful!", __func__, addr_);
     if (checksum_errors > 0) {
         USE_SERIAL.printf_P(" Checksum errors: %d", checksum_errors);
     }
