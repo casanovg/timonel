@@ -331,7 +331,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
 #pragma GCC warning "Timonel::DumpMemory function code included in TWI master!"
 byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const byte values_per_line) {
     if (!((status_.features_code >> F_CMD_READFLASH) & true)) {
-        USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel features ...\r\n", __func__);
+        USE_SERIAL.printf_P("\n\r[%s] Function not supported by current Timonel (TWI %d) features ...\r\n", __func__, addr_);
         return ERR_NOT_SUPP;
     }
     const byte cmd_size = D_CMD_LENGTH;
@@ -340,7 +340,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
     byte checksum_errors = 0;
     byte line_ix = 1;
     twi_cmd_arr[3] = rx_packet_size; /* Requested packet size */
-    USE_SERIAL.printf_P("\n\r[%s] Dumping Flash Memory ...\n\n\r", __func__);
+    USE_SERIAL.printf_P("\n\r[%s] Dumping Timonel (TWI %d) flash memory ...\n\n\r", __func__, addr_);
     USE_SERIAL.printf_P("Addr %04X: ", 0);
     for (word address = 0; address < flash_size; address += rx_packet_size) {
         twi_cmd_arr[1] = ((address & 0xFF00) >> 8); /* Flash page address high byte */
@@ -383,7 +383,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
         }
         delay(DLY_PKT_REQUEST);
     }
-    USE_SERIAL.printf_P("\n\r[%s] Flash memory dump successful!", __func__);
+    USE_SERIAL.printf_P("\n\r[%s] Timonel (TWI %d) flash memory dump successful!", __func__);
     if (checksum_errors > 0) {
         USE_SERIAL.printf_P(" Checksum errors: %d", checksum_errors);
     }
