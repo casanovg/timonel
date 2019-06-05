@@ -168,11 +168,11 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             // If the application overlaps the trampoline bytes, exit with error!
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory ...\n\r", __func__, payload_size);
-            USE_SERIAL.printf_P("[%s] Trampoline page is available for the application!\n\r", __func__);
+            USE_SERIAL.printf_P("[%s] Trampoline page is available for the application.\n\r", __func__);
             USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
             USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
             USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
-            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\n\r", __func__, (payload_size - (status_.bootloader_start + TRAMPOLINE_LEN)));
+            USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\n\r", __func__, payload_size - (status_.bootloader_start - TRAMPOLINE_LEN));
 #endif /* DEBUG_LEVEL */
             return ERR_APP_OVF_AU;
         }
@@ -204,11 +204,11 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
-                USE_SERIAL.printf_P("[%s] Trampoline page is available for the application!\n\r", __func__);                
+                USE_SERIAL.printf_P("[%s] Trampoline page is available for the application.\n\r", __func__);                
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
-                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\n\r", __func__, (payload_size - (status_.bootloader_start - TRAMPOLINE_LEN)));
+                USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\n\r", __func__, payload_size - (status_.bootloader_start - TRAMPOLINE_LEN));
 #endif /* DEBUG_LEVEL */
                 return ERR_APP_OVF_MC;
             }
@@ -223,7 +223,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
-                USE_SERIAL.printf_P("[%s] Trampoline page is NOT available for the application!\n\r", __func__);                
+                USE_SERIAL.printf_P("[%s] Trampoline page is NOT available for the application.\n\r", __func__);                
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
