@@ -297,17 +297,12 @@ int main(void) {
                             page_data += ((*(++mem_position) & 0xFF) << 8); 
                             boot_page_fill((TIMONEL_START - SPM_PAGESIZE) + i, page_data);
                         }
-                        // - Check if the last two bytes of the trampoline page are 0xFF.
+                        // - Check if the last two bytes of the trampoline page are not used by the application.
                         mem_position = (void *)(TIMONEL_START - 2);
                         uint16_t page_data = (*mem_position & 0xFF);
                         page_data += ((*(++mem_position) & 0xFF) << 8);
-                        if (page_data == 0xFFFF) {
-                            // -- If yes, then the application fits in memory, flash the trampoline bytes again.                            
-                            boot_page_fill(TIMONEL_START - 2, tpl);
-                            boot_page_erase(TIMONEL_START - SPM_PAGESIZE);
-                            boot_page_write(TIMONEL_START - SPM_PAGESIZE);
-                        } else {
-                            // -- If no, it means that the application is too big for this setup, erase it! 
+                        if (page_data != tpl) {
+                            // If the application overwrites the trampoline bytes, delete it!
                             flags |= (1 << FL_DEL_FLASH);
                         }
                     }
@@ -315,7 +310,7 @@ int main(void) {
                     page_addr += SPM_PAGESIZE;
 #endif /* AUTO_PAGE_ADDR */
                     page_ix = 0;
-                }           
+                }
             }
         } else {
             // ======================================
