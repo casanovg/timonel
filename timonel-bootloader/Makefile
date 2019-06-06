@@ -6,6 +6,7 @@
 #
 
 CONFIG ?= tml-t85-std
+CFG_DIR ?= configs
 
 ##########################################################
 # Configure the following variables according to your AVR.
@@ -18,7 +19,7 @@ CONFIG ?= tml-t85-std
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 CFLAGS =
-CONFIGPATH = $(CONFIG)
+CONFIGPATH = $(CFG_DIR)/$(CONFIG)
 include $(CONFIGPATH)/tml-config.mak
 
 ##########################################################
@@ -30,15 +31,19 @@ ifeq ($(TARGET),)
 	TARGET = timonel
 endif
 
-ifeq ($(TARGET),)
-	TIMONEL_TWI_ADDR = 8
+ifeq ($(TIMONEL_TWI_ADDR),)
+	TIMONEL_TWI_ADDR = 11
+endif
+
+ifeq ($(TIMONEL_START),)
+	TIMONEL_START = 1B00
+endif
+
+ifeq ($(LOW_FUSE),)
+	LOW_FUSE = 0x62
 endif
 # End of command line parameters
 ##########################################################
-
-ifeq ($(TARGET),)
-	TIMONEL_START = 1B00
-endif
 
 PROGRAMMER ?= -c USBasp
 # PROGRAMMER contains AVRDUDE options to address your programmer
@@ -55,26 +60,25 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct
 CFLAGS += -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
-CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
 CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
+CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
+
 CFLAGS += -DENABLE_LED_UI=$(ENABLE_LED_UI)
-CFLAGS += -DAUTO_TPL_CALC=$(AUTO_TPL_CALC)
+CFLAGS += -DAUTO_PAGE_ADDR=$(AUTO_PAGE_ADDR)
 CFLAGS += -DAPP_USE_TPL_PG=$(APP_USE_TPL_PG)
-CFLAGS += -DCMD_STPGADDR=$(CMD_STPGADDR)
+CFLAGS += -DCMD_SETPGADDR=$(CMD_SETPGADDR)
 CFLAGS += -DTWO_STEP_INIT=$(TWO_STEP_INIT)
 CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
 CFLAGS += -DCHECK_EMPTY_FL=$(CHECK_EMPTY_FL)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
+
+CFLAGS += -DAUTO_CLK_TWEAK=$(AUTO_CLK_TWEAK)
+CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
 CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
-CFLAGS += -DCYCLESTOEXIT=$(CYCLESTOEXIT)
-CFLAGS += -DSET_PRESCALER=$(SET_PRESCALER)
-CFLAGS += -DFORCE_ERASE_PG=$(FORCE_ERASE_PG)
 
 LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map
 
-#OBJECTS = $(TARGET).o $(LIBDIR)/nb-usitwisl-if.o $(LIBDIR)/crt1.o
-
-SOURCES=$(wildcard $(LIBDIR)/*.c $(CONFIGPATH)/*.S *.c)
+SOURCES=$(wildcard $(LIBDIR)/*.c *.S *.c)
 OBJECTS=$(SOURCES:.c=.o)
 HEADERS=$(SOURCES:.c=.h)
 
@@ -131,24 +135,23 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo 
 	@echo ===================================================================
 	@echo \| Building Timonel configuration: $(CONFIG)
-	@echo \|------------------------------------------------------------------        
+	@echo \|------------------------------------------------------------------
 	@echo \| TIMONEL_START = 0x$(TIMONEL_START) \| TWI_ADDRESS = $(TIMONEL_TWI_ADDR) \| \"""$(TARGET).hex\"
 	@echo ===================================================================
 
 	@echo \| ... ENABLE_LED_UI = $(ENABLE_LED_UI)
-	@echo \| ... AUTO_TPL_CALC = $(AUTO_TPL_CALC)
+	@echo \| ... AUTO_PAGE_ADDR = $(AUTO_PAGE_ADDR)
 	@echo \| ... APP_USE_TPL_PG = $(APP_USE_TPL_PG)
-	@echo \| ... CMD_STPGADDR = $(CMD_STPGADDR)
+	@echo \| ... CMD_SETPGADDR = $(CMD_SETPGADDR)
 	@echo \| ... TWO_STEP_INIT = $(TWO_STEP_INIT)
 	@echo \| ... USE_WDT_RESET = $(USE_WDT_RESET)
 	@echo \| ... CHECK_EMPTY_FL = $(CHECK_EMPTY_FL)
 	@echo \| ... CMD_READFLASH = $(CMD_READFLASH)
-	@echo \|------------------------------------------------------------------    
+	@echo \|------------------------------------------------------------------
+	@echo \| ... AUTO_CLK_TWEAK = $(AUTO_CLK_TWEAK)
+	@echo \| ... LOW_FUSE = $(LOW_FUSE)	
 	@echo \| ... LED_UI_PIN = $(LED_UI_PIN)
-	@echo \| ... CYCLESTOEXIT = $(CYCLESTOEXIT)
-	@echo \| ... SET_PRESCALER = $(SET_PRESCALER)
-	@echo \| ... FORCE_ERASE_PG = $(FORCE_ERASE_PG)
-	@echo -------------------------------------------------------------------    
+	@echo -------------------------------------------------------------------
 	@rm -f $(TARGET).hex $(TARGET).eep.hex
 	@avr-objcopy -j .text -j .data -O ihex $(TARGET).bin $(TARGET).hex
 	@echo [Sections]
@@ -156,7 +159,7 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo
 	@echo [Hexfile] Use the "data" size to calculate the bootloader address!
 	@avr-size $(TARGET).hex
-	@echo -------------------------------------------------------------------     
+	@echo -------------------------------------------------------------------
 
 upgrade: $(TARGET).bin
 	avr-objcopy -O binary $(TARGET).bin $(TARGET).raw

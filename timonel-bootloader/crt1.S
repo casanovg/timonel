@@ -77,7 +77,7 @@ __vectors:
 	   This must be in a different section, otherwise the assembler
 	   will resolve "rjmp" offsets and there will be no relocs.  */
 
-	.section .init0,"ax",@progbits
+	.section .init0,"ax", @progbits
 	.weak	__init
 ;	.func	__init
 __init:
@@ -93,13 +93,13 @@ __init:
 	.weak	__heap_end
 	.set	__heap_end, 0
 
-	.section .init2,"ax",@progbits
+	.section .init2,"ax", @progbits
 	clr		R1
     
 #ifndef ENABLE_UNSAFE_OPTIMIZATIONS
-	out		0x3f,r1
-	ldi		r28,lo8(__stack)
-	ldi		r29,hi8(__stack)
+	out		0x3f, r1
+	ldi		r28,  lo8(__stack)
+	ldi		r29,  hi8(__stack)
 	out		0x3d, r28
 	out		0x3e, r29
 #endif    

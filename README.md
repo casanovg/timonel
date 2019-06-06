@@ -32,6 +32,8 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 Version History:
 ----------------
+__v1.3__ - 2019-06-06: Functional Release: Bootloader inline functions (smaller code) and low fuse auto clock tweaking. TWI master UploadApplication refactoring, now supports both types of page address calculation and both modes of APP_USE_TPL_PG. Several bug fixes.
+
 __v1.2__ - 2019-05-15: Functional Release: "Good-neighbor" behavior fixes data dump operation interferences among Timonel devices in multi-device bus setups. The TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. Timonel-master-ss firmware shows its usage. The TWI master code was moved to PlatformIO.
 
 __v1.1__ - 2018-10-29: Functional Release: Optional ReadFlash command added. Minor tweaks for running Timonel @ 8 MHz.

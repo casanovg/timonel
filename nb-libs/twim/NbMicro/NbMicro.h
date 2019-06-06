@@ -25,6 +25,8 @@
 #include "libconfig.h"
 #include "stdbool.h"
 
+typedef uint8_t byte;
+
 // Store of TWI addresses in use ...
 static std::unordered_set<byte> active_addresses;
 
