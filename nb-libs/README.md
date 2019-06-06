@@ -19,16 +19,14 @@ The correct sequence for those cases is:
 
 If all went well, now both TWI devices share the new command set, the communication is reestablished.
 
-twim:
------
+## twim: ##
 It has two TWI master libraries compatible with Arduino: "NbMicro" and "TimonelTWIM".
 
 The NbMicro library is in charge of basic communication with slave devices that implement the NB command set. The NbMicro class is the one from which any higher level application should inherit.
 
 The TimonelTWIM library inherits from NbMicro and implements functions to control a TWI slave device that runs Timonel bootloader.
 
-twis:
------
+## twis: ##
 TWI slave driver libraries: "nb-usitwisl" is a USI-based I2C driver for AVR devices which uses hardware interrupts for better precision working. "nb-usitwisl-if" an interrupt-free version of the same driver necessary for bootloaders running on AVR devices without dedicated I2C hardware (like ATtiny85/45/25).
 
 Nevertheless, note that in this v1.3 release, the driver is merged as inline functions in the Timonel bootloader "C" source code, so the interrupt-free driver sources are left here for reference only.
