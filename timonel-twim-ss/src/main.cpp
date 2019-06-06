@@ -259,7 +259,7 @@ void ReadChar() {
 // Function ReadWord
 word ReadWord(void) {
     Timonel::Status sts = tml.GetStatus();
-    word last_page = (sts.bootloader_start - PAGE_SIZE);
+    word last_page = (sts.bootloader_start - SPM_PAGESIZE);
     const byte data_length = 16;
     char serial_data[data_length];  // an array to store the received data
     static byte ix = 0;
