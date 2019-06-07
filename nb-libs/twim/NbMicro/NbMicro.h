@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: NbMicro.h (Header)
  *  ........................................... 
- *  Version: 1.2 / 2019-01-16
+ *  Version: 1.3 / 2019-06-06
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library handles the communication protocol
@@ -24,6 +24,8 @@
 #include "Wire.h"
 #include "libconfig.h"
 #include "stdbool.h"
+
+typedef uint8_t byte;
 
 // Store of TWI addresses in use ...
 static std::unordered_set<byte> active_addresses;

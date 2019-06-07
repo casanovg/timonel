@@ -2,13 +2,13 @@
   main.cpp (timonel-twim-ss)
   ==========================
   Timonel TWI library test program
-  for single slave setup v1.2
+  for single slave setup v1.3
   ----------------------------
-  2019-04-28 Gustavo Casanova
+  2019-06-06 Gustavo Casanova
   ---------------------------
 */
 #include <Arduino.h>
-#include <Memory>
+//#include <Memory>
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
 #include "payload.h"
@@ -206,6 +206,7 @@ void loop() {
                 USE_SERIAL.printf_P("\n\n\r");
                 break;
             }
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))                
             // ********************************
             // * Timonel ::: READFLSH command *
             // ********************************
@@ -218,6 +219,7 @@ void loop() {
                 new_byte = false;
                 break;
             }
+#endif /* CMD_READFLASH) */
             // ******************
             // * ? Help command *
             // ******************
@@ -257,7 +259,7 @@ void ReadChar() {
 // Function ReadWord
 word ReadWord(void) {
     Timonel::Status sts = tml.GetStatus();
-    word last_page = (sts.bootloader_start - PAGE_SIZE);
+    word last_page = (sts.bootloader_start - SPM_PAGESIZE);
     const byte data_length = 16;
     char serial_data[data_length];  // an array to store the received data
     static byte ix = 0;
@@ -308,26 +310,29 @@ void PrintLogo(void) {
 // Function print Timonel instance status
 void PrintStatus(Timonel timonel) {
     Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
-    if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
-        byte version_major = tml_status.version_major;
-        USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
+    byte twi_address = timonel.GetTwiAddress();
+    byte version_major = tml_status.version_major;
+    byte version_minor = tml_status.version_minor;
+    if (((tml_status.signature == T_SIGNATURE_CTM) || (tml_status.signature == T_SIGNATURE_AUT)) && \
+       ((version_major != 0) || (version_minor != 0))) {
+        String version_mj_nick = "";
         switch (version_major) {
             case 0: {
-                USE_SERIAL.printf_P(" Pre-release ");
+                version_mj_nick = "\"Pre-release\"";
                 break;
             }
             case 1: {
-                USE_SERIAL.printf_P(" \"Sandra\" ");
+                version_mj_nick = "\"Sandra\"";
                 break;
             }
             default: {
-                USE_SERIAL.printf_P(" Unknown ");
+                version_mj_nick = "\"Unknown\"";
                 break;
             }
         }
-        USE_SERIAL.printf_P("(TWI: %d)\n\r", timonel.GetTwiAddress());
-        USE_SERIAL.printf_P(" ====================================\n\r");
-        Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
+        USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
+        USE_SERIAL.printf_P(" ====================================\n\r");        
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -335,8 +340,17 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d\n\r", tml_status.features_code);
-        USE_SERIAL.printf_P("         RC osc cal: 0x%02X\n\n\r", tml_status.oscillator_cal);
+        USE_SERIAL.printf_P("      Features code: %d ", tml_status.features_code);
+        if (tml_status.auto_clock_tweak == true) {
+            USE_SERIAL.printf_P("(Auto-Twk)");
+        }
+        USE_SERIAL.printf_P("\n\r");
+        USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
+        USE_SERIAL.printf_P("             RC osc: 0x%02X\n\n\r", tml_status.oscillator_cal);
+    } else {
+        USE_SERIAL.printf_P("\n\r *******************************************************************\n\r");
+        USE_SERIAL.printf_P(" * Unknown bootloader, application or device at TWI address %02d ... *\n\r", twi_address);
+        USE_SERIAL.printf_P(" *******************************************************************\n\n\r");
     }
 }
 
@@ -353,7 +367,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.2 twim-ss)\n\r");
+    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3 twim-ss)\n\r");
 }
 
 // Function ShowMenu

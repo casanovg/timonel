@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: TimonelTwiM.h (Header)
  *  ........................................... 
- *  Version: 1.2 / 2019-01-16
+ *  Version: 1.3 / 2019-06-06
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library interacts with a microcontroller
@@ -17,9 +17,7 @@
 #define _TIMONELTWIM_H_
 
 #include "../../cmd/nb-twi-cmd.h"
-#include "Arduino.h"
 #include "NbMicro.h"
-#include "Wire.h"
 #include "libconfig.h"
 #include "stdbool.h"
 
@@ -32,38 +30,40 @@ class Timonel : public NbMicro {
         byte version_major = 0;
         byte version_minor = 0;
         byte features_code = 0;
-        word bootloader_start = 0x0000;
-        word application_start = 0x0000;
-        word trampoline_addr = 0x0000;
+        word bootloader_start = 0;
+        word application_start = 0;
+        word trampoline_addr = 0;
+        byte low_fuse_setting = 0;
         byte oscillator_cal = 0;
         byte check_empty_fl = 0;
+        bool auto_clock_tweak = false;
     } Status;
     Status GetStatus(void);
     byte SetTwiAddress(byte twi_address);
     byte RunApplication(void);
-    byte DeleteApplication(void);    
+    byte DeleteApplication(void);
     byte UploadApplication(byte payload[],
                            int payload_size,
-                           const int start_address = 0x0000);
-    #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))                       
+                           const int start_address = 0);
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
     byte DumpMemory(const word flash_size = MCU_TOTAL_MEM,
                     const byte rx_packet_size = SLV_PACKET_SIZE,
                     const byte values_per_line = VALUES_PER_LINE);
-    #endif /* FEATURES_CODE >> F_CMD_READFLASH */
+#endif /* FEATURES_CODE >> F_CMD_READFLASH */
 
    private:
     Status status_; /* Global struct that holds a Timonel instance's running status */
     byte BootloaderInit(const word delay_ms = 0);
     byte QueryStatus(void);
     byte SendDataPacket(const byte data_packet[]);
-    #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_STPGADDR) & true))
+#if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
     byte SetPageAddress(const word page_addr);
     byte FillSpecialPage(const byte page_type,
                          const byte app_reset_msb = 0,
                          const byte app_reset_lsb = 0);
     word CalculateTrampoline(const word bootloader_start,
                              const word application_start);
-    #endif /* FEATURES_CODE >> F_CMD_STPGADDR */
+#endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
 };
 
 #endif /* _TIMONELTWIM_H_ */
