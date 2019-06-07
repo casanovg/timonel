@@ -172,7 +172,7 @@ echo "";
 make clean_all;
 make clean_all ${MAK_OPT};
 echo "RUNNING: make all ${MAK_OPT}";
-echo "";
+# echo "";
 make all ${MAK_OPT};
 cp *${HEX_SFX} ${BIN_DIR};
 make clean_all ${MAK_OPT};
