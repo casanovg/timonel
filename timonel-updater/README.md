@@ -1,22 +1,44 @@
-#####################################################
-#                                                   #
-# NOTE:                                             #
-# -----                                             #
-# This bootloader updater has been included from    #
-# the micronucleus project: github.com/micronucleus #
-#                                                   #
-#####################################################
+## Timonel updater ##
+
+NOTE:
+-----
+This bootloader updater has been included from the
+micronucleus project: github.com/micronucleus
+
+To simplify the step necesary to generate a bootloader update payload, use the __make-updater.sh__ script. If the script is run without arguments, it will generate a default-configuration based bootloader payload. The supported arguments are positional, as follows:
+
+CONFIG      Timonel configuration option to use. (Def=tml-t85-std).
+FW_NAME     Name of the .hex binary file to produce. (Def=timonel).
+TWI_ADDR    TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
+START_ADDR  Bootloader start address in the device memory. Range: 0-1C00."
+CLK_SPEED   Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
+AUTO_TWEAK  Defines if the device speed adjustments will be made at run time. Valid options: false-true (Def=false)."
+
+Examples:
+---------
+$ ./make-updater.sh 
+  
+Generates a payload file based on "tml-t85-std" defaults->FW_NAME=timonel, TWI_ADDR=11, START_ADDR=0x1B80, CLK_SPEED=1 (MHz), AUTO_TWEAK=false.
+
+$ ./make-updater tml-t85-full
+  
+Generates a payload file based on "tml-t85-full" config.
+
+$ ./make-updater.sh tml-t85-small new-test 17 1B00 8 false
+
+Generates a payload file based on \"tml-t85-small\" config, assigning TWI address 17 to the device,
+setting 0x1B00 device memory position as bootloader start, setting the device low fuse to operate at 8 MHz and disabling automatic clock tweaking.
 
 Technical Details
-=================
-
+-----------------
 A summary of how 'upgrade' works
 
-
--- build process:
+__Build process:__
 
 1) Manually run the generate-data.rb ruby script with the new bootloader's hex file:
-     ruby generate-data.rb new_firmware.hex
+   
+   $ ruby generate-data.rb new_firmware.hex
+   
    If you have trouble running it, make sure you're using ruby version 1.9. 1.8 is too old!
    
    generate-data.rb creates the bootloader_data.c file, which defines some variables containing
@@ -26,7 +48,8 @@ A summary of how 'upgrade' works
    and likely some for other avr chips which lack hardware bootloader stuff.
    
 2) Generate the hex file using make:
-     make clean; make
+   
+   make clean; make
    
    The upgrader hex file is built in the usual way, then combined with upgrade-prefix.hex (which
    I wrote by hand) to prefix a fake interrupt vector table in the start of the upgrader. This is
@@ -38,8 +61,8 @@ A summary of how 'upgrade' works
    correctly, consider now uploading it to other chips which maybe more difficult to recover but are
    otherwise identical.
 
-
--- how it works:
+How it works
+------------
 
 Taking inspiration from computer viruses, when upgrade runs it goes through this process:
 
