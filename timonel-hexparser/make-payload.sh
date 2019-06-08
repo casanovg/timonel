@@ -15,19 +15,29 @@
 ##############################################################
 
 if [ "$1" != "" ]; then
-    payload=$1
-	echo
+    payload=$1;
+	if [ $payload == "-h" ] || [ $payload == "--h" ] || [ $payload == "-help" ] || [ $payload == "--help" ] || [ $payload == "-?"  ]; then
+        echo "";
+        echo "Usage: MAKE_PAYLOAD path_to_hexfile";
+        exit 1;
+    fi
+    if [ ! -f $payload ]; then
+        echo "";
+        echo "Binary file not found!";
+        exit 2;
+    fi
 	# Parsing application to create payload header ...
-	echo "Parsing" $1 "..."
+	echo "Parsing" $1 "...";
 	if [ `uname | grep Linux` ]; then
-		./tml-hexparser $payload > ../timonel-twim-ss/data/payloads/payload.h
-		./tml-hexparser $payload > ./appl-payload/payload.h
+		./tml-hexparser $payload > ../timonel-twim-ss/data/payloads/payload.h;
+		./tml-hexparser $payload > ./appl-payload/payload.h;
 	else
-		./tml-hexparser.exe $payload > ../timonel-twim-ss/data/payloads/payload.h
-		./tml-hexparser.exe $payload > ./appl-payload/payload.h
+		./tml-hexparser.exe $payload > ../timonel-twim-ss/data/payloads/payload.h;
+		./tml-hexparser.exe $payload > ./appl-payload/payload.h;
 	fi	
 else
-	echo
-    echo "Usage: MAKE_PAYLOAD path_to_hexfile"
+	echo "";
+    echo "Usage: MAKE_PAYLOAD path_to_hexfile";
+    exit 1;
 fi
 
