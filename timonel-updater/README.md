@@ -1,30 +1,31 @@
-## Timonel updater ##
+Timonel Updater
+===============
 
-NOTE:
------
-This bootloader updater has been included from the
-micronucleus project: github.com/micronucleus
+__NOTE:__ This bootloader updater has been included from the micronucleus project: github.com/micronucleus
 
+Usage:
+------
 To simplify the step necesary to generate a bootloader update payload, use the __make-updater.sh__ script. If the script is run without arguments, it will generate a default-configuration based bootloader payload. The supported arguments are positional, as follows:
 
-CONFIG      Timonel configuration option to use. (Def=tml-t85-std).
-FW_NAME     Name of the .hex binary file to produce. (Def=timonel).
-TWI_ADDR    TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
-START_ADDR  Bootloader start address in the device memory. Range: 0-1C00."
-CLK_SPEED   Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
-AUTO_TWEAK  Defines if the device speed adjustments will be made at run time. Valid options: false-true (Def=false)."
+__CONFIG__      Timonel configuration option to use. (Def=tml-t85-std).
+__FW_NAME__     Name of the .hex binary file to produce. (Def=timonel).
+__TWI_ADDR__    TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
+__START_ADDR__  Bootloader start address in the device memory. Range: 0-1C00."
+__CLK_SPEED__   Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
+__AUTO_TWEAK__  Defines if the device speed adjustments will be made at run time. Valid options: false-true (Def=false)."
 
 Examples:
 ---------
-$ ./make-updater.sh 
+
+```$ ./make-updater.sh```
   
 Generates a payload file based on "tml-t85-std" defaults->FW_NAME=timonel, TWI_ADDR=11, START_ADDR=0x1B80, CLK_SPEED=1 (MHz), AUTO_TWEAK=false.
 
-$ ./make-updater tml-t85-full
+```$ ./make-updater tml-t85-full```
   
 Generates a payload file based on "tml-t85-full" config.
 
-$ ./make-updater.sh tml-t85-small new-test 17 1B00 8 false
+```$ ./make-updater.sh tml-t85-small new-test 17 1B00 8 false```
 
 Generates a payload file based on \"tml-t85-small\" config, assigning TWI address 17 to the device,
 setting 0x1B00 device memory position as bootloader start, setting the device low fuse to operate at 8 MHz and disabling automatic clock tweaking.
