@@ -1,4 +1,5 @@
-# Timonel TWI master - Single slave #
+Timonel TWI master - Single slave
+=================================
 
 This test application shows the usage of TWI master libraries.
 
