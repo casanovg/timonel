@@ -8,11 +8,16 @@ Usage:
 To simplify the step necesary to generate a bootloader update payload, use the __make-updater.sh__ script. If the script is run without arguments, it will generate a default-configuration based bootloader payload. The supported arguments are positional, as follows:
 
 __CONFIG__      Timonel configuration option to use. (Def=tml-t85-std).
+
 __FW_NAME__     Name of the .hex binary file to produce. (Def=timonel).
+
 __TWI_ADDR__    TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
-__START_ADDR__  Bootloader start address in the device memory. Range: 0-1C00."
+
+__START_ADDR__  Bootloader start address in the device memory. Range: 0-1C00.
+
 __CLK_SPEED__   Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
-__AUTO_TWEAK__  Defines if the device speed adjustments will be made at run time. Valid options: false-true (Def=false)."
+
+__AUTO_TWEAK__  Defines if the device speed adjustments will be made at run time. Valid options: false-true(Def=false).
 
 Examples:
 ---------
@@ -72,10 +77,10 @@ Taking inspiration from computer viruses, when upgrade runs it goes through this
    0xFF bytes - creating a NOP sled. If the chip looses power or otherwise resets, it wont enter
    the bootloader, sliding in to the upgrader restarting the process.
 
-2) erase and write bootloader:
+2) Erase and write bootloader:
    The flash pages for the new bootloader are erased and rewritten from start to finish.
    
-3) install the trampoline:
+3) Install the trampoline:
    The fake ISR table which was erased in step one is now written to - a trampoline is added, simply
    forwarding any requests to the new bootloader's interrupt vector table. At this point the viral
    upgrader has completed it's life cycle and has disabled itself. It should never run again, booting
