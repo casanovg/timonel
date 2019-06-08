@@ -7,17 +7,17 @@ Usage:
 ------
 To simplify the step necesary to generate a bootloader update payload, use the __make-updater.sh__ script. If the script is run without arguments, it will generate a default-configuration based bootloader payload. The supported arguments are positional, as follows:
 
-__CONFIG__      Timonel configuration option to use. (Def=tml-t85-std).
+__CONFIG__: Timonel configuration option to use. (Def=tml-t85-std).
 
-__FW_NAME__     Name of the .hex binary file to produce. (Def=timonel).
+__FW_NAME__: Name of the .hex binary file to produce. (Def=timonel).
 
-__TWI_ADDR__    TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
+__TWI_ADDR__: TWI (I2C) address to assign to the device. Range: 8-35 (Def=11).
 
-__START_ADDR__  Bootloader start address in the device memory. Range: 0-1C00.
+__START_ADDR__: Bootloader start address in the device memory. Range: 0-1C00.
 
-__CLK_SPEED__   Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
+__CLK_SPEED__: Device speed settings (in MHz). Values: 1, 2, 8 or 16 (Def=1).
 
-__AUTO_TWEAK__  Defines if the device speed adjustments will be made at run time. Valid options: false-true(Def=false).
+__AUTO_TWEAK__: Defines if the device speed adjustments will be made at run time. Valid options: false-true(Def=false).
 
 Examples:
 ---------
