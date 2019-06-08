@@ -35,8 +35,8 @@ Generates a payload file based on "tml-t85-full" config.
 Generates a payload file based on \"tml-t85-small\" config, assigning TWI address 17 to the device,
 setting 0x1B00 device memory position as bootloader start, setting the device low fuse to operate at 8 MHz and disabling automatic clock tweaking.
 
-Technical Details
------------------
+Technical Details:
+------------------
 A summary of how 'upgrade' works
 
 __Build process:__
@@ -67,8 +67,8 @@ __Build process:__
    correctly, consider now uploading it to other chips which maybe more difficult to recover but are
    otherwise identical.
 
-How it works
-------------
+How it works:
+-------------
 
 Taking inspiration from computer viruses, when upgrade runs it goes through this process:
 
@@ -85,5 +85,3 @@ Taking inspiration from computer viruses, when upgrade runs it goes through this
    forwarding any requests to the new bootloader's interrupt vector table. At this point the viral
    upgrader has completed it's life cycle and has disabled itself. It should never run again, booting
    directly in to the bootloader instead.
-
-

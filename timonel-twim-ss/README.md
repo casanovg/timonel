@@ -9,7 +9,7 @@ It is a serial console based application, Arduino-compatible, that allows sendin
 
 * Uploads an application to the device. The application to send to the AVR bootloader (payload) is compiled as part of this TWI master application. The utility "timonel-hexparser" is used to convert an AVR application into a TWI master payload.
 
-* Deletes the application from the device memory.
+* Deletes the application from the AVR device memory.
 
 * Optionally, it makes an on-screen dump of all the device's memory for debugging.
 

@@ -8,7 +8,7 @@ This bootloader version has several improvements:
 1-The compensation is configured at the time of bootloader compilation by setting the LOW_FUSE variable.
 2-It adapts at runtime by directly reading the value of the low fuse. This last mode is selected by enabling "AUTO_CLK_TWEAK". It allows the bootloader to continue working without recompiling despite changing the fuses settings, but it takes a little more memory. In both cases, the bootloader restores the original configuration after its execution so that the application can function at the speed for which it was designed.
 
-* The code was adjusted to allow the bootloader to transmit and receive 32-byte packets (1/2 page in an ATtiny85). This produces a significant performance increase to the user application upload and flash memory reading functions.
+* The code was adjusted to allow the bootloader to transmit and receive 32-byte packets (1/2 page of an ATtiny85). This produces a significant performance increase to the user application upload and flash memory reading functions.
 
 ## Compilation ##
 A script has been added to launch make with different configurations: "make-timonel.sh". This script has several arguments, including "--all", which compiles all the preconfigured options found in the "configs" directory. The flashable ".hex" binary files are saved in the "releases" directory. This bootloader version has been compiled with the "avr-gcc 8.3.0 64-bit" toolchain downloaded from this site: "http://blog.zakkemble.net/avr-gcc-builds", it's also included under the tools directory. The scripts are included mainly to ease to repetitive work of flashing several devices but, of course, the bootloader can be compiled and flashed using avr-gcc and avrdude directly.
