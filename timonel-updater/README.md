@@ -38,7 +38,7 @@ __Build process:__
 
 1) Manually run the generate-data.rb ruby script with the new bootloader's hex file:
    
-   $ ruby generate-data.rb new_firmware.hex
+   ```$ ruby generate-data.rb new_firmware.hex```
    
    If you have trouble running it, make sure you're using ruby version 1.9. 1.8 is too old!
    
@@ -50,7 +50,7 @@ __Build process:__
    
 2) Generate the hex file using make:
    
-   make clean; make
+   ```make clean; make```
    
    The upgrader hex file is built in the usual way, then combined with upgrade-prefix.hex (which
    I wrote by hand) to prefix a fake interrupt vector table in the start of the upgrader. This is
