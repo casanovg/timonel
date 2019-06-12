@@ -65,7 +65,7 @@ typedef enum {                                          /* TWI driver operationa
     STATE_RECEIVE_ACK_AFTER_SENDING_DATA = 2,
     STATE_CHECK_RECEIVED_ACK = 3,
     STATE_RECEIVE_DATA_BYTE = 4,
-    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK =5
+    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK = 5
 } OverflowState;
 typedef struct m_pack {
     uint16_t page_addr;                                 /* Flash memory page address */
@@ -185,9 +185,6 @@ int main(void) {
     mem_pack.app_reset_msb = 0x00;                      
 #endif /* AUTO_PAGE_ADDR */    
     MemPack *p_mem_pack = &mem_pack;                    /* Pointer to "memory pack" structure */
-    
-    //OverflowState device_state = 0;
-    //OverflowState *p_device_state = &device_state;
     
     /*  ___________________
        |                   | 
