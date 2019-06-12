@@ -286,14 +286,14 @@ int main(void) {
                 if ((mem_pack.page_ix == SPM_PAGESIZE) && (mem_pack.page_addr < TIMONEL_START - SPM_PAGESIZE)) {
 #endif /* APP_USE_TPL_PG || !(AUTO_PAGE_ADDR) */
 #if ENABLE_LED_UI
-                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);		/* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
 #if FORCE_ERASE_PG
                     boot_page_erase(mem_pack.page_addr);
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(mem_pack.page_addr);
 #if AUTO_PAGE_ADDR
-                    if (mem_pack.page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
+                    if (mem_pack.page_addr == RESET_PAGE) {	/* Calculate and write trampoline */
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((mem_pack.app_reset_msb << 8) | mem_pack.app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < SPM_PAGESIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - SPM_PAGESIZE) + i, 0xFFFF);
@@ -402,7 +402,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
 #else
             reply[10] = OSCCAL;                         /* Internal RC oscillator calibration */
 #endif /* CHECK_EMPTY_FL */
-            p_mem_pack->flags |= (1 << FL_INIT_1);                  /* First-step of single or two-step initialization */
+            p_mem_pack->flags |= (1 << FL_INIT_1);      /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
@@ -436,7 +436,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
             p_mem_pack->page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
             p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);  /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (uint8_t)(command[1] + command[2]);				/* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(reply[i]);
             }
@@ -459,7 +459,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
                 // the reset vector modification MUST BE done by the TWI master's upload program.
                 // Otherwise, Timonel won't have the execution control after power-on reset.
                 boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
+                reply[1] += (uint8_t)((command[2]) + command[1]);	/* Reply checksum accumulator */
                 p_mem_pack->page_ix += 2;
                 for (uint8_t i = 3; i < (MST_PACKET_SIZE + 1); i += 2) {
                     boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
@@ -478,7 +478,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
 #else
             if (reply[1] != command[MST_PACKET_SIZE + 1]) {
 #endif /* CHECK_PAGE_IX */
-                p_mem_pack->flags |= (1 << FL_DEL_FLASH);                       /* If checksums don't match, safety payload deletion ... */
+                p_mem_pack->flags |= (1 << FL_DEL_FLASH);			/* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
@@ -519,7 +519,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            p_mem_pack->flags |= (1 << FL_INIT_2);                              /* Two-step init step 1: receive INITSOFT command */
+            p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(ACKINITS);
             return;
         }
@@ -632,7 +632,7 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     //                                                                   >>
-                    ReceiveEvent(rx_byte_count, p_mem_pack); // Call a main function to process data   >>
+                    ReceiveEvent(rx_byte_count, p_mem_pack); // Call function to process   >>
                     //                                                                   >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
