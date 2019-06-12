@@ -77,23 +77,17 @@ typedef struct m_pack {
 #endif /* AUTO_PAGE_ADDR */
 } MemPack;                                              /* "Memory pack" structure */
 
-typedef struct b_pack {
-    //uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-    //uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+// USI TWI driver globals
+uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
+uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+OverflowState device_state;
+typedef struct i_pack {
     uint8_t rx_byte_count;
     uint8_t rx_head;
     uint8_t rx_tail;
     uint8_t tx_head;
     uint8_t tx_tail;
 } IdxPack;
-
-// USI TWI driver globals
-uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-// uint8_t rx_byte_count = 0;                              /* Bytes received in RX buffer */
-// uint8_t rx_head = 0, rx_tail = 0;
-// uint8_t tx_head = 0, tx_tail = 0;
-OverflowState device_state;
 
 // Bootloader prototypes
 inline static void ReceiveEvent(IdxPack*, MemPack*) __attribute__((always_inline));
@@ -299,14 +293,14 @@ int main(void) {
                 if ((mem_pack.page_ix == SPM_PAGESIZE) && (mem_pack.page_addr < TIMONEL_START - SPM_PAGESIZE)) {
 #endif /* APP_USE_TPL_PG || !(AUTO_PAGE_ADDR) */
 #if ENABLE_LED_UI
-                    LED_UI_PORT ^= (1 << LED_UI_PIN);   /* Turn led on and off to indicate writing ... */
+                    LED_UI_PORT ^= (1 << LED_UI_PIN);           /* Turn led on and off to indicate writing ... */
 #endif /* ENABLE_LED_UI */
 #if FORCE_ERASE_PG
                     boot_page_erase(mem_pack.page_addr);
 #endif /* FORCE_ERASE_PG */                    
                     boot_page_write(mem_pack.page_addr);
 #if AUTO_PAGE_ADDR
-                    if (mem_pack.page_addr == RESET_PAGE) {      /* Calculate and write trampoline */
+                    if (mem_pack.page_addr == RESET_PAGE) {     /* Calculate and write trampoline */
                         uint16_t tpl = (((~((TIMONEL_START >> 1) - ((((mem_pack.app_reset_msb << 8) | mem_pack.app_reset_lsb) + 1) & 0x0FFF)) + 1) & 0x0FFF) | 0xC000);
                         for (int i = 0; i < SPM_PAGESIZE - 2; i += 2) {
                             boot_page_fill((TIMONEL_START - SPM_PAGESIZE) + i, 0xFFFF);
@@ -415,7 +409,7 @@ inline void ReceiveEvent(IdxPack *p_idx_pack, MemPack *p_mem_pack) {
 #else
             reply[10] = OSCCAL;                         /* Internal RC oscillator calibration */
 #endif /* CHECK_EMPTY_FL */
-            p_mem_pack->flags |= (1 << FL_INIT_1);                  /* First-step of single or two-step initialization */
+            p_mem_pack->flags |= (1 << FL_INIT_1);      /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
             LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Turn led off to indicate initialization */
 #endif /* ENABLE_LED_UI */
@@ -449,7 +443,7 @@ inline void ReceiveEvent(IdxPack *p_idx_pack, MemPack *p_mem_pack) {
             p_mem_pack->page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
             p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
             reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);  /* Returns the sum of MSB and LSB of the page address */
+            reply[1] = (uint8_t)(command[1] + command[2]);              /* Returns the sum of MSB and LSB of the page address */
             for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
                 UsiTwiTransmitByte(p_idx_pack, reply[i]);
             }
@@ -491,7 +485,7 @@ inline void ReceiveEvent(IdxPack *p_idx_pack, MemPack *p_mem_pack) {
 #else
             if (reply[1] != command[MST_PACKET_SIZE + 1]) {
 #endif /* CHECK_PAGE_IX */
-                p_mem_pack->flags |= (1 << FL_DEL_FLASH);                       /* If checksums don't match, safety payload deletion ... */
+                p_mem_pack->flags |= (1 << FL_DEL_FLASH);           /* If checksums don't match, safety payload deletion ... */
                 reply[1] = 0;
             }
             for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
@@ -532,13 +526,13 @@ inline void ReceiveEvent(IdxPack *p_idx_pack, MemPack *p_mem_pack) {
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            p_mem_pack->flags |= (1 << FL_INIT_2);                              /* Two-step init step 1: receive INITSOFT command */
+            p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
             UsiTwiTransmitByte(p_idx_pack, ACKINITS);
             return;
         }
 #endif /* TWO_STEP_INIT */
         default: {
-            UsiTwiTransmitByte(p_idx_pack, UNKNOWNC);                           /* Command not recognized */
+            UsiTwiTransmitByte(p_idx_pack, UNKNOWNC);               /* Command not recognized */
             return;
         }
     }
@@ -591,15 +585,11 @@ uint8_t UsiTwiReceiveByte(IdxPack *p_idx_pack) {
 */
 void UsiTwiDriverInit(IdxPack *p_idx_pack) {
     // Initialize USI for TWI Slave mode.
-    //tx_tail = tx_head = 0;                  /* Flush TWI TX buffers */
-    //rx_tail = rx_head = rx_byte_count = 0;  /* Flush TWI RX buffers */
-    
-    p_idx_pack->rx_byte_count = 0;                              /* Bytes received in RX buffer */
+    p_idx_pack->rx_byte_count = 0;          /* Bytes received in RX buffer */
     p_idx_pack->rx_head = 0,
     p_idx_pack->rx_tail = 0;
     p_idx_pack->tx_head = 0,
     p_idx_pack->tx_tail = 0;
-    
     SET_USI_SDA_AND_SCL_AS_OUTPUT();        /* Set SCL and SDA as output */
     PORT_USI |= (1 << PORT_USI_SDA);        /* Set SDA high */
     PORT_USI |= (1 << PORT_USI_SCL);        /* Set SCL high */
