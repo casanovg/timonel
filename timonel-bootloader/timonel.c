@@ -315,7 +315,7 @@ int main(void) {
                         page_data += ((*(++mem_position) & 0xFF) << 8);
                         if (page_data != tpl) {
                             // If the application overwrites the trampoline bytes, delete it!
-                            flags |= (1 << FL_DEL_FLASH);
+                            mem_pack.flags |= (1 << FL_DEL_FLASH);
                         }
                     }
 #endif /* APP_USE_TPL_PG */
