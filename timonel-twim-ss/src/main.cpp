@@ -51,7 +51,7 @@ void setup() {
     USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
     ClrScr();
-    delay(500);
+    delay(150);
     PrintLogo();
     TwiBus i2c(SDA, SCL);
     byte slave_address = i2c.ScanBus(p_app_mode);
