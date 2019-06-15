@@ -123,8 +123,8 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     }
     // TWI command reply (one byte expected)
     if (reply_size == 0) {
-        Wire.requestFrom(addr_, ++reply_size, STOP_ON_REQ); /* True: releases the bus with a stop after a master request. */
-        byte reply = Wire.read();                           /* False: sends a restart, not releasing the bus.             */
+        Wire.requestFrom(addr_, ++reply_size); /* True: releases the bus with a stop after a master request. */
+        byte reply = Wire.read();              /* False: sends a restart, not releasing the bus.             */
         if (reply == twi_reply) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Command 0x%02X parsed OK <<< 0x%02X (single byte reply)\n\r", __func__, twi_cmd_arr[0], reply);
@@ -139,8 +139,8 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     }
     // TWI command reply (multiple bytes expected)
     else {
-        byte reply_length = Wire.requestFrom(addr_, reply_size, STOP_ON_REQ); /* True: releases the bus with a stop after a master request. */
-        for (int i = 0; i < reply_size; i++) {                                /* False: sends a restart, not releasing the bus.             */
+        byte reply_length = Wire.requestFrom(addr_, reply_size); /* True: releases the bus with a stop after a master request. */
+        for (int i = 0; i < reply_size; i++) {                   /* False: sends a restart, not releasing the bus.             */
             twi_reply_arr[i] = Wire.read();
         }
         if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {

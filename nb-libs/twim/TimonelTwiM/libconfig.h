@@ -45,7 +45,7 @@
 #define S_CHECK_EMPTY_FL 10 /* Status: Check empty flash value byte position */
 // *** Features byte (8 bits)
 #define F_ENABLE_LED_UI 0   /* Features 1 (1)  : LED UI enabled */
-#define F_AUTO_PAGE_ADDR 1   /* Features 2 (2)  : Automatic trampoline and addr handling */
+#define F_AUTO_PAGE_ADDR 1  /* Features 2 (2)  : Automatic trampoline and addr handling */
 #define F_APP_USE_TPL_PG 2  /* Features 3 (4)  : Application can use trampoline page */
 #define F_CMD_SETPGADDR 3   /* Features 4 (8)  : Set page address command enabled */
 #define F_TWO_STEP_INIT 4   /* Features 5 (16) : Two-step initialization required */
@@ -80,17 +80,17 @@
 // End Timonel::SendDataPacket defs
 
 // Timonel::UploadApplication defs
-#define DLY_PKT_SEND 10     /* Delay after sending a data packet */
-#define DLY_FLASH_PG 100    /* Delay to allow memory page flashing */
-#define TRAMPOLINE_LEN 2    /* Trampoline length: two-byte address to jump to the app */
-#define ERR_SETADDRESS 1    /* Error: AUTO_PAGE_ADDR and CMD_SETPGADDR are disabled, can't set page addresses */
-#define ERR_APP_OVF_AU 2    /* Error: the payload doesn't fit in AVR memory (auto page addr calculation) */
-#define ERR_APP_OVF_MC 3    /* Error: the payload doesn't fit in AVR memory (page addr calculated by TWI master) */
-#define ERR_AUTO_CALC  4    /* Error: AUTO_PAGE_ADDR is disabled and the addr handling cade is not included in TWI master */
+#define DLY_PKT_SEND 10   /* Delay after sending a data packet */
+#define DLY_FLASH_PG 100  /* Delay to allow memory page flashing */
+#define TRAMPOLINE_LEN 2  /* Trampoline length: two-byte address to jump to the app */
+#define ERR_SETADDRESS 1  /* Error: AUTO_PAGE_ADDR and CMD_SETPGADDR are disabled, can't set page addresses */
+#define ERR_APP_OVF_AU 2  /* Error: the payload doesn't fit in AVR memory (auto page addr calculation) */
+#define ERR_APP_OVF_MC 3  /* Error: the payload doesn't fit in AVR memory (page addr calculated by TWI master) */
+#define ERR_AUTO_CALC 4   /* Error: AUTO_PAGE_ADDR is disabled and the addr handling cade is not included in TWI master */
 // End Timonel::UploadApplication defs
 
 // Timonel::DeleteApplication defs
-#define DLY_DEL_INIT 750    /* Delay to allow deleting the app before initializing Timonel */
+#define DLY_DEL_INIT 750  /* Delay to allow deleting the app before initializing Timonel */
 // End Timonel::DeleteApplication defs
 
 /////////////////////////////////////////////////////////////////////////////
