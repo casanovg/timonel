@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-06-11 (GOOD-GLOBAL)
+ *  Version: 1.3 "Sandra" / 2019-06-11
  *  gustavo.casanova@nicebots.com
  */
 
@@ -629,7 +629,7 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     //                                                                   >>
-                    ReceiveEvent(rx_byte_count, p_mem_pack); // Call a function in main    >>
+                    ReceiveEvent(rx_byte_count, p_mem_pack); // Process data in main ...   >>
                     //                                                                   >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
