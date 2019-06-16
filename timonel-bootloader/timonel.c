@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.3 "Sandra" / 2019-06-06
+ *  Version: 1.3 "Sandra" / 2019-06-11
  *  gustavo.casanova@nicebots.com
  */
 
@@ -471,7 +471,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
                 }
             }
 #if CHECK_PAGE_IX
-            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_page_ix > SPM_PAGESIZE)) {
+            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
 #else
             if (reply[1] != command[MST_PACKET_SIZE + 1]) {
 #endif /* CHECK_PAGE_IX */
