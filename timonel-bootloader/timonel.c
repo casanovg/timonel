@@ -471,7 +471,7 @@ inline void ReceiveEvent(uint8_t received_bytes, MemPack *p_mem_pack) {
                 }
             }
 #if CHECK_PAGE_IX
-            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_page_ix > SPM_PAGESIZE)) {
+            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
 #else
             if (reply[1] != command[MST_PACKET_SIZE + 1]) {
 #endif /* CHECK_PAGE_IX */
