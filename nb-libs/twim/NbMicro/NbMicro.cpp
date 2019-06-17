@@ -250,6 +250,7 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r[%s] Scanning TWI bus, searching all the connected devices, please wait ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
+    byte found_devices = 0;
     byte twi_addr = LOW_TWI_ADDR;
     while (twi_addr <= HIG_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
@@ -257,23 +258,24 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
             if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
                 Timonel tml(twi_addr);
                 Timonel::Status sts = tml.GetStatus();
-                dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
+                dev_info_arr[found_devices].addr = twi_addr;
                 if (sts.signature == T_SIGNATURE) {
-                    dev_info_arr[twi_addr - start_twi_addr].firmware = L_TIMONEL;
+                    dev_info_arr[found_devices].firmware = L_TIMONEL;
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                     USE_SERIAL.printf_P("\n\r[%s] Scanning TWI bus, searching all the connected devices, please wait ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
                 } else {
-                    dev_info_arr[twi_addr - start_twi_addr].firmware = L_UNKNOWN;
+                    dev_info_arr[found_devices].firmware = L_UNKNOWN;
                 }
-                dev_info_arr[twi_addr - start_twi_addr].version_major = sts.version_major;
-                dev_info_arr[twi_addr - start_twi_addr].version_minor = sts.version_minor;
+                dev_info_arr[found_devices].version_major = sts.version_major;
+                dev_info_arr[found_devices].version_minor = sts.version_minor;
             } else {
-                dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
-                dev_info_arr[twi_addr - start_twi_addr].firmware = L_APP;
-                dev_info_arr[twi_addr - start_twi_addr].version_major = 0;
-                dev_info_arr[twi_addr - start_twi_addr].version_minor = 0;
+                dev_info_arr[found_devices].addr = twi_addr;
+                dev_info_arr[found_devices].firmware = L_APP;
+                dev_info_arr[found_devices].version_major = 0;
+                dev_info_arr[found_devices].version_minor = 0;
             }
+            found_devices++;
         }
         delay(DLY_SCAN_BUS);
         twi_addr++;

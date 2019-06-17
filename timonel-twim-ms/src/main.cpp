@@ -1,14 +1,14 @@
 /*
   main.cpp
   ========
-  Timonel library test program
-  ----------------------------
+  Timonel library test program (Multi Slave)
+  ------------------------------------------
   This demo shows how to control and update several microscontrollers (Tiny85)
   running the Timonel bootloader from an ESP8266 Master.
   It uses a serial console configured at 9600 N 8 1 for feedback.
-  ---------------------------
+  ------------------------------------------
   2019-03-11 Gustavo Casanova
-  ---------------------------
+  ------------------------------------------
 */
 
 /*
@@ -74,25 +74,25 @@ void setup() {
     ClrScr();
     ShowHeader();
     // 1)
-    //------ListTwiDevices();
+    ListTwiDevices();
     // 2)
-    //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
-    //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
-    Timonel t1(19);
-    delay(150);
+    Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
+    GetAllTimonels(tml_pool, MAX_TWI_DEVS);
+    //Timonel t1(19);
+    //delay(150);
     // Timonel t2(22);
     // delay(150);    
 
-    PrintStatus(t1);
-    USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
-    t1.DeleteApplication();
-    delay(3000);
-    Wire.begin(SDA, SCL);
-    USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
-    t1.RunApplication();
-    delay(500);
-    t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
-    PrintStatus(t1);
+    // PrintStatus(t1);
+    // USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
+    // t1.DeleteApplication();
+    // delay(3000);
+    // Wire.begin(SDA, SCL);
+    // USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
+    // t1.RunApplication();
+    // delay(500);
+    // t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
+    // PrintStatus(t1);
 
     // PrintStatus(t2);
     // USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
@@ -290,12 +290,12 @@ void ReadChar() {
 
 // Function ReadWord
 word ReadWord(void) {
-    Timonel::Status sts;    /*= tml.GetStatus() */
-    word last_page = 0;     /*= (sts.bootloader_start - PAGE_SIZE) */
+    Timonel::Status sts /*= tml.GetStatus()*/;
+    word last_page = (sts.bootloader_start - SPM_PAGESIZE);
     const byte data_length = 16;
-    char serial_data[data_length];  /* array to store the received data */
+    char serial_data[data_length];  // an array to store the received data
     static byte ix = 0;
-    char rc, endMarker = 0xD;  /* standard is: char endMarker = '\n' */
+    char rc, endMarker = 0xD;  //standard is: char endMarker = '\n'
     while (USE_SERIAL.available() > 0 && new_word == false) {
         rc = USE_SERIAL.read();
         if (rc != endMarker) {
@@ -306,7 +306,7 @@ word ReadWord(void) {
                 ix = data_length - 1;
             }
         } else {
-            serial_data[ix] = '\0';  /* terminate the string */
+            serial_data[ix] = '\0';  // terminate the string
             ix = 0;
             new_word = true;
         }
@@ -321,7 +321,7 @@ word ReadWord(void) {
     return ((word)atoi(serial_data));
 }
 
-// Function Clear Screen
+// Function clear screen
 void ClrScr() {
     USE_SERIAL.write(27);        // ESC command
     USE_SERIAL.printf_P("[2J");  // clear screen command
@@ -329,28 +329,42 @@ void ClrScr() {
     USE_SERIAL.printf_P("[H");   // cursor to home command
 }
 
-// Print Timonel instance status
+// Function PrintLogo
+void PrintLogo(void) {
+    USE_SERIAL.printf_P("        _                         _\n\r");
+    USE_SERIAL.printf_P("    _  (_)                       | |\n\r");
+    USE_SERIAL.printf_P("  _| |_ _ ____   ___  ____  _____| |\n\r");
+    USE_SERIAL.printf_P(" (_   _) |    \\ / _ \\|  _ \\| ___ | |\n\r");
+    USE_SERIAL.printf_P("   | |_| | | | | |_| | | | | ____| |\n\r");
+    USE_SERIAL.printf_P("    \\__)_|_|_|_|\\___/|_| |_|_____)\\_)\n\r");
+}
+
+// Function print Timonel instance status
 void PrintStatus(Timonel timonel) {
-    Timonel::Status tml_status = timonel.GetStatus(); /*Get the instance id parameters received from the ATTiny85 */
-    if ((tml_status.signature == T_SIGNATURE) && ((tml_status.version_major != 0) || (tml_status.version_minor != 0))) {
-        byte version_major = tml_status.version_major;
-        USE_SERIAL.printf_P("\n\r Timonel v%d.%d", version_major, tml_status.version_minor);
+    Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance id parameters received from the ATTiny85 */
+    byte twi_address = timonel.GetTwiAddress();
+    byte version_major = tml_status.version_major;
+    byte version_minor = tml_status.version_minor;
+    if (((tml_status.signature == T_SIGNATURE_CTM) || (tml_status.signature == T_SIGNATURE_AUT)) && \
+       ((version_major != 0) || (version_minor != 0))) {
+        String version_mj_nick = "";
         switch (version_major) {
             case 0: {
-                USE_SERIAL.printf_P(" Pre-release \n\r");
+                version_mj_nick = "\"Pre-release\"";
                 break;
             }
             case 1: {
-                USE_SERIAL.printf_P(" \"Sandra\" \n\r");
+                version_mj_nick = "\"Sandra\"";
                 break;
             }
             default: {
-                USE_SERIAL.printf_P(" Unknown \n\r");
+                version_mj_nick = "\"Unknown\"";
                 break;
             }
         }
-        USE_SERIAL.printf_P(" ====================================\n\r");
-        //Timonel::Status tml_status = timonel.GetStatus(); /* Get the instance status parameters received from the ATTiny85 */
+        USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
+        USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
+        USE_SERIAL.printf_P(" ====================================\n\r");        
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -358,7 +372,17 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d\n\n\r", tml_status.features_code);
+        USE_SERIAL.printf_P("      Features code: %d ", tml_status.features_code);
+        if (tml_status.auto_clock_tweak == true) {
+            USE_SERIAL.printf_P("(Auto-Twk)");
+        }
+        USE_SERIAL.printf_P("\n\r");
+        USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
+        USE_SERIAL.printf_P("             RC osc: 0x%02X\n\n\r", tml_status.oscillator_cal);
+    } else {
+        USE_SERIAL.printf_P("\n\r *******************************************************************\n\r");
+        USE_SERIAL.printf_P(" * Unknown bootloader, application or device at TWI address %02d ... *\n\r", twi_address);
+        USE_SERIAL.printf_P(" *******************************************************************\n\n\r");
     }
 }
 
@@ -375,16 +399,16 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\rTimonel TWI master libraries test for updating multiple slave ATTiny85s (v1.2 twim-ms)\n\n\r");
+    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3 twim-ms)\n\r");
 }
 
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
-        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset T85, '?' help): ");
+        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset MCU, '?' help): ");
     } else {
         Timonel::Status sts /*= tml.GetStatus()*/;
-        USE_SERIAL.printf_P("Timonel booloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
+        USE_SERIAL.printf_P("Timonel bootloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
         }
@@ -398,19 +422,20 @@ void ShowMenu(void) {
 // Function ListTwidevices
 void ListTwiDevices(byte sda, byte scl) {
     TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
-    twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
-    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
-        USE_SERIAL.printf_P("...........................................................\n\r");
-        USE_SERIAL.printf_P("Pos: %02d | ", i + 1);
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
+    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
+    for (byte i = 0; i < (HIG_TWI_ADDR - LOW_TWI_ADDR + 1); i++) {
+        
         if (dev_info_arr[i].firmware != "") {
+            USE_SERIAL.printf_P("...........................................................\n\r");
+            USE_SERIAL.printf_P("Pos: %02d | ", i + 1);
             USE_SERIAL.printf_P("TWI Addr: %02d | ", dev_info_arr[i].addr);
             USE_SERIAL.printf_P("Firmware: %s | ", dev_info_arr[i].firmware.c_str());
             USE_SERIAL.printf_P("Version %d.%d\n\r", dev_info_arr[i].version_major, dev_info_arr[i].version_minor);
-        } else {
-            USE_SERIAL.printf_P("No device found\n\r");
+        //} else {
+        //    USE_SERIAL.printf_P("No device found\n\r");
         }
-        delay(50);
+        delay(10);
     }
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
