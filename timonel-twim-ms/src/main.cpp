@@ -423,7 +423,7 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     for (byte i = 0; i < MAX_TWI_DEVS; i++) {
         if (dev_info_arr[i].firmware == "Timonel") {
             byte tml_addr = dev_info_arr[i].addr;
-            tml_arr[i].SetObjTwiAddress(tml_addr);
+            tml_arr[i].SetTwiAddress(tml_addr);
             delay(250);
             tml_arr[i].DeleteApplication();
             delay(1500);
