@@ -7,7 +7,7 @@
   running the Timonel bootloader from an ESP8266 Master.
   It uses a serial console configured at 9600 N 8 1 for feedback.
   ------------------------------------------
-  2019-03-11 Gustavo Casanova
+  2019-06-17 Gustavo Casanova
   ------------------------------------------
 */
 
@@ -45,7 +45,7 @@
 void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
-void ListTwiDevices(byte sda = 0, byte scl = 0);
+void ListTwiDevices(TwiBus::DeviceInfo[], byte sda = 0, byte scl = 0);
 byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0);
 void PrintStatus(Timonel timonel);
 void ThreeStarDelay(void);
@@ -65,7 +65,8 @@ bool app_mode = false;
 char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
-
+byte timonels = 0;
+byte applications = 0;
 
 // Setup block
 void setup() {
@@ -73,11 +74,62 @@ void setup() {
     Wire.begin(SDA, SCL);
     ClrScr();
     ShowHeader();
+
     // 1)
-    ListTwiDevices();
+    TwiBus twi(SDA, SCL);
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
+ 
+    // This line initializes the bootloaders ...
+    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
+
+    byte tml_count = (byte)(sizeof(dev_info_arr) / 2);
+    Timonel *tml_arr[tml_count];
+
+    for (byte i = 0; i <= (tml_count); i++) {
+        if (dev_info_arr[i].firmware == "Timonel") {
+            tml_arr[i] = new Timonel(dev_info_arr[i].addr);
+            delay(5);
+            tml_arr[i]->GetStatus();
+            delay(5);            
+        }
+    }
+
+    ThreeStarDelay();
+
+    for (byte i = 0; i <= (tml_count); i++) {
+        if (dev_info_arr[i].firmware == "Timonel") {
+            //tml_arr[i] = new Timonel(dev_info_arr[i].addr);
+            delay(10);
+            PrintStatus(*tml_arr[i]);
+            tml_arr[i]->DeleteApplication();
+            delay(10);
+            PrintStatus(*tml_arr[i]);            
+            //Wire.begin(SDA, SCL);            
+        }
+    }
+
+    ThreeStarDelay();    
+
+    for (byte i = 0; i <= (tml_count); i++) {
+        if (dev_info_arr[i].firmware == "Timonel") {
+            //tml_arr[i] = new Timonel(dev_info_arr[i].addr);
+            PrintStatus(*tml_arr[i]);
+            delay(150);
+            tml_arr[i]->UploadApplication(payload, sizeof(payload));
+            delay(10);
+            PrintStatus(*tml_arr[i]);
+            delay(150);            
+            tml_arr[i]->RunApplication();
+            delay(1500);
+            delete tml_arr[i];
+        }
+    }
+
+    //ListTwiDevices(dev_info_arr);
+
     // 2)
-    Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
-    GetAllTimonels(tml_pool, MAX_TWI_DEVS);
+    //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
+    //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
     //Timonel t1(19);
     //delay(150);
     // Timonel t2(22);
@@ -399,7 +451,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3 twim-ms)\n\r");
+    USE_SERIAL.printf_P("\n\rTimonel TWI Bootloader and Application Test (v1.3 twim-ms)\n\r");
 }
 
 // Function ShowMenu
@@ -420,11 +472,13 @@ void ShowMenu(void) {
 }
 
 // Function ListTwidevices
-void ListTwiDevices(byte sda, byte scl) {
-    TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
-    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
-    for (byte i = 0; i < (HIG_TWI_ADDR - LOW_TWI_ADDR + 1); i++) {
+void ListTwiDevices(TwiBus::DeviceInfo dev_info_arr[], byte sda, byte scl) {
+    //TwiBus twi(sda, scl);
+    //TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
+    //twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
+    byte arr_size = sizeof(dev_info_arr) / 2;
+    USE_SERIAL.printf_P("\n\rDev info qty: %d\n\r", arr_size);
+    for (byte i = 0; i < arr_size; i++) {
         
         if (dev_info_arr[i].firmware != "") {
             USE_SERIAL.printf_P("...........................................................\n\r");
@@ -435,7 +489,7 @@ void ListTwiDevices(byte sda, byte scl) {
         //} else {
         //    USE_SERIAL.printf_P("No device found\n\r");
         }
-        delay(10);
+        delay(2);
     }
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }

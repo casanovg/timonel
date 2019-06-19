@@ -261,9 +261,6 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
                 dev_info_arr[found_devices].addr = twi_addr;
                 if (sts.signature == T_SIGNATURE) {
                     dev_info_arr[found_devices].firmware = L_TIMONEL;
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                    USE_SERIAL.printf_P("\n\r[%s] Scanning TWI bus, searching all the connected devices, please wait ...\n\r", __func__);
-#endif /* DEBUG_LEVEL */
                 } else {
                     dev_info_arr[found_devices].firmware = L_UNKNOWN;
                 }
