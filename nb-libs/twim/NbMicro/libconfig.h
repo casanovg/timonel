@@ -39,7 +39,7 @@
 // End NbMicro::TwiCmdXmit defs
 
 // TwiBus::ScanBus defs
-#define DLY_SCAN_BUS 5      /* TWI scanner pass delay */
+#define DLY_SCAN_BUS 1      /* TWI scanner pass delay */
 #define L_TIMONEL "Timonel" /* Literal: Timonel */
 #define L_UNKNOWN "Unknown" /* Literal: Unknown */
 #define L_APP "Application" /* Literal: Application */
