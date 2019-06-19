@@ -89,7 +89,7 @@ void setup() {
         if (dev_info_arr[i].firmware == "Timonel") {
             tml_arr[i] = new Timonel(dev_info_arr[i].addr);
             tml_arr[i]->GetStatus();
-            delay(1);            
+            //delay(1);            
         }
     }
 

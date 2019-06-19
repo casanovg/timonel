@@ -274,7 +274,7 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
             }
             found_devices++;
         }
-        delay(DLY_SCAN_BUS);
+        //delay(DLY_SCAN_BUS);
         twi_addr++;
     }
     return OK;
