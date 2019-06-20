@@ -7,7 +7,7 @@
   running the Timonel bootloader from an ESP8266 Master.
   It uses a serial console configured at 9600 N 8 1 for feedback.
   ------------------------------------------
-  2019-06-17 Gustavo Casanova
+  2019-06-20 Gustavo Casanova
   ------------------------------------------
 */
 
@@ -46,7 +46,7 @@ void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
 void ListTwiDevices(TwiBus::DeviceInfo[], byte sda = 0, byte scl = 0);
-byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0);
+byte GetAllTimonels(Timonel tml_pool[], byte tml_pool_size, byte sda = 0, byte scl = 0);
 void PrintStatus(Timonel timonel);
 void ThreeStarDelay(void);
 void ReadChar(void);
@@ -70,91 +70,69 @@ byte applications = 0;
 
 // Setup block
 void setup() {
+    
+    // Thr bus device scanning it has to be made as fast as possible since each
+    // discovered Timonel has to be initialized before launching the user apps
+    TwiBus twi(SDA, SCL);
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
+    // This line initializes the bootloaders ...
+    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
+
     USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
     Wire.begin(SDA, SCL);
     ClrScr();
     ShowHeader();
 
     // 1)
-    TwiBus twi(SDA, SCL);
-    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
- 
-    // This line initializes the bootloaders ...
-    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
 
     byte tml_count = (byte)(sizeof(dev_info_arr) / 2);
-    Timonel *tml_arr[tml_count];
+    Timonel *tml_pool[tml_count];
 
+    // Initialize bootloaders before they launch user applications 
     for (byte i = 0; i <= (tml_count); i++) {
         if (dev_info_arr[i].firmware == "Timonel") {
-            tml_arr[i] = new Timonel(dev_info_arr[i].addr);
-            tml_arr[i]->GetStatus();
+            tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+            tml_pool[i]->GetStatus();
             //delay(1);            
         }
     }
 
     ThreeStarDelay();
 
+    // Delete user applications
     for (byte i = 0; i <= (tml_count); i++) {
         if (dev_info_arr[i].firmware == "Timonel") {
-            //tml_arr[i] = new Timonel(dev_info_arr[i].addr);
+            //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
             delay(10);
-            PrintStatus(*tml_arr[i]);
-            tml_arr[i]->DeleteApplication();
+            PrintStatus(*tml_pool[i]);
+            tml_pool[i]->DeleteApplication();
             delay(10);
-            PrintStatus(*tml_arr[i]);            
+            PrintStatus(*tml_pool[i]);            
             //Wire.begin(SDA, SCL);            
         }
     }
 
     ThreeStarDelay();    
 
+    // Upload user applications to devices and run them
     for (byte i = 0; i <= (tml_count); i++) {
         if (dev_info_arr[i].firmware == "Timonel") {
-            //tml_arr[i] = new Timonel(dev_info_arr[i].addr);
-            PrintStatus(*tml_arr[i]);
+            //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+            PrintStatus(*tml_pool[i]);
             delay(150);
-            tml_arr[i]->UploadApplication(payload, sizeof(payload));
+            tml_pool[i]->UploadApplication(payload, sizeof(payload));
             delay(10);
-            PrintStatus(*tml_arr[i]);
+            PrintStatus(*tml_pool[i]);
             delay(150);            
-            tml_arr[i]->RunApplication();
+            tml_pool[i]->RunApplication();
             delay(1500);
-            delete tml_arr[i];
+            delete tml_pool[i];
         }
     }
 
     //ListTwiDevices(dev_info_arr);
 
     // 2)
-    //Timonel tml_pool[MAX_TWI_DEVS] = { 0 };
-    //GetAllTimonels(tml_pool, MAX_TWI_DEVS);
-    //Timonel t1(19);
-    //delay(150);
-    // Timonel t2(22);
-    // delay(150);    
-
-    // PrintStatus(t1);
-    // USE_SERIAL.printf_P("\n\rNext: t1 DeleteApplication ...\n\r");
-    // t1.DeleteApplication();
-    // delay(3000);
-    // Wire.begin(SDA, SCL);
-    // USE_SERIAL.printf_P("\n\rNext: t1 RunApplication ...\n\r");
-    // t1.RunApplication();
-    // delay(500);
-    // t1.UploadApplication(payload, (int)sizeof(payload), 0x0);
-    // PrintStatus(t1);
-
-    // PrintStatus(t2);
-    // USE_SERIAL.printf_P("\n\rNext: t2 DeleteApplication ...\n\r");
-    // t2.DeleteApplication();
-    // delay(3000);
-    // Wire.begin(SDA, SCL);
-    // USE_SERIAL.printf_P("\n\rNext: t2 RunApplication ...\n\r");
-    // t2.RunApplication();
-    // delay(1500);
-    //t2.UploadApplication(payload, (int)sizeof(payload), 0x0);
-    //PrintStatus(t2);
 
 }
 
@@ -493,7 +471,7 @@ void ListTwiDevices(TwiBus::DeviceInfo dev_info_arr[], byte sda, byte scl) {
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
-byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
+byte GetAllTimonels(Timonel tml_pool[], byte tml_pool_size, byte sda, byte scl) {
     USE_SERIAL.printf_P("\n\n\rGetza !!!\n\r*********\n\n\r");
     TwiBus twi(sda, scl);
     TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
@@ -501,16 +479,16 @@ byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
     for (byte i = 0; i < MAX_TWI_DEVS; i++) {
         if (dev_info_arr[i].firmware == "Timonel") {
             byte tml_addr = dev_info_arr[i].addr;
-            tml_arr[i].SetTwiAddress(tml_addr);
+            tml_pool[i].SetTwiAddress(tml_addr);
             delay(250);
-            tml_arr[i].DeleteApplication();
+            tml_pool[i].DeleteApplication();
             delay(1500);
-            PrintStatus(tml_arr[i]);
+            PrintStatus(tml_pool[i]);
             delay(150);
         }
         delay(50);
     }
     USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\r");
-    //Timonel tml_array[timonels];
+    //Timonel tml_poolay[timonels];
     return 0;
 }

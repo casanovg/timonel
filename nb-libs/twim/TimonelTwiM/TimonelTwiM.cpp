@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: TimonelTwiM.cpp (Library)
  *  ........................................... 
- *  Version: 1.3 / 2019-06-06
+ *  Version: 1.4 / 2019-08-09
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library interacts with a microcontroller
@@ -94,13 +94,14 @@ byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> 0x%02X\r\n", __func__, DELFLASH);
 #endif /* DEBUG_LEVEL */
     byte twi_errors = TwiCmdXmit(DELFLASH, ACKDELFL);
-    twi_errors += BootloaderInit(DLY_DEL_INIT);
+    delay(DLY_DEL_INIT);    /* Long delay (~750 ms) to allow complete erasing before trying to initialize */
+    twi_errors += BootloaderInit();
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     if (twi_errors > 0) {
         USE_SERIAL.printf_P("\n\n\r###################################################\n\r");
         USE_SERIAL.printf_P("# [%s] # WARNING !!!\n\r# Timonel couldn't be initialized after delete!\n\r", __func__);
         USE_SERIAL.printf_P("# Maybe it's taking too long to delete the memory,\n\r");
-        USE_SERIAL.printf_P("# try increasing BootloaderInit(delay) ...\n\r");
+        USE_SERIAL.printf_P("# try increasing delay(DLY_DEL_INIT) ...\n\r");
         USE_SERIAL.printf_P("###################################################\n\n\r");
     }
 #endif /* DEBUG_LEVEL */
@@ -399,8 +400,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
 /////////////////////////////////////////////////////////////////////////////
 
 // Function BootloaderInit (Initializes Timonel in 1 or 2 steps, as required by its features)
-byte Timonel::BootloaderInit(const word delay_ms) {
-    delay(delay_ms);
+byte Timonel::BootloaderInit(void) {
     byte twi_errors = 0;
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 1 required by features *\r\n", __func__, addr_);
@@ -436,30 +436,19 @@ byte Timonel::QueryStatus(void) {
 #endif /* DEBUG_LEVEL */
         return twi_errors;
     } else {
-        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && ((twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_CTM) \
-                                                     ||  (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT))) {
+        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE)) {
             status_.signature = twi_reply_arr[S_SIGNATURE];
             status_.version_major = twi_reply_arr[S_MAJOR];
             status_.version_minor = twi_reply_arr[S_MINOR];
             status_.features_code = twi_reply_arr[S_FEATURES];
+            status_.ext_features_code = twi_reply_arr[S_EXT_FEATURES];
             status_.bootloader_start = (twi_reply_arr[S_BOOT_ADDR_MSB] << 8) + twi_reply_arr[S_BOOT_ADDR_LSB];
             status_.application_start = (twi_reply_arr[S_APPL_ADDR_LSB] << 8) + twi_reply_arr[S_APPL_ADDR_MSB];
             status_.trampoline_addr = (~(((twi_reply_arr[S_APPL_ADDR_MSB] << 8) | twi_reply_arr[S_APPL_ADDR_LSB]) & 0xFFF));
             status_.trampoline_addr++;
             status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
             status_.low_fuse_setting = twi_reply_arr[S_LOW_FUSE];
-            if ((twi_reply_arr[S_CHECK_EMPTY_FL] >> S_CHECK_EMPTY_FL) & true) {
-                status_.check_empty_fl = twi_reply_arr[S_CHECK_EMPTY_FL];
-                status_.oscillator_cal = 0;
-            } else {
-                status_.check_empty_fl = 0;
-                status_.oscillator_cal = twi_reply_arr[S_OSCCAL];
-            }
-            if (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT) {
-                status_.auto_clock_tweak = true;    
-            } else {
-                status_.auto_clock_tweak = false;
-            }
+            status_.oscillator_cal = twi_reply_arr[S_OSCCAL];
         }
         return OK;
     }

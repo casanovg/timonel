@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: TimonelTwiM.h (Header)
  *  ........................................... 
- *  Version: 1.3 / 2019-06-06
+ *  Version: 1.4 / 2019-08-09
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library interacts with a microcontroller
@@ -31,13 +31,13 @@ class Timonel : public NbMicro {
         byte version_major = 0;
         byte version_minor = 0;
         byte features_code = 0;
+        byte ext_features_code = 0;
         word bootloader_start = 0;
         word application_start = 0;
         word trampoline_addr = 0;
         byte low_fuse_setting = 0;
         byte oscillator_cal = 0;
         byte check_empty_fl = 0;
-        bool auto_clock_tweak = false;
     } Status;
     Status GetStatus(void);
     byte SetTwiAddress(byte twi_address);
@@ -54,7 +54,7 @@ class Timonel : public NbMicro {
 
    private:
     Status status_; /* Global struct that holds a Timonel instance's running status */
-    byte BootloaderInit(const word delay_ms = 0);
+    byte BootloaderInit(void);
     byte QueryStatus(void);
     byte SendDataPacket(const byte data_packet[]);
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
