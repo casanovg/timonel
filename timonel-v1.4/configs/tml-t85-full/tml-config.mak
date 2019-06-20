@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Full: All features enabled, except APP_USE_TPL_PG and CHECK_EMPTY_FL
+# Configuration:   Full: All features enabled, except APP_USE_TPL_PG
 
 MCU = attiny85
 

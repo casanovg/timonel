@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Small+Dump: Only SETPGADDR and READFLASH commands supported
+# Configuration:   Small+Dump: Only SETPGADDR and READFLASH enabled
 
 MCU = attiny85
 

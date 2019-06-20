@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard+Dump: Page address calculation, WDT reset and READFLASH enabled
+# Configuration:   Standard+Dump: Page address calculation, exit timeout, WDT reset and READFLASH enabled
 
 MCU = attiny85
 
@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1B00
+TIMONEL_START = 1B40
 
 # Timonel TWI address (decimal value):
 # -------------------------------------

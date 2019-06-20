@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard: Page address calculation and WDT reset enabled
+# Configuration:   Standard: Page address calculation, exit timeout and WDT reset enabled
 
 MCU = attiny85
 
