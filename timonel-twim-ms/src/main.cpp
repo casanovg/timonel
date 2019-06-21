@@ -374,8 +374,7 @@ void PrintStatus(Timonel timonel) {
     byte twi_address = timonel.GetTwiAddress();
     byte version_major = tml_status.version_major;
     byte version_minor = tml_status.version_minor;
-    if (((tml_status.signature == T_SIGNATURE_CTM) || (tml_status.signature == T_SIGNATURE_AUT)) && \
-       ((version_major != 0) || (version_minor != 0))) {
+    if ((tml_status.signature == T_SIGNATURE) && ((version_major != 0) || (version_minor != 0))) {
         String version_mj_nick = "";
         switch (version_major) {
             case 0: {
@@ -401,9 +400,11 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d ", tml_status.features_code);
-        if (tml_status.auto_clock_tweak == true) {
-            USE_SERIAL.printf_P("(Auto-Twk)");
+        USE_SERIAL.printf_P("      Features code: %d | %d ", tml_status.features_code, tml_status.ext_features_code);
+        if ((tml_status.ext_features_code >> F_AUTO_CLK_TWEAK) & true) {
+            USE_SERIAL.printf_P("(Auto)");
+        } else {
+            USE_SERIAL.printf_P("(Fixed)");
         }
         USE_SERIAL.printf_P("\n\r");
         USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
@@ -428,7 +429,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\rTimonel TWI Bootloader and Application Test (v1.3 twim-ms)\n\r");
+    USE_SERIAL.printf_P("\n\rTimonel TWI Bootloader and Application Test (v1.4 twim-ms)\n\r");
 }
 
 // Function ShowMenu
