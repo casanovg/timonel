@@ -92,8 +92,15 @@ inline static void RestorePrescaler(void) __attribute__((always_inline));
 
 inline static void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
 inline static void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
-
-
+inline static void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
+inline static void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+#endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
+inline static void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+#if CMD_READFLASH
+inline static void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+#endif /* CMD_READFLASH */
+inline static void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
@@ -381,19 +388,20 @@ inline void ReceiveEvent(uint8_t command[], uint8_t received_bytes, MemPack *p_m
         // ******************
         case GETTMNLV: {
             Reply_GETTMNLV(command, received_bytes, p_mem_pack);
+            return;
         }
         // ******************
         // * EXITTMNL Reply *
         // ******************
         case EXITTMNL: {
             Reply_EXITTMNL(command, received_bytes, p_mem_pack);
+            return;
         }
         // ******************
         // * DELFLASH Reply *
         // ******************
         case DELFLASH: {
-            UsiTwiTransmitByte(ACKDELFL);
-            p_mem_pack->flags |= (1 << FL_DEL_FLASH);
+            Reply_DELFLASH(command, received_bytes, p_mem_pack);
             return;
         }
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
@@ -401,14 +409,7 @@ inline void ReceiveEvent(uint8_t command[], uint8_t received_bytes, MemPack *p_m
         // * STPGADDR Reply *
         // ******************
         case STPGADDR: {
-            uint8_t reply[STPGADDR_RPLYLN] = { 0 };
-            p_mem_pack->page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
-            p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
-            reply[0] = AKPGADDR;
-            reply[1] = (uint8_t)(command[1] + command[2]);              /* Returns the sum of MSB and LSB of the page address */
-            for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
-            }
+            Reply_STPGADDR(command, received_bytes, p_mem_pack);
             return;
         }
 #endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
@@ -416,71 +417,16 @@ inline void ReceiveEvent(uint8_t command[], uint8_t received_bytes, MemPack *p_m
         // * WRITPAGE Reply *
         // ******************
         case WRITPAGE: {
-            uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
-            reply[0] = ACKWTPAG;
-            if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
-#if AUTO_PAGE_ADDR
-                p_mem_pack->app_reset_lsb = command[1];
-                p_mem_pack->app_reset_msb = command[2];
-#endif /* AUTO_PAGE_ADDR */
-                // This section modifies the reset vector to point to this bootloader.
-                // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
-                // the reset vector modification MUST BE done by the TWI master's upload program.
-                // Otherwise, Timonel won't have the execution control after power-on reset.
-                boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-                reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
-                p_mem_pack->page_ix += 2;
-                for (uint8_t i = 3; i < (MST_PACKET_SIZE + 1); i += 2) {
-                    boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
-                    p_mem_pack->page_ix += 2;
-                }                
-            } else {
-                for (uint8_t i = 1; i < (MST_PACKET_SIZE + 1); i += 2) {
-                    boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-                    reply[1] += (uint8_t)((command[i + 1]) + command[i]);
-                    p_mem_pack->page_ix += 2;
-                }
-            }
-#if CHECK_PAGE_IX
-            if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
-#else
-            if (reply[1] != command[MST_PACKET_SIZE + 1]) {
-#endif /* CHECK_PAGE_IX */
-                p_mem_pack->flags |= (1 << FL_DEL_FLASH);           /* If checksums don't match, safety payload deletion ... */
-                reply[1] = 0;
-            }
-            for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
-                UsiTwiTransmitByte(reply[i]);
-            }
-            return;
+            Reply_WRITPAGE(command, received_bytes, p_mem_pack);
+            return;            
         }
 #if CMD_READFLASH
         // ******************
         // * READFLSH Reply *
         // ******************
         case READFLSH: {
-            const uint8_t reply_len = (command[3] + 2);             /* Reply length: ack + memory positions requested + checksum */
-            uint8_t reply[reply_len];
-            reply[0] = ACKRDFSH;
-            reply[reply_len - 1] = 0;                               /* Checksum initialization */
-            // Point the initial memory position to the received address, then
-            // advance to fill the reply with the requested data amount.
-            const __flash uint8_t *mem_position;
-            mem_position = (void *)((command[1] << 8) + command[2]);
-            for (uint8_t i = 1; i < command[3] + 1; i++) {
-                reply[i] = (*(mem_position++) & 0xFF);              /* Actual memory position data */
-                reply[reply_len - 1] += (uint8_t)(reply[i]);        /* Checksum accumulator */
-            }
-            reply[reply_len - 1] += (uint8_t)(command[1]);          /* Add Received address MSB to checksum */
-            reply[reply_len - 1] += (uint8_t)(command[2]);          /* Add Received address MSB to checksum */
-            for (uint8_t i = 0; i < reply_len; i++) {
-                UsiTwiTransmitByte(reply[i]);                   
-            }
-#if ENABLE_LED_UI               
-            LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks whenever a memory data block is sent */
-#endif /* ENABLE_LED_UI */          
-            return;
+            Reply_READFLSH(command, received_bytes, p_mem_pack);
+            return;              
         }        
 #endif /* CMD_READFLASH */
 #if TWO_STEP_INIT
@@ -488,8 +434,7 @@ inline void ReceiveEvent(uint8_t command[], uint8_t received_bytes, MemPack *p_m
         // * INITSOFT Reply *
         // ******************
         case INITSOFT: {
-            p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
-            UsiTwiTransmitByte(ACKINITS);
+            Reply_INITSOFT(command, received_bytes, p_mem_pack);
             return;
         }
 #endif /* TWO_STEP_INIT */
@@ -547,6 +492,104 @@ inline void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p
     UsiTwiTransmitByte(ACKEXITT);
     p_mem_pack->flags |= (1 << FL_EXIT_TML);
     return;
+}
+
+// Function Reply_DELFLASH
+inline void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    UsiTwiTransmitByte(ACKDELFL);
+    p_mem_pack->flags |= (1 << FL_DEL_FLASH);
+    return;
+}
+
+// Function_STPGADDR
+#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
+inline void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    uint8_t reply[STPGADDR_RPLYLN] = { 0 };
+    p_mem_pack->page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
+    p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
+    reply[0] = AKPGADDR;
+    reply[1] = (uint8_t)(command[1] + command[2]);              /* Returns the sum of MSB and LSB of the page address */
+    for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
+        UsiTwiTransmitByte(reply[i]);
+    }
+    return;
+}
+#endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
+
+// Function Reply_WRITPAGE
+inline void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
+    reply[0] = ACKWTPAG;
+    if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
+#if AUTO_PAGE_ADDR
+        p_mem_pack->app_reset_lsb = command[1];
+        p_mem_pack->app_reset_msb = command[2];
+#endif /* AUTO_PAGE_ADDR */
+        // This section modifies the reset vector to point to this bootloader.
+        // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
+        // the reset vector modification MUST BE done by the TWI master's upload program.
+        // Otherwise, Timonel won't have the execution control after power-on reset.
+        boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
+        reply[1] += (uint8_t)((command[2]) + command[1]);   /* Reply checksum accumulator */
+        p_mem_pack->page_ix += 2;
+        for (uint8_t i = 3; i < (MST_PACKET_SIZE + 1); i += 2) {
+            boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
+            reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+            p_mem_pack->page_ix += 2;
+        }                
+    } else {
+        for (uint8_t i = 1; i < (MST_PACKET_SIZE + 1); i += 2) {
+            boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
+            reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+            p_mem_pack->page_ix += 2;
+        }
+    }
+#if CHECK_PAGE_IX
+    if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
+#else
+    if (reply[1] != command[MST_PACKET_SIZE + 1]) {
+#endif /* CHECK_PAGE_IX */
+        p_mem_pack->flags |= (1 << FL_DEL_FLASH);           /* If checksums don't match, safety payload deletion ... */
+        reply[1] = 0;
+    }
+    for (uint8_t i = 0; i < WRITPAGE_RPLYLN; i++) {
+        UsiTwiTransmitByte(reply[i]);
+    }
+    return;
+}
+
+// Function Reply_READFLSH
+#if CMD_READFLASH
+inline void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    const uint8_t reply_len = (command[3] + 2);             /* Reply length: ack + memory positions requested + checksum */
+    uint8_t reply[reply_len];
+    reply[0] = ACKRDFSH;
+    reply[reply_len - 1] = 0;                               /* Checksum initialization */
+    // Point the initial memory position to the received address, then
+    // advance to fill the reply with the requested data amount.
+    const __flash uint8_t *mem_position;
+    mem_position = (void *)((command[1] << 8) + command[2]);
+    for (uint8_t i = 1; i < command[3] + 1; i++) {
+        reply[i] = (*(mem_position++) & 0xFF);              /* Actual memory position data */
+        reply[reply_len - 1] += (uint8_t)(reply[i]);        /* Checksum accumulator */
+    }
+    reply[reply_len - 1] += (uint8_t)(command[1]);          /* Add Received address MSB to checksum */
+    reply[reply_len - 1] += (uint8_t)(command[2]);          /* Add Received address MSB to checksum */
+    for (uint8_t i = 0; i < reply_len; i++) {
+        UsiTwiTransmitByte(reply[i]);                   
+    }
+#if ENABLE_LED_UI               
+    LED_UI_PORT ^= (1 << LED_UI_PIN);                       /* Blinks whenever a memory data block is sent */
+#endif /* ENABLE_LED_UI */          
+    return;
+}
+#endif /* CMD_READFLASH */
+
+// Function Reply_INITSOFT
+inline void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
+    UsiTwiTransmitByte(ACKINITS);
+    return;    
 }
 
 /////////////////////////////////////////////////////////////////////////////
