@@ -1,4 +1,4 @@
-# NB Libraries v1.3 #
+# NB Libraries v1.4 #
 
 ## cmd folder: ##
 It contains the definition of the NB command set, common for the slave and master TWI (I2C) devices. Note that any change in the "nb-twi-cmd.h" file implies the need to recompile both firmware. If only one of the parties is compiled with a new revision, the communication will surely fail. This is especially important when sending a bootloader update to a slave device. 
