@@ -60,12 +60,12 @@
 // Type definitions
 typedef void (* const fptr_t)(void);                    /* Pointer-to-function type */
 typedef enum {                                          /* TWI driver operational modes */
-    STATE_CHECK_RECEIVED_ADDRESS = 0,
-    STATE_SEND_DATA_BYTE = 1,
-    STATE_RECEIVE_ACK_AFTER_SENDING_DATA = 2,
-    STATE_CHECK_RECEIVED_ACK = 3,
-    STATE_RECEIVE_DATA_BYTE = 4,
-    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK = 5
+    STATE_CHECK_RECEIVED_ADDRESS,
+    STATE_SEND_DATA_BYTE,
+    STATE_RECEIVE_ACK_AFTER_SENDING_DATA,
+    STATE_CHECK_RECEIVED_ACK,
+    STATE_RECEIVE_DATA_BYTE,
+    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK
 } OverflowState;
 typedef struct m_pack {
     uint16_t page_addr;                                 /* Flash memory page address */
