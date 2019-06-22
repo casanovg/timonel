@@ -430,7 +430,6 @@ inline void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p
     reply[9] = *(--mem_position);               /* Trampoline first byte (LSB) */
     reply[10] = boot_lock_fuse_bits_get(0);     /* Low fuse setting */
     reply[11] = OSCCAL;                         /* Internal RC oscillator calibration */
-
     p_mem_pack->flags |= (1 << FL_INIT_1);      /* First-step of single or two-step initialization */
 #if ENABLE_LED_UI
     LED_UI_PORT &= ~(1 << LED_UI_PIN);          /* Turn led off to indicate initialization */
