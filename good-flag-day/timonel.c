@@ -7,8 +7,8 @@
  *
  *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
- *  ...........................................
- *  Version: 1.4 "Sandra" / 2019-06-20 (Flag Day)
+ *  ..........................................................
+ *  Version: 1.5 "Sandra" / 2019-06-20 (Flag Day - Dispatcher)
  *  gustavo.casanova@nicebots.com
  */
 
@@ -34,7 +34,7 @@
 
 /* This bootloader ... */
 #define TIMONEL_VER_MJR 1                               /* Timonel version major number   */
-#define TIMONEL_VER_MNR 4                               /* Timonel version major number   */
+#define TIMONEL_VER_MNR 5                               /* Timonel version major number   */
 
 /* Configuration checks */
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
@@ -57,6 +57,8 @@
 #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
+#define OPCODES 7
+
 // Type definitions
 typedef void (* const fptr_t)(void);                    /* Pointer-to-function type */
 typedef enum {                                          /* TWI driver operational modes */
@@ -76,6 +78,10 @@ typedef struct m_pack {
     uint8_t app_reset_msb;                              /* Application second byte: reset vector MSB */
 #endif /* AUTO_PAGE_ADDR */
 } MemPack;                                              /* "Memory pack" structure */
+typedef struct dispatch_record {
+    uint8_t opcode;
+    void (*p_reply_function)(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack);
+} DispatchRecord;
 
 // USI TWI driver globals
 uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
@@ -86,21 +92,35 @@ uint8_t tx_head = 0, tx_tail = 0;
 OverflowState device_state;
 
 // Bootloader prototypes
-inline static void ReceiveEvent(uint8_t[], uint8_t, MemPack*) __attribute__((always_inline));
+inline static void ReplyDispatcher(uint8_t[], uint8_t, MemPack*) __attribute__((always_inline));
 inline static void ResetPrescaler(void) __attribute__((always_inline));
 inline static void RestorePrescaler(void) __attribute__((always_inline));
-
-inline static void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
-inline static void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
-inline static void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+void Reply_GETTMNLV(uint8_t[], uint8_t, MemPack*);
+void Reply_EXITTMNL(uint8_t[], uint8_t, MemPack*);
+void Reply_DELFLASH(uint8_t[], uint8_t, MemPack*);
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
-inline static void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+void Reply_STPGADDR(uint8_t[], uint8_t, MemPack*);
 #endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
-inline static void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+void Reply_WRITPAGE(uint8_t[], uint8_t, MemPack*);
 #if CMD_READFLASH
-inline static void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+void Reply_READFLSH(uint8_t[], uint8_t, MemPack*);
 #endif /* CMD_READFLASH */
-inline static void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) __attribute__((always_inline));
+void Reply_INITSOFT(uint8_t[], uint8_t, MemPack*);
+
+// Reply function dispatch table
+DispatchRecord reply_table[OPCODES] = {
+    { GETTMNLV, Reply_GETTMNLV },
+    { EXITTMNL, Reply_EXITTMNL },
+    { DELFLASH, Reply_DELFLASH },
+#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
+    { STPGADDR, Reply_STPGADDR },
+#endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
+    { WRITPAGE, Reply_WRITPAGE },
+#if CMD_READFLASH    
+    { READFLSH, Reply_READFLSH },
+#endif /* CMD_READFLASH */
+    { INITSOFT, Reply_INITSOFT }
+};
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
@@ -199,7 +219,7 @@ int main(void) {
     mem_pack.app_reset_msb = 0x00;                      
 #endif /* AUTO_PAGE_ADDR */    
     MemPack *p_mem_pack = &mem_pack;                    /* Pointer to "memory pack" structure */
-    
+
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -376,90 +396,24 @@ int main(void) {
 }
 
 /*  ________________________
-   |                        |
-   | TWI data receive event |
+   |                        | 
+   |    Reply dispatcher    |
    |________________________|
 */
-inline void ReceiveEvent(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
-    // If there is a valid bootloader command, execute it
-    switch (command[0]) {
-        // ******************
-        // * GETTMNLV Reply *
-        // ******************
-        case GETTMNLV: {
-            Reply_GETTMNLV(command, received_bytes, p_mem_pack);
-            return;
-        }
-        // ******************
-        // * EXITTMNL Reply *
-        // ******************
-        case EXITTMNL: {
-            Reply_EXITTMNL(command, received_bytes, p_mem_pack);
-            return;
-        }
-        // ******************
-        // * DELFLASH Reply *
-        // ******************
-        case DELFLASH: {
-            Reply_DELFLASH(command, received_bytes, p_mem_pack);
-            return;
-        }
-#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
-        // ******************
-        // * STPGADDR Reply *
-        // ******************
-        case STPGADDR: {
-            Reply_STPGADDR(command, received_bytes, p_mem_pack);
-            return;
-        }
-#endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
-        // ******************
-        // * WRITPAGE Reply *
-        // ******************
-        case WRITPAGE: {
-            Reply_WRITPAGE(command, received_bytes, p_mem_pack);
-            return;            
-        }
-#if CMD_READFLASH
-        // ******************
-        // * READFLSH Reply *
-        // ******************
-        case READFLSH: {
-            Reply_READFLSH(command, received_bytes, p_mem_pack);
-            return;              
-        }        
-#endif /* CMD_READFLASH */
-#if TWO_STEP_INIT
-        // ******************
-        // * INITSOFT Reply *
-        // ******************
-        case INITSOFT: {
-            Reply_INITSOFT(command, received_bytes, p_mem_pack);
-            return;
-        }
-#endif /* TWO_STEP_INIT */
-        default: {
-            UsiTwiTransmitByte(UNKNOWNC);                           /* Command not recognized */
+inline void ReplyDispatcher(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+    for (int i = 0; i < OPCODES; i++) {
+        if (command[0] == reply_table[i].opcode) {
+            reply_table[i].p_reply_function(command, received_bytes, p_mem_pack);
             return;
         }
     }
 }
 
-// Function ResetPrescaler
-inline void ResetPrescaler(void) {
-    // Set the CPU prescaler division factor to 1
-    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
-    CLKPR = 0x00;                                                   /* Clock division factor 1 (0000) */
-}
-
-// Function RestorePrescaler
-inline void RestorePrescaler(void) {
-    // Set the CPU prescaler division factor to 8
-    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
-    CLKPR = ((1 << CLKPS1) | (1 << CLKPS0));                        /* Clock division factor 8 (0011) */
-}
-
-// Function Reply_GETTMNLV
+/*  ______________________
+   |                      | 
+   |    Reply GETTMNLV    |
+   |______________________|
+*/
 inline void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     const __flash uint8_t *mem_position;
     mem_position = (void *)(TIMONEL_START - 1); 
@@ -487,21 +441,33 @@ inline void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p
     return;
 }
 
-// Function Reply_EXITTMNL
+/*  ______________________
+   |                      | 
+   |    Reply EXITTMNL    |
+   |______________________|
+*/
 inline void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKEXITT);
     p_mem_pack->flags |= (1 << FL_EXIT_TML);
     return;
 }
 
-// Function Reply_DELFLASH
+/*  ______________________
+   |                      | 
+   |    Reply DELFLASH    |
+   |______________________|
+*/
 inline void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKDELFL);
     p_mem_pack->flags |= (1 << FL_DEL_FLASH);
     return;
 }
 
-// Function_STPGADDR
+/*  ______________________
+   |                      | 
+   |    Reply STPGADDR    |
+   |______________________|
+*/
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
 inline void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = { 0 };
@@ -516,7 +482,11 @@ inline void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p
 }
 #endif /* CMD_SETPGADDR || !AUTO_PAGE_ADDR */
 
-// Function Reply_WRITPAGE
+/*  ______________________
+   |                      | 
+   |    Reply WRITPAGE    |
+   |______________________|
+*/
 inline void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
     reply[0] = ACKWTPAG;
@@ -558,7 +528,11 @@ inline void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p
     return;
 }
 
-// Function Reply_READFLSH
+/*  ______________________
+   |                      | 
+   |    Reply READFLSH    |
+   |______________________|
+*/
 #if CMD_READFLASH
 inline void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     const uint8_t reply_len = (command[3] + 2);             /* Reply length: ack + memory positions requested + checksum */
@@ -585,11 +559,29 @@ inline void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p
 }
 #endif /* CMD_READFLASH */
 
-// Function Reply_INITSOFT
+/*  ______________________
+   |                      | 
+   |    Reply INITSOFT    |
+   |______________________|
+*/
 inline void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
     UsiTwiTransmitByte(ACKINITS);
     return;    
+}
+
+// Function ResetPrescaler
+inline void ResetPrescaler(void) {
+    // Set the CPU prescaler division factor to 1
+    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
+    CLKPR = 0x00;                                                   /* Clock division factor 1 (0000) */
+}
+
+// Function RestorePrescaler
+inline void RestorePrescaler(void) {
+    // Set the CPU prescaler division factor to 8
+    CLKPR = (1 << CLKPCE);                                          /* Prescaler enable */
+    CLKPR = ((1 << CLKPS1) | (1 << CLKPS0));                        /* Clock division factor 8 (0011) */
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -668,14 +660,14 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     //                                                                   >>
-                    uint8_t received_bytes = rx_byte_count;             //                 >>
-                    static uint8_t command[MST_PACKET_SIZE * 2];        //                   >>
-                    for (uint8_t i = 0; i < received_bytes; i++) {      //  Call a function    >>
-                        while (rx_byte_count-- == 0) {};                //  main to process the  >>
-                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); //  received data        >>
-                        command[i] = rx_buffer[rx_tail];                //  (command) ...      >>
-                    }                                                   //                   >>
-                    ReceiveEvent(command, received_bytes, p_mem_pack);  //                 >>
+                    uint8_t received_bytes = rx_byte_count;               //               >>
+                    static uint8_t command[MST_PACKET_SIZE * 2];          //                 >>
+                    for (uint8_t i = 0; i < received_bytes; i++) {        // Call a function   >>
+                        while (rx_byte_count-- == 0) {};                  // main to process the >>
+                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);   // received data       >>
+                        command[i] = rx_buffer[rx_tail];                  // (command) ...     >>
+                    }                                                     //                 >>
+                    ReplyDispatcher(command, received_bytes, p_mem_pack); //               >>
                     //                                                                   >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
