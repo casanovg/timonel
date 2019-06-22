@@ -1,4 +1,4 @@
-# Timonel Bootloader v1.3 #
+# Timonel Bootloader v1.5 (Flag Day - Dispatch table - Experimental) #
 
 This bootloader version has several improvements:
 

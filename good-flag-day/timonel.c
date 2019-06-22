@@ -414,7 +414,7 @@ inline void ReplyDispatcher(uint8_t command[], uint8_t received_bytes, MemPack *
    |    Reply GETTMNLV    |
    |______________________|
 */
-inline void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     const __flash uint8_t *mem_position;
     mem_position = (void *)(TIMONEL_START - 1); 
     uint8_t reply[GETTMNLV_RPLYLN];
@@ -445,7 +445,7 @@ inline void Reply_GETTMNLV(uint8_t command[], uint8_t received_bytes, MemPack *p
    |    Reply EXITTMNL    |
    |______________________|
 */
-inline void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKEXITT);
     p_mem_pack->flags |= (1 << FL_EXIT_TML);
     return;
@@ -456,7 +456,7 @@ inline void Reply_EXITTMNL(uint8_t command[], uint8_t received_bytes, MemPack *p
    |    Reply DELFLASH    |
    |______________________|
 */
-inline void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKDELFL);
     p_mem_pack->flags |= (1 << FL_DEL_FLASH);
     return;
@@ -468,7 +468,7 @@ inline void Reply_DELFLASH(uint8_t command[], uint8_t received_bytes, MemPack *p
    |______________________|
 */
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
-inline void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = { 0 };
     p_mem_pack->page_addr = ((command[1] << 8) + command[2]);   /* Sets the flash memory page base address */
     p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               /* Keep only pages' base addresses */
@@ -486,7 +486,7 @@ inline void Reply_STPGADDR(uint8_t command[], uint8_t received_bytes, MemPack *p
    |    Reply WRITPAGE    |
    |______________________|
 */
-inline void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     uint8_t reply[WRITPAGE_RPLYLN] = { 0 };
     reply[0] = ACKWTPAG;
     if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
@@ -533,7 +533,7 @@ inline void Reply_WRITPAGE(uint8_t command[], uint8_t received_bytes, MemPack *p
    |______________________|
 */
 #if CMD_READFLASH
-inline void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     const uint8_t reply_len = (command[3] + 2);             /* Reply length: ack + memory positions requested + checksum */
     uint8_t reply[reply_len];
     reply[0] = ACKRDFSH;
@@ -563,7 +563,7 @@ inline void Reply_READFLSH(uint8_t command[], uint8_t received_bytes, MemPack *p
    |    Reply INITSOFT    |
    |______________________|
 */
-inline void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
+void Reply_INITSOFT(uint8_t command[], uint8_t received_bytes, MemPack *p_mem_pack) {
     p_mem_pack->flags |= (1 << FL_INIT_2);                  /* Two-step init step 1: receive INITSOFT command */
     UsiTwiTransmitByte(ACKINITS);
     return;    
