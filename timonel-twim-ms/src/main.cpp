@@ -68,72 +68,69 @@ word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
 byte timonels = 0;
 byte applications = 0;
 
+#define LOOP_COUNT 3
+
 // Setup block
 void setup() {
-    
-    // Thr bus device scanning it has to be made as fast as possible since each
-    // discovered Timonel has to be initialized before launching the user apps
-    TwiBus twi(SDA, SCL);
-    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
-    // This line initializes the bootloaders ...
-    twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
 
     USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
     Wire.begin(SDA, SCL);
     ClrScr();
     ShowHeader();
+    
+    // Thr bus device scanning it has to be made as fast as possible since each
+    // discovered Timonel has to be initialized before launching the user apps
+    TwiBus twi(SDA, SCL);
+    TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
+    
+    for (byte loop = 0; loop < LOOP_COUNT; loop++) {
 
-    // 1)
+        // This line initializes the bootloaders ...
+        twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
 
-    byte tml_count = (byte)(sizeof(dev_info_arr) / 2);
-    Timonel *tml_pool[tml_count];
+        byte tml_count = (byte)(sizeof(dev_info_arr) / 2);
+        Timonel *tml_pool[tml_count];
 
-    // Initialize bootloaders before they launch user applications 
-    for (byte i = 0; i <= (tml_count); i++) {
-        if (dev_info_arr[i].firmware == "Timonel") {
-            tml_pool[i] = new Timonel(dev_info_arr[i].addr);
-            tml_pool[i]->GetStatus();
-            //delay(1);            
+        // Initialize bootloaders before they launch user applications 
+        for (byte i = 0; i <= (tml_count); i++) {
+            if (dev_info_arr[i].firmware == "Timonel") {
+                tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+                tml_pool[i]->GetStatus();
+                //delay(1);            
+            }
         }
-    }
-
-    ThreeStarDelay();
-
-    // Delete user applications
-    for (byte i = 0; i <= (tml_count); i++) {
-        if (dev_info_arr[i].firmware == "Timonel") {
-            //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
-            delay(10);
-            PrintStatus(*tml_pool[i]);
-            tml_pool[i]->DeleteApplication();
-            delay(10);
-            PrintStatus(*tml_pool[i]);            
-            //Wire.begin(SDA, SCL);            
+        ThreeStarDelay();
+        // Delete user applications
+        for (byte i = 0; i <= (tml_count); i++) {
+            if (dev_info_arr[i].firmware == "Timonel") {
+                //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+                delay(10);
+                PrintStatus(*tml_pool[i]);
+                tml_pool[i]->DeleteApplication();
+                delay(10);
+                PrintStatus(*tml_pool[i]);            
+                //Wire.begin(SDA, SCL);            
+            }
         }
-    }
-
-    ThreeStarDelay();    
-
-    // Upload user applications to devices and run them
-    for (byte i = 0; i <= (tml_count); i++) {
-        if (dev_info_arr[i].firmware == "Timonel") {
-            //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
-            PrintStatus(*tml_pool[i]);
-            delay(150);
-            tml_pool[i]->UploadApplication(payload, sizeof(payload));
-            delay(10);
-            PrintStatus(*tml_pool[i]);
-            delay(150);            
-            tml_pool[i]->RunApplication();
-            delay(1500);
-            delete tml_pool[i];
+        ThreeStarDelay();    
+        // Upload user applications to devices and run them
+        for (byte i = 0; i <= (tml_count); i++) {
+            if (dev_info_arr[i].firmware == "Timonel") {
+                //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+                PrintStatus(*tml_pool[i]);
+                delay(150);
+                tml_pool[i]->UploadApplication(payload, sizeof(payload));
+                delay(10);
+                PrintStatus(*tml_pool[i]);
+                delay(150);            
+                tml_pool[i]->RunApplication();
+                delay(1500);
+                delete tml_pool[i];
+            }
         }
+    delay(500);
+    ESP.restart();
     }
-
-    //ListTwiDevices(dev_info_arr);
-
-    // 2)
-
 }
 
 //
