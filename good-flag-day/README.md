@@ -1,6 +1,9 @@
-# Timonel Bootloader v1.5 (Flag Day - Dispatch table - Experimental) #
+# Timonel Bootloader v1.5 Experimental #
+## Reply Dispatcher "Flag Day"  ##
 
 This bootloader version has several improvements:
+
+* Optional TIMEOUT_EXIT feature added to allow selecting whether the user application will run automatically after a timeout when the bootloader is not initialized, or, it will only be run controlled by the TWI master. Optional CHECK_EMPTY_FL feature was deprecated since the READFLSH command can be used for the same purpose. Improved command reply switch-case.
 
 * The TWI (I2C) driver implementation, with inline functions inside the bootloader source code, allows significant memory saving. Now the smaller version "tml-t85-small" occupies ~ 1K byte, leaving 7K bytes available for user applications.
 

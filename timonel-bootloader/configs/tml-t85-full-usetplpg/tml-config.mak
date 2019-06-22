@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Full: All features enabled, except APP_USE_TPL_PG and CHECK_EMPTY_FL
+# Configuration:   Full UseTplPg: All features enabled, except APP_USE_TPL_PG
 
 MCU = attiny85
 
@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1A40
+TIMONEL_START = 1A80
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -35,7 +35,7 @@ APP_USE_TPL_PG = true
 CMD_SETPGADDR  = true
 TWO_STEP_INIT  = true
 USE_WDT_RESET  = true
-CHECK_EMPTY_FL = false
+TIMEOUT_EXIT   = true
 CMD_READFLASH  = true
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false

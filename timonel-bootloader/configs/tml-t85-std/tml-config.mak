@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard: Page address calculation and WDT reset enabled
+# Configuration:   Standard: Page address calculation, exit timeout and WDT reset enabled
 
 MCU = attiny85
 
@@ -35,7 +35,7 @@ APP_USE_TPL_PG = false
 CMD_SETPGADDR  = false
 TWO_STEP_INIT  = false
 USE_WDT_RESET  = true
-CHECK_EMPTY_FL = false
+TIMEOUT_EXIT   = true
 CMD_READFLASH  = false
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
