@@ -39,6 +39,7 @@ static std::unordered_set<byte> active_addresses;
 class NbMicro {
    public:
     NbMicro(byte twi_address = 0, byte sda = 0, byte scl = 0);
+    ~NbMicro();
     byte GetTwiAddress(void);
     byte SetTwiAddress(byte twi_address);
     byte TwiCmdXmit(byte twi_cmd, byte twi_reply,
@@ -47,12 +48,10 @@ class NbMicro {
                     byte twi_reply_arr[] = nullptr, byte reply_size = 0);
 
    protected:
-    ~NbMicro();
     byte InitMicro(void);
     byte addr_ = 0, sda_ = 0, scl_ = 0;
     bool reusing_twi_connection_ = true;
-    //std::unordered_set<byte> in_use;
-    //byte addr_pool_[28] = { 0 };
+
    private:
 };
 
@@ -68,8 +67,7 @@ class TwiBus {
     } DeviceInfo;
     TwiBus(byte sda = 0, byte scl = 0);
     byte ScanBus(bool *p_app_mode = nullptr);
-    byte ScanBus(DeviceInfo dev_info_arr[] = nullptr,
-                 //byte arr_size = ((HIG_TWI_ADDR + 1) - LOW_TWI_ADDR) / 2,
+    byte ScanBus(DeviceInfo dev_info_arr[],
                  byte arr_size = HIG_TWI_ADDR + 1,
                  byte start_twi_addr = LOW_TWI_ADDR);
 
