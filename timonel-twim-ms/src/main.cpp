@@ -92,6 +92,7 @@ void setup() {
             }
             delay(1000);
         }
+
         Timonel *tml_pool[tml_count];
 
         // Initialize bootloaders before they launch user applications
@@ -170,7 +171,10 @@ void setup() {
             micro->TwiCmdXmit(RESETMCU, ACKRESET);
             delay(1000);
             delete micro;
-            //delete tml_pool[i];
+            // for (byte i = 0; i <= (tml_count); i++) {
+            //     delete tml_pool[i];
+            // }          
+            //delete[] tml_pool;
             Wire.begin(SDA, SCL);
         } else {
             USE_SERIAL.printf_P("\n\rCycle completed %d of %d passes! Letting application run ...\n\n\r", LOOP_COUNT, LOOP_COUNT);
