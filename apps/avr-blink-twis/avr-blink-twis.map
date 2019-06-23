@@ -1,0 +1,560 @@
+Archive member included to satisfy reference by file (symbol)
+
+c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+                              c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o (exit)
+c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+                              avr-blink-twis.o (__do_copy_data)
+c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+                              avr-blink-twis.o (__do_clear_bss)
+
+Allocating common symbols
+Common symbol       size              file
+
+p_receive_event     0x2               avr-blink-twis.o
+rx_buffer           0x40              ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+tx_buffer           0x40              ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+p_enable_slow_ops   0x2               avr-blink-twis.o
+twi_driver_state    0x1               ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+
+Discarded input sections
+
+ .data          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .bss           0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .text          0x0000000000000000        0x0 avr-blink-twis.o
+ .data          0x0000000000000000        0x0 avr-blink-twis.o
+ .bss           0x0000000000000000        0x0 avr-blink-twis.o
+ .bss.commandLength
+                0x0000000000000000        0x1 avr-blink-twis.o
+ .text          0x0000000000000000        0x0 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .data          0x0000000000000000        0x0 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .bss           0x0000000000000000        0x0 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .text          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .data          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .bss           0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.mul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.div
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc   0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.prologue
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.builtins
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.fmul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text.libgcc.fixed
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .text          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .data          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .bss           0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.mul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.div
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc   0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.prologue
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.builtins
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.fmul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc.fixed
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .text          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .data          0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .bss           0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.mul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.div
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc   0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.prologue
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.builtins
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.fmul
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .text.libgcc.fixed
+                0x0000000000000000        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+text             0x0000000000000000 0x0000000000002000 xr
+data             0x0000000000800060 0x000000000000ffa0 rw !x
+eeprom           0x0000000000810000 0x0000000000010000 rw !x
+fuse             0x0000000000820000 0x0000000000000400 rw !x
+lock             0x0000000000830000 0x0000000000000400 rw !x
+signature        0x0000000000840000 0x0000000000000400 rw !x
+user_signatures  0x0000000000850000 0x0000000000000400 rw !x
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+LOAD avr-blink-twis.o
+LOAD ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+START GROUP
+LOAD c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a
+LOAD c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25\libm.a
+LOAD c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25\libc.a
+LOAD c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25\libattiny85.a
+END GROUP
+                0x0000000000002000                __TEXT_REGION_LENGTH__ = DEFINED (__TEXT_REGION_LENGTH__)?__TEXT_REGION_LENGTH__:0x2000
+                0x000000000000ffa0                __DATA_REGION_LENGTH__ = DEFINED (__DATA_REGION_LENGTH__)?__DATA_REGION_LENGTH__:0xffa0
+                0x0000000000010000                __EEPROM_REGION_LENGTH__ = DEFINED (__EEPROM_REGION_LENGTH__)?__EEPROM_REGION_LENGTH__:0x10000
+                0x0000000000000400                __FUSE_REGION_LENGTH__ = DEFINED (__FUSE_REGION_LENGTH__)?__FUSE_REGION_LENGTH__:0x400
+                0x0000000000000400                __LOCK_REGION_LENGTH__ = DEFINED (__LOCK_REGION_LENGTH__)?__LOCK_REGION_LENGTH__:0x400
+                0x0000000000000400                __SIGNATURE_REGION_LENGTH__ = DEFINED (__SIGNATURE_REGION_LENGTH__)?__SIGNATURE_REGION_LENGTH__:0x400
+                0x0000000000000400                __USER_SIGNATURE_REGION_LENGTH__ = DEFINED (__USER_SIGNATURE_REGION_LENGTH__)?__USER_SIGNATURE_REGION_LENGTH__:0x400
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text)
+ *(.rel.text.*)
+ *(.rel.gnu.linkonce.t*)
+
+.rela.text
+ *(.rela.text)
+ *(.rela.text.*)
+ *(.rela.gnu.linkonce.t*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata)
+ *(.rel.rodata.*)
+ *(.rel.gnu.linkonce.r*)
+
+.rela.rodata
+ *(.rela.rodata)
+ *(.rela.rodata.*)
+ *(.rela.gnu.linkonce.r*)
+
+.rel.data
+ *(.rel.data)
+ *(.rel.data.*)
+ *(.rel.gnu.linkonce.d*)
+
+.rela.data
+ *(.rela.data)
+ *(.rela.data.*)
+ *(.rela.gnu.linkonce.d*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.bss
+ *(.rel.bss)
+
+.rela.bss
+ *(.rela.bss)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.text           0x0000000000000000      0x34e
+ *(.vectors)
+ .vectors       0x0000000000000000       0x1e c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+                0x0000000000000000                __vector_default
+                0x0000000000000000                __vectors
+ *(.vectors)
+ *(.progmem.gcc*)
+                0x000000000000001e                . = ALIGN (0x2)
+                0x000000000000001e                __trampolines_start = .
+ *(.trampolines)
+ .trampolines   0x000000000000001e        0x0 linker stubs
+ *(.trampolines*)
+                0x000000000000001e                __trampolines_end = .
+ *libprintf_flt.a:*(.progmem.data)
+ *libc.a:*(.progmem.data)
+ *(.progmem.*)
+                0x000000000000001e                . = ALIGN (0x2)
+ *(.lowtext)
+ *(.lowtext*)
+                0x000000000000001e                __ctors_start = .
+ *(.ctors)
+                0x000000000000001e                __ctors_end = .
+                0x000000000000001e                __dtors_start = .
+ *(.dtors)
+                0x000000000000001e                __dtors_end = .
+ SORT_BY_NAME(*)(.ctors)
+ SORT_BY_NAME(*)(.dtors)
+ *(.init0)
+ .init0         0x000000000000001e        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+                0x000000000000001e                __init
+ *(.init0)
+ *(.init1)
+ *(.init1)
+ *(.init2)
+ .init2         0x000000000000001e        0xc c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ *(.init2)
+ *(.init3)
+ *(.init3)
+ *(.init4)
+ .init4         0x000000000000002a       0x16 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+                0x000000000000002a                __do_copy_data
+ .init4         0x0000000000000040       0x10 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+                0x0000000000000040                __do_clear_bss
+ *(.init4)
+ *(.init5)
+ *(.init5)
+ *(.init6)
+ *(.init6)
+ *(.init7)
+ *(.init7)
+ *(.init8)
+ *(.init8)
+ *(.init9)
+ .init9         0x0000000000000050        0x4 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ *(.init9)
+ *(.text)
+ .text          0x0000000000000054        0x2 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+                0x0000000000000054                __vector_1
+                0x0000000000000054                __vector_12
+                0x0000000000000054                __bad_interrupt
+                0x0000000000000054                __vector_6
+                0x0000000000000054                __vector_3
+                0x0000000000000054                __vector_11
+                0x0000000000000054                __vector_7
+                0x0000000000000054                __vector_5
+                0x0000000000000054                __vector_4
+                0x0000000000000054                __vector_9
+                0x0000000000000054                __vector_2
+                0x0000000000000054                __vector_8
+                0x0000000000000054                __vector_10
+                0x0000000000000056                . = ALIGN (0x2)
+ *(.text.*)
+ .text.EnableSlowOps
+                0x0000000000000056        0x8 avr-blink-twis.o
+                0x0000000000000056                EnableSlowOps
+ .text.ReceiveEvent
+                0x000000000000005e       0x70 avr-blink-twis.o
+                0x000000000000005e                ReceiveEvent
+ .text.SetCPUSpeed1MHz
+                0x00000000000000ce        0xe avr-blink-twis.o
+                0x00000000000000ce                SetCPUSpeed1MHz
+ .text.SetCPUSpeed8MHz
+                0x00000000000000dc        0xc avr-blink-twis.o
+                0x00000000000000dc                SetCPUSpeed8MHz
+ .text.DisableWatchDog
+                0x00000000000000e8        0xc avr-blink-twis.o
+                0x00000000000000e8                DisableWatchDog
+ .text.ResetMCU
+                0x00000000000000f4       0x14 avr-blink-twis.o
+                0x00000000000000f4                ResetMCU
+ .text.startup.main
+                0x0000000000000108       0x7a avr-blink-twis.o
+                0x0000000000000108                main
+ .text.UsiTwiTransmitByte
+                0x0000000000000182       0x1e ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000000182                UsiTwiTransmitByte
+ .text.UsiTwiReceiveByte
+                0x00000000000001a0       0x24 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x00000000000001a0                UsiTwiReceiveByte
+ .text.__vector_13
+                0x00000000000001c4       0x32 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x00000000000001c4                __vector_13
+ .text.SET_USI_TO_WAIT_FOR_TWI_ADDRESS
+                0x00000000000001f6        0xa ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x00000000000001f6                SET_USI_TO_WAIT_FOR_TWI_ADDRESS
+ .text.UsiTwiDriverInit
+                0x0000000000000200       0x26 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000000200                UsiTwiDriverInit
+ .text.__vector_14
+                0x0000000000000226      0x124 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000000226                __vector_14
+                0x000000000000034a                . = ALIGN (0x2)
+ *(.fini9)
+ .fini9         0x000000000000034a        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+                0x000000000000034a                _exit
+                0x000000000000034a                exit
+ *(.fini9)
+ *(.fini8)
+ *(.fini8)
+ *(.fini7)
+ *(.fini7)
+ *(.fini6)
+ *(.fini6)
+ *(.fini5)
+ *(.fini5)
+ *(.fini4)
+ *(.fini4)
+ *(.fini3)
+ *(.fini3)
+ *(.fini2)
+ *(.fini2)
+ *(.fini1)
+ *(.fini1)
+ *(.fini0)
+ .fini0         0x000000000000034a        0x4 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ *(.fini0)
+ *(.hightext)
+ *(.hightext*)
+ *(.progmemx.*)
+                0x000000000000034e                . = ALIGN (0x2)
+ *(.jumptables)
+ *(.jumptables*)
+                0x000000000000034e                _etext = .
+
+.data           0x0000000000800060        0x4 load address 0x000000000000034e
+                0x0000000000800060                PROVIDE (__data_start = .)
+ *(.data)
+ *(.data*)
+ .data.toggle_delay
+                0x0000000000800060        0x2 avr-blink-twis.o
+                0x0000000000800060                toggle_delay
+ .data.blink    0x0000000000800062        0x1 avr-blink-twis.o
+                0x0000000000800062                blink
+ *(.gnu.linkonce.d*)
+ *(.rodata)
+ *(.rodata*)
+ *(.gnu.linkonce.r*)
+                0x0000000000800064                . = ALIGN (0x2)
+ *fill*         0x0000000000800063        0x1 
+                0x0000000000800064                _edata = .
+                0x0000000000800064                PROVIDE (__data_end = .)
+
+.bss            0x0000000000800064       0xad
+                0x0000000000800064                PROVIDE (__bss_start = .)
+ *(.bss)
+ *(.bss*)
+ .bss.slow_ops_enabled
+                0x0000000000800064        0x1 avr-blink-twis.o
+                0x0000000000800064                slow_ops_enabled
+ .bss.reset_now
+                0x0000000000800065        0x1 avr-blink-twis.o
+                0x0000000000800065                reset_now
+ .bss.command   0x0000000000800066       0x20 avr-blink-twis.o
+                0x0000000000800066                command
+ .bss.tx_tail   0x0000000000800086        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000800086                tx_tail
+ .bss.tx_head   0x0000000000800087        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000800087                tx_head
+ .bss.rx_tail   0x0000000000800088        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000800088                rx_tail
+ .bss.rx_head   0x0000000000800089        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000800089                rx_head
+ .bss.rx_byte_count
+                0x000000000080008a        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x000000000080008a                rx_byte_count
+ .bss.twi_addr  0x000000000080008b        0x1 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x000000000080008b                twi_addr
+ *(COMMON)
+ COMMON         0x000000000080008c        0x4 avr-blink-twis.o
+                0x000000000080008c                p_receive_event
+                0x000000000080008e                p_enable_slow_ops
+ COMMON         0x0000000000800090       0x81 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                0x0000000000800090                rx_buffer
+                0x00000000008000d0                tx_buffer
+                0x0000000000800110                twi_driver_state
+                0x0000000000800111                PROVIDE (__bss_end = .)
+                0x000000000000034e                __data_load_start = LOADADDR (.data)
+                0x0000000000000352                __data_load_end = (__data_load_start + SIZEOF (.data))
+
+.noinit         0x0000000000800111        0x0
+                [!provide]                        PROVIDE (__noinit_start = .)
+ *(.noinit*)
+                [!provide]                        PROVIDE (__noinit_end = .)
+                0x0000000000800111                _end = .
+                [!provide]                        PROVIDE (__heap_start = .)
+
+.eeprom         0x0000000000810000        0x0
+ *(.eeprom*)
+                0x0000000000810000                __eeprom_end = .
+
+.fuse
+ *(.fuse)
+ *(.lfuse)
+ *(.hfuse)
+ *(.efuse)
+
+.lock
+ *(.lock*)
+
+.signature
+ *(.signature*)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x0000000000000000       0x11
+ *(.comment)
+ .comment       0x0000000000000000       0x11 avr-blink-twis.o
+                                         0x12 (size before relaxing)
+ .comment       0x0000000000000011       0x12 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+
+.note.gnu.avr.deviceinfo
+                0x0000000000000000       0x3c
+ .note.gnu.avr.deviceinfo
+                0x0000000000000000       0x3c c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+
+.note.gnu.build-id
+ *(.note.gnu.build-id)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x0000000000000000       0xf8
+ *(.debug_aranges)
+ .debug_aranges
+                0x0000000000000000       0x50 avr-blink-twis.o
+ .debug_aranges
+                0x0000000000000050       0x48 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .debug_aranges
+                0x0000000000000098       0x20 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_aranges
+                0x00000000000000b8       0x20 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_aranges
+                0x00000000000000d8       0x20 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info     0x0000000000000000      0xcba
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x0000000000000000      0x420 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .debug_info    0x0000000000000420      0x371 avr-blink-twis.o
+ .debug_info    0x0000000000000791      0x4b7 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .debug_info    0x0000000000000c48       0x26 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_info    0x0000000000000c6e       0x26 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_info    0x0000000000000c94       0x26 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+.debug_abbrev   0x0000000000000000      0x822
+ *(.debug_abbrev)
+ .debug_abbrev  0x0000000000000000      0x3e8 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .debug_abbrev  0x00000000000003e8      0x228 avr-blink-twis.o
+ .debug_abbrev  0x0000000000000610      0x1d6 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .debug_abbrev  0x00000000000007e6       0x14 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_abbrev  0x00000000000007fa       0x14 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_abbrev  0x000000000000080e       0x14 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+.debug_line     0x0000000000000000      0xe56
+ *(.debug_line .debug_line.* .debug_line_end)
+ .debug_line    0x0000000000000000       0x1d c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .debug_line    0x000000000000001d      0x53d avr-blink-twis.o
+ .debug_line    0x000000000000055a      0x77f ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .debug_line    0x0000000000000cd9       0x61 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_line    0x0000000000000d3a       0x97 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_line    0x0000000000000dd1       0x85 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+.debug_frame    0x0000000000000000      0x154
+ *(.debug_frame)
+ .debug_frame   0x0000000000000000       0x98 avr-blink-twis.o
+ .debug_frame   0x0000000000000098       0xbc ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+
+.debug_str      0x0000000000000000      0x783
+ *(.debug_str)
+ .debug_str     0x0000000000000000      0x169 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
+ .debug_str     0x0000000000000169      0x2b2 avr-blink-twis.o
+                                        0x2e6 (size before relaxing)
+ .debug_str     0x000000000000041b      0x309 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+                                        0x47b (size before relaxing)
+ .debug_str     0x0000000000000724       0x5f c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_str     0x0000000000000783       0x5f c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_str     0x0000000000000783       0x5f c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+
+.debug_loc      0x0000000000000000      0x19a
+ *(.debug_loc)
+ .debug_loc     0x0000000000000000      0x164 avr-blink-twis.o
+ .debug_loc     0x0000000000000164       0x36 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges   0x0000000000000000      0x120
+ *(.debug_ranges)
+ .debug_ranges  0x0000000000000000       0x58 avr-blink-twis.o
+ .debug_ranges  0x0000000000000058       0xc8 ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+
+.debug_macro
+ *(.debug_macro)
+
+.debug_addr
+ *(.debug_addr)
+OUTPUT(avr-blink-twis.elf elf32-avr)
+LOAD linker stubs

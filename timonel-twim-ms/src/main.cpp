@@ -87,47 +87,62 @@ void setup() {
 
         // This line initializes the bootloaders ...
         twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
-
         byte tml_count = (byte)(sizeof(dev_info_arr) / 2);
         Timonel *tml_pool[tml_count];
 
-        // Initialize bootloaders before they launch user applications 
+        // Initialize bootloaders before they launch user applications
         for (byte i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
                 tml_pool[i] = new Timonel(dev_info_arr[i].addr);
+                USE_SERIAL.printf_P("\n\rQuerying device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->GetStatus();
-                //delay(1);            
             }
         }
+        USE_SERIAL.printf_P("\n\r");
         ThreeStarDelay();
+        USE_SERIAL.printf_P("\n\r");
         // Delete user applications
         for (byte i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
                 //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
                 delay(10);
-                PrintStatus(*tml_pool[i]);
+                USE_SERIAL.printf_P("Deleting application on device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->DeleteApplication();
                 delay(10);
+                USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
                 PrintStatus(*tml_pool[i]);            
                 //Wire.begin(SDA, SCL);            
             }
         }
-        ThreeStarDelay();    
+        USE_SERIAL.printf_P("\n\r");
+        ThreeStarDelay();
+        USE_SERIAL.printf_P("\n\r");  
         // Upload user applications to devices and run them
         for (byte i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
-                //tml_pool[i] = new Timonel(dev_info_arr[i].addr);
-                PrintStatus(*tml_pool[i]);
-                delay(150);
+                USE_SERIAL.printf_P("\n\rUploading application to device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->UploadApplication(payload, sizeof(payload));
                 delay(10);
+                USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
                 PrintStatus(*tml_pool[i]);
-                delay(150);            
+                delay(150);
+                USE_SERIAL.printf_P("Running application on device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->RunApplication();
                 delay(1500);
                 delete tml_pool[i];
             }
         }
+
+        USE_SERIAL.printf_P("\n\rLetting application run 30 seconds before resetting ...\n\n\r");
+        delay(30000);
+
+        // Resetting devices
+        //NbMicro *micro_pool[tml_count];
+        NbMicro *micro = new NbMicro;
+        micro->SetTwiAddress(44);
+        USE_SERIAL.printf_P("\n\rResetting device %d\n\r", micro->GetTwiAddress());
+        micro->TwiCmdXmit(RESETMCU, ACKRESET);
+
     delay(500);
     ESP.restart();
     }
