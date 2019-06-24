@@ -199,6 +199,11 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     }
 }
 
+// Class destructor
+TwiBus::~TwiBus() {
+    // Destructor
+}
+
 /* _________________________
   |                         | 
   |        ScanBus A        |

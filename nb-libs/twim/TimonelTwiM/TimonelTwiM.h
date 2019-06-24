@@ -26,6 +26,7 @@
 class Timonel : public NbMicro {
    public:
     Timonel(const byte twi_address = 0, const byte sda = 0, const byte scl = 0);
+    ~Timonel();
     typedef struct tml_status_ {
         byte signature = 0;
         byte version_major = 0;

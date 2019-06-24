@@ -66,6 +66,7 @@ class TwiBus {
         byte version_minor = 0;
     } DeviceInfo;
     TwiBus(byte sda = 0, byte scl = 0);
+    ~TwiBus();
     byte ScanBus(bool *p_app_mode = nullptr);
     byte ScanBus(DeviceInfo dev_info_arr[],
                  byte arr_size = HIG_TWI_ADDR + 1,

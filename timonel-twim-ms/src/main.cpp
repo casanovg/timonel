@@ -40,8 +40,6 @@
 void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
-void ListTwiDevices(TwiBus::DeviceInfo[], byte sda = 0, byte scl = 0);
-byte GetAllTimonels(Timonel tml_pool[], byte tml_pool_size, byte sda = 0, byte scl = 0);
 void PrintStatus(Timonel timonel);
 void ThreeStarDelay(void);
 void ShowHeader(void);
@@ -66,15 +64,13 @@ void setup() {
     PrintLogo();
     ShowHeader();
     
+    // Routine loop
     for (byte loop = 0; loop < LOOP_COUNT; loop++) {
-        
         USE_SERIAL.printf_P("\n\rPASS %d OF %d ...\n\r", loop + 1, LOOP_COUNT);
-
         // The bus device scanning it has to be made as fast as possible since each
         // discovered Timonel has to be initialized before launching the user apps
         TwiBus twi(SDA, SCL);
         TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
-
         // Scanning the TWI bus in search of devices ...
         byte tml_count = 0;
         USE_SERIAL.printf_P("\n\r");
@@ -92,15 +88,20 @@ void setup() {
             }
             delay(1000);
         }
-
         Timonel *tml_pool[tml_count];
-
-        // Initialize bootloaders before they launch user applications
+        // Create and initialize bootloader objects found
         for (byte i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
                 tml_pool[i] = new Timonel(dev_info_arr[i].addr);
                 USE_SERIAL.printf_P("\n\rGetting status of Timonel device %d\n\r", dev_info_arr[i].addr);
-                tml_pool[i]->GetStatus();
+                Timonel::Status sts = tml_pool[i]->GetStatus();
+                if ((sts.features_code >> F_USE_WDT_RESET) & true) {
+                    USE_SERIAL.printf_P("\n\r ***************************************************************************************\n\r");
+                    USE_SERIAL.printf_P(" * WARNING! The Timonel bootloader with TWI address %02d has the \"TIMEOUT_EXIT\" feature. *\n\r", dev_info_arr[i].addr);
+                    USE_SERIAL.printf_P(" * enabled. This TWI master firmware can't control it properly! Please recompile it    *\n\r");
+                    USE_SERIAL.printf_P(" * using a configuration with that option disabled (e.g. \"tml-t85-small\").             *\n\r");
+                    USE_SERIAL.printf_P(" ***************************************************************************************\n\r");
+                }
             }
         }
         USE_SERIAL.printf_P("\n\r");
@@ -138,13 +139,13 @@ void setup() {
                 delay(10);
                 USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
                 PrintStatus(*tml_pool[i]);
-                delay(150);
+                delay(10);
                 USE_SERIAL.printf_P("Running application on device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->RunApplication();
                 delay(1500);
             }
         }
-
+        // Reset applications and prepare for another cycle, then clean objects
         if (loop < LOOP_COUNT - 1) {
             USE_SERIAL.printf_P("\n\rLetting application run 28 seconds before resetting and starting next cycle   ");
             byte dly = 7;
@@ -171,17 +172,15 @@ void setup() {
             micro->TwiCmdXmit(RESETMCU, ACKRESET);
             delay(1000);
             delete micro;
-            // for (byte i = 0; i <= (tml_count); i++) {
-            //     delete tml_pool[i];
-            // }          
-            //delete[] tml_pool;
             Wire.begin(SDA, SCL);
         } else {
             USE_SERIAL.printf_P("\n\rCycle completed %d of %d passes! Letting application run ...\n\n\r", LOOP_COUNT, LOOP_COUNT);
         }
-
+        USE_SERIAL.printf_P("\n\r ========= DELETING TIMONEL OBJECTS ARRAY ========= \n\r");
+        for (byte i = 0; i < tml_count; i++) {
+            delete tml_pool[i];
+        }          
     }
-
 }
 
 // Main loop
@@ -291,49 +290,4 @@ void ShowMenu(void) {
         }
         USE_SERIAL.printf_P("): ");
     }
-}
-
-// Function ListTwidevices
-void ListTwiDevices(TwiBus::DeviceInfo dev_info_arr[], byte sda, byte scl) {
-    //TwiBus twi(sda, scl);
-    //TwiBus::DeviceInfo dev_info_arr[HIG_TWI_ADDR - LOW_TWI_ADDR + 1];
-    //twi.ScanBus(dev_info_arr, HIG_TWI_ADDR - LOW_TWI_ADDR + 1, LOW_TWI_ADDR);
-    byte arr_size = sizeof(dev_info_arr) / 2;
-    USE_SERIAL.printf_P("\n\rDev info qty: %d\n\r", arr_size);
-    for (byte i = 0; i < arr_size; i++) {
-        
-        if (dev_info_arr[i].firmware != "") {
-            USE_SERIAL.printf_P("...........................................................\n\r");
-            USE_SERIAL.printf_P("Pos: %02d | ", i + 1);
-            USE_SERIAL.printf_P("TWI Addr: %02d | ", dev_info_arr[i].addr);
-            USE_SERIAL.printf_P("Firmware: %s | ", dev_info_arr[i].firmware.c_str());
-            USE_SERIAL.printf_P("Version %d.%d\n\r", dev_info_arr[i].version_major, dev_info_arr[i].version_minor);
-        //} else {
-        //    USE_SERIAL.printf_P("No device found\n\r");
-        }
-        delay(2);
-    }
-    USE_SERIAL.printf_P("...........................................................\n\n\r");
-}
-
-// Function GetAllTimonels
-byte GetAllTimonels(Timonel tml_pool[], byte tml_pool_size, byte sda, byte scl) {
-    TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[MAX_TWI_DEVS];
-    twi.ScanBus(dev_info_arr, MAX_TWI_DEVS);
-    for (byte i = 0; i < MAX_TWI_DEVS; i++) {
-        if (dev_info_arr[i].firmware == "Timonel") {
-            byte tml_addr = dev_info_arr[i].addr;
-            tml_pool[i].SetTwiAddress(tml_addr);
-            delay(250);
-            tml_pool[i].DeleteApplication();
-            delay(1500);
-            PrintStatus(tml_pool[i]);
-            delay(150);
-        }
-        delay(50);
-    }
-    USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\r");
-    //Timonel tml_poolay[timonels];
-    return 0;
 }
