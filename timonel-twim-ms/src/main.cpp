@@ -2,13 +2,13 @@
   main.cpp
   ========
   Timonel library test program (Multi Slave) v1.4
-  -----------------------------------------------
+  ----------------------------------------------------------------------------
   This demo shows how to control and update several microscontrollers (Tiny85)
   running the Timonel bootloader from an ESP8266 Master.
   It uses a serial console configured at 9600 N 8 1 for feedback.
-  -----------------------------------------------
+  ----------------------------------------------------------------------------
   2019-06-20 Gustavo Casanova
-  -----------------------------------------------
+  ----------------------------------------------------------------------------
 */
 
 /*
@@ -23,15 +23,15 @@
    7) Repeats the routine 3 times.
 */
 
+#include <Arduino.h>
 #include <Memory>
-#include "payload.h"
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
-#include <Arduino.h>
+#include "payload.h"
 
 #define USE_SERIAL Serial
-#define SDA 0       /* I2C SDA pin */
-#define SCL 2       /* I2C SCL pin */
+#define SDA 0 /* I2C SDA pin */
+#define SCL 2 /* I2C SCL pin */
 #define MAX_TWI_DEVS 28
 #define LOOP_COUNT 3
 #define T_SIGNATURE 84
@@ -56,14 +56,13 @@ byte applications = 0;
 
 // Setup block
 void setup() {
-
     // Initialize the serial port for debugging
     USE_SERIAL.begin(9600);
     Wire.begin(SDA, SCL);
     ClrScr();
     PrintLogo();
     ShowHeader();
-    
+
     // Routine loop
     for (byte loop = 0; loop < LOOP_COUNT; loop++) {
         USE_SERIAL.printf_P("\n\rPASS %d OF %d ...\n\r", loop + 1, LOOP_COUNT);
@@ -121,11 +120,11 @@ void setup() {
                 delay(1000);
                 USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
                 tml_pool[i]->GetStatus();
-                PrintStatus(*tml_pool[i]);            
+                PrintStatus(*tml_pool[i]);
             }
         }
         ThreeStarDelay();
-        USE_SERIAL.printf_P("\n\r");  
+        USE_SERIAL.printf_P("\n\r");
         // Upload user applications to devices and run them
         for (byte i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
@@ -148,16 +147,16 @@ void setup() {
         // Reset applications and prepare for another cycle, then clean objects
         if (loop < LOOP_COUNT - 1) {
             USE_SERIAL.printf_P("\n\rLetting application run 28 seconds before resetting and starting next cycle   ");
-            byte dly = 7;
+            byte dly = 14;
             while (dly--) {
                 USE_SERIAL.printf_P("\b\b| ");
-                delay(1000);
+                delay(500);
                 USE_SERIAL.printf_P("\b\b/ ");
-                delay(1000);
+                delay(500);
                 USE_SERIAL.printf_P("\b\b- ");
-                delay(1000);
+                delay(500);
                 USE_SERIAL.printf_P("\b\b\\ ");
-                delay(1000);
+                delay(500);
             }
             USE_SERIAL.printf_P("\b\b* ");
             USE_SERIAL.printf_P("\n\n\r");
@@ -167,7 +166,7 @@ void setup() {
             // Once discovered, the app TWI address is used to send the reset command to all devices.
             byte app_addr = twi.ScanBus();
             NbMicro *micro = new NbMicro;
-            micro->SetTwiAddress(app_addr);   /* NOTE: All devices share the same TWI application address (44) */
+            micro->SetTwiAddress(app_addr); /* NOTE: All devices share the same TWI application address (44) */
             USE_SERIAL.printf_P("Resetting devices running application at address %d\n\r", micro->GetTwiAddress());
             micro->TwiCmdXmit(RESETMCU, ACKRESET);
             delay(1000);
@@ -178,7 +177,7 @@ void setup() {
         }
         for (byte i = 0; i < tml_count; i++) {
             delete tml_pool[i];
-        }          
+        }
     }
 }
 
@@ -189,7 +188,7 @@ void loop() {
 
 // Determine if there is a user application update available
 bool CheckApplUpdate(void) {
-    return true;
+    return false;
 }
 
 // Function clear screen
@@ -234,7 +233,7 @@ void PrintStatus(Timonel timonel) {
         }
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
         USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
-        USE_SERIAL.printf_P(" ====================================\n\r");        
+        USE_SERIAL.printf_P(" ====================================\n\r");
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
