@@ -176,7 +176,6 @@ void setup() {
         } else {
             USE_SERIAL.printf_P("\n\rCycle completed %d of %d passes! Letting application run ...\n\n\r", LOOP_COUNT, LOOP_COUNT);
         }
-        USE_SERIAL.printf_P("\n\r ========= DELETING TIMONEL OBJECTS ARRAY ========= \n\r");
         for (byte i = 0; i < tml_count; i++) {
             delete tml_pool[i];
         }          
