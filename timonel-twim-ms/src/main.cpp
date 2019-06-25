@@ -147,16 +147,16 @@ void setup() {
         // Reset applications and prepare for another cycle, then clean objects
         if (loop < LOOP_COUNT - 1) {
             USE_SERIAL.printf_P("\n\rLetting application run 28 seconds before resetting and starting next cycle   ");
-            byte dly = 14;
+            byte dly = 28;
             while (dly--) {
                 USE_SERIAL.printf_P("\b\b| ");
-                delay(500);
+                delay(250);
                 USE_SERIAL.printf_P("\b\b/ ");
-                delay(500);
+                delay(250);
                 USE_SERIAL.printf_P("\b\b- ");
-                delay(500);
+                delay(250);
                 USE_SERIAL.printf_P("\b\b\\ ");
-                delay(500);
+                delay(250);
             }
             USE_SERIAL.printf_P("\b\b* ");
             USE_SERIAL.printf_P("\n\n\r");
