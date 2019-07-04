@@ -77,11 +77,11 @@ int main(void) {
             ResetMCU();
         }
         
-        if (blink == true) {
-            if (toggle_delay-- == 0) {
+        if (toggle_delay-- == 0) {
+            if (blink == true) {
                 LED_PORT ^= (1 << LED_PIN); /* Toggle PB1 */
-                toggle_delay = LONG_DELAY;
             }
+            toggle_delay = LONG_DELAY;            
         }
         
     }

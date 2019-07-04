@@ -498,14 +498,14 @@ END GROUP
  .debug_abbrev  0x00000000000007fa       0x14 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
  .debug_abbrev  0x000000000000080e       0x14 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
 
-.debug_line     0x0000000000000000      0xe56
+.debug_line     0x0000000000000000      0xe54
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x0000000000000000       0x1d c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/../../../../avr/lib/avr25/crtattiny85.o
- .debug_line    0x000000000000001d      0x53d avr-blink-twis.o
- .debug_line    0x000000000000055a      0x77f ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
- .debug_line    0x0000000000000cd9       0x61 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
- .debug_line    0x0000000000000d3a       0x97 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
- .debug_line    0x0000000000000dd1       0x85 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
+ .debug_line    0x000000000000001d      0x53b avr-blink-twis.o
+ .debug_line    0x0000000000000558      0x77f ../../nb-libs/twis/interrupt-based/nb-usitwisl.o
+ .debug_line    0x0000000000000cd7       0x61 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_exit.o)
+ .debug_line    0x0000000000000d38       0x97 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_copy_data.o)
+ .debug_line    0x0000000000000dcf       0x85 c:/winavr-20100110/bin/../lib/gcc/avr/8.3.0/avr25\libgcc.a(_clear_bss.o)
 
 .debug_frame    0x0000000000000000      0x154
  *(.debug_frame)
