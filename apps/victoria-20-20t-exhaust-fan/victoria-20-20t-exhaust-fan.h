@@ -1,12 +1,19 @@
 /*
  *  Roca Victoria 20/20T exhaust fan control
  *  Author: Gustavo Casanova / Nicebots
- *  ...........................................
+ *  ......................................................
  *  File: main.cpp (Application source)
- *  ........................................... 
+ *  ......................................................
  *  Version: 1.0 / 2019-07-12
  *  gustavo.casanova@nicebots.com
- *  ...........................................
+ *  ......................................................
+ *  This program for ATtiny85 microcontrollers replaces
+ *  the factory mechanism of a Roca Victoria 20/20T
+ *  (or F) to turn the exhaust fan on and off before and
+ *  after a hot water request by the DHW or CH functions.
+ *  The original mechanism was damaged by a relay that,
+ *  after failing, burned the microcontroller output pin
+ *  that handled the fan switching.
  */
 
 #ifndef _VICTORIA_20_20T_H_
@@ -24,8 +31,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <util/delay.h>
-#include "../../nb-libs/cmd/nb-twi-cmd.h"
-#include "../../nb-libs/twis/interrupt-based/nb-usitwisl.h"
+//#include "../../nb-libs/cmd/nb-twi-cmd.h"
+//#include "../../nb-libs/twis/interrupt-based/nb-usitwisl.h"
 
 // Fan control pin
 #define FAN_PIN PB0
