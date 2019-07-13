@@ -57,9 +57,11 @@ int main(void) {
     FAN_PORT |= (1 << FAN_PIN);         /* Turn fan off (inverse logic: high = off, low = on) */
     // Set input pins
     DHW_DDR &= ~(1 << DHW_PIN);         /* Set DHW pin Data Direction Register for input */
-    DHW_PORT |= (1 << DHW_PIN);         /* Enable pull-up resistor on DHW pin */
+    //DHW_PORT |= (1 << DHW_PIN)        /* Enable pull-up resistor on DHW pin */
+    DHW_PORT &= ~(1 << DHW_PIN);        /* Set DHW pin in high-impedance mode */
     CEH_DDR &= ~(1 << CEH_PIN);         /* Set CEH pin Data Direction Register for input */
-    CEH_PORT |= (1 << CEH_PIN);         /* Enable pull-up resistor on CEH pin */    
+    //CEH_PORT |= (1 << CEH_PIN);       /* Enable pull-up resistor on CEH pin */
+    CEH_PORT &= ~(1 << CEH_PIN);        /* Set CEH pin in high-impedance mode */    
     _delay_ms(250);                     /* Delay to allow programming at 1 MHz after power on */
     SetCPUSpeed8MHz();                  /* Set the CPU prescaler for 8 MHz */
     sei();                              /* Enable Interrupts */
