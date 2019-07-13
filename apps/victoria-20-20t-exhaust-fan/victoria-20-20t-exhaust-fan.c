@@ -22,8 +22,6 @@
 #define LONG_DELAY 0xFFFF
 #define START_DELAY 0x07
 #define POWER_ON_DELAY 0x85
-//#define FAN_START_DELAY 0xFFFF
-//#define FAN_STOP_DELAY 0x4FFF
 
 // Global variables
 uint8_t command[32] = {0};           /* I2C Command received from master  */
