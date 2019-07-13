@@ -48,10 +48,12 @@
 #define DHW_PIN PB3
 #define DHW_DDR DDRB
 #define DHW_PORT PORTB
+#define DHW_INP PINB
 
 // Central heating request pin
 #define CEH_PIN PB4
-#define CEH DDRB
-#define CHE PORTB
+#define CEH_DDR DDRB
+#define CEH_PORT PORTB
+#define CEH_INP PINB
 
 #endif /* _VICTORIA_20_20T_H_ */
