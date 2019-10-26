@@ -21,7 +21,7 @@ The script "flash-timonel-bootloader.sh" allows flashing Timonel on the device b
 The bootloader can be flashed to bare ATtiny85/45/25 chips, Digispark boards and other Tiny85-compatible devices using an AVR programmer (e.g. USBasp).
 
 ## Optional features ##
-This bootloader version has several optional features that allow finding the right balance between characteristics, flash memory usage, and performance. They're enabled from the configuration file "tml-config.mak" placed inside specific configuration folders (e.g. "tml-t85-cfg", the default one). It's a makefile include that adds or removes sections of the source code that will be part of the ".hex" binary file when compiling it. As a general rule of thumb, more enabled features = bigger bootloader size = less space for user applications. The available options are briefly described below:
+The bootloader has several optional features that allow finding the right balance between characteristics, flash memory usage, and performance. They're enabled from the configuration file "tml-config.mak" placed inside specific configuration folders (e.g. "tml-t85-cfg", the default one). It's a makefile include that adds or removes sections of the source code that will be part of the ".hex" binary file when compiling it. As a general rule of thumb, more enabled features = bigger bootloader size = less space for user applications. The available options are briefly described below:
 
 * __ENABLE_LED_UI__: If this is enabled, the GPIO ping defined by LED_UI_PIN is used to display Timonel activity when certain functions are run. This is useful mainly for debugging. PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING CONNECTED TO A POWER SOURCE BY ACCIDENT! (Default: false).
            
