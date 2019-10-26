@@ -657,8 +657,8 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                     uint8_t command_size = rx_byte_count;               //                 >>
                     static uint8_t command[MST_PACKET_SIZE * 2];        //                   >>
                     for (uint8_t i = 0; i < command_size; i++) {        //  Call a function    >>
-                        while (rx_byte_count-- == 0) {};                //  main to process the  >>
-                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); //  received data        >>
+                        while (rx_byte_count-- == 0) {};                //  in main to process   >>
+                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); //  the received data    >>
                         command[i] = rx_buffer[rx_tail];                //  (command) ...      >>
                     }                                                   //                   >>
                     ReceiveEvent(command, command_size, p_mem_pack);    //                 >>
