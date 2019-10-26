@@ -654,14 +654,14 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                 if (USIDR & 0x01) {     /* If data register low-order bit = 1, start the send data mode */
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     //                                                                   >>
-                    uint8_t command_size = rx_byte_count;             //                 >>
+                    uint8_t command_size = rx_byte_count;               //                 >>
                     static uint8_t command[MST_PACKET_SIZE * 2];        //                   >>
-                    for (uint8_t i = 0; i < command_size; i++) {      //  Call a function    >>
+                    for (uint8_t i = 0; i < command_size; i++) {        //  Call a function    >>
                         while (rx_byte_count-- == 0) {};                //  main to process the  >>
                         rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK); //  received data        >>
                         command[i] = rx_buffer[rx_tail];                //  (command) ...      >>
                     }                                                   //                   >>
-                    ReceiveEvent(command, command_size, p_mem_pack);  //                 >>
+                    ReceiveEvent(command, command_size, p_mem_pack);    //                 >>
                     //                                                                   >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
