@@ -1,10 +1,10 @@
 /*
   main.cpp
   ========
-  Timonel library test program (Multi Slave) v1.4
+  Timonel library test program (Multi Slave) v1.4 "Beni"
   ----------------------------------------------------------------------------
-  This demo shows how to control and update several microscontrollers (Tiny85)
-  running the Timonel bootloader from an ESP8266 Master.
+  This demo shows how to control and update several microcontrollers
+  (Tiny85) running the Timonel bootloader from an ESP8266 Master.
   It uses a serial console configured at 9600 N 8 1 for feedback.
   ----------------------------------------------------------------------------
   2019-06-20 Gustavo Casanova
