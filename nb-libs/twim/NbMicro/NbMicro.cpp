@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: NbMicro.cpp (Library)
  *  ........................................... 
- *  Version: 1.3 / 2019-06-06
+ *  Version: 1.4 / 2019-08-09
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library handles the communication protocol
@@ -123,8 +123,8 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     }
     // TWI command reply (one byte expected)
     if (reply_size == 0) {
-        Wire.requestFrom(addr_, ++reply_size); /* True: releases the bus with a stop after a master request. */
-        byte reply = Wire.read();              /* False: sends a restart, not releasing the bus.             */
+        Wire.requestFrom(addr_, ++reply_size, STOP_ON_REQ); /* True: releases the bus with a stop after a master request. */
+        byte reply = Wire.read();                           /* False: sends a restart, not releasing the bus.             */
         if (reply == twi_reply) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Command 0x%02X parsed OK <<< 0x%02X (single byte reply)\n\r", __func__, twi_cmd_arr[0], reply);
@@ -139,8 +139,8 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     }
     // TWI command reply (multiple bytes expected)
     else {
-        byte reply_length = Wire.requestFrom(addr_, reply_size); /* True: releases the bus with a stop after a master request. */
-        for (int i = 0; i < reply_size; i++) {                   /* False: sends a restart, not releasing the bus.             */
+        byte reply_length = Wire.requestFrom(addr_, reply_size, STOP_ON_REQ); /* True: releases the bus with a stop after a master request. */
+        for (int i = 0; i < reply_size; i++) {                                /* False: sends a restart, not releasing the bus.             */
             twi_reply_arr[i] = Wire.read();
         }
         if ((twi_reply_arr[0] == twi_reply) && (reply_length == reply_size)) {
@@ -199,6 +199,11 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     }
 }
 
+// Class destructor
+TwiBus::~TwiBus() {
+    // Destructor
+}
+
 /* _________________________
   |                         | 
   |        ScanBus A        |
@@ -215,16 +220,18 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
     while (twi_addr < HIG_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
-            if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Timonel bootloader found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
-#endif /* DEBUG_LEVEL */
-                *p_app_mode = false;
-            } else {
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Application firmware found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
-#endif /* DEBUG_LEVEL */
-                *p_app_mode = true;
+            if (p_app_mode != nullptr) {
+                if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
+    #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+                    USE_SERIAL.printf_P("[%s] Timonel bootloader found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
+    #endif /* DEBUG_LEVEL */
+                    *p_app_mode = false;
+                } else {
+    #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+                    USE_SERIAL.printf_P("[%s] Application firmware found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
+    #endif /* DEBUG_LEVEL */
+                    *p_app_mode = true;
+                }
             }
             return twi_addr;
         }
@@ -250,6 +257,7 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("\n\r[%s] Scanning TWI bus, searching all the connected devices, please wait ...\n\r", __func__);
 #endif /* DEBUG_LEVEL */
+    byte found_devices = 0;
     byte twi_addr = LOW_TWI_ADDR;
     while (twi_addr <= HIG_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
@@ -257,25 +265,23 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
             if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
                 Timonel tml(twi_addr);
                 Timonel::Status sts = tml.GetStatus();
-                dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
+                dev_info_arr[found_devices].addr = twi_addr;
                 if (sts.signature == T_SIGNATURE) {
-                    dev_info_arr[twi_addr - start_twi_addr].firmware = L_TIMONEL;
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                    USE_SERIAL.printf_P("\n\r[%s] Scanning TWI bus, searching all the connected devices, please wait ...\n\r", __func__);
-#endif /* DEBUG_LEVEL */
+                    dev_info_arr[found_devices].firmware = L_TIMONEL;
                 } else {
-                    dev_info_arr[twi_addr - start_twi_addr].firmware = L_UNKNOWN;
+                    dev_info_arr[found_devices].firmware = L_UNKNOWN;
                 }
-                dev_info_arr[twi_addr - start_twi_addr].version_major = sts.version_major;
-                dev_info_arr[twi_addr - start_twi_addr].version_minor = sts.version_minor;
+                dev_info_arr[found_devices].version_major = sts.version_major;
+                dev_info_arr[found_devices].version_minor = sts.version_minor;
             } else {
-                dev_info_arr[twi_addr - start_twi_addr].addr = twi_addr;
-                dev_info_arr[twi_addr - start_twi_addr].firmware = L_APP;
-                dev_info_arr[twi_addr - start_twi_addr].version_major = 0;
-                dev_info_arr[twi_addr - start_twi_addr].version_minor = 0;
+                dev_info_arr[found_devices].addr = twi_addr;
+                dev_info_arr[found_devices].firmware = L_APP;
+                dev_info_arr[found_devices].version_major = 0;
+                dev_info_arr[found_devices].version_minor = 0;
             }
+            found_devices++;
         }
-        delay(DLY_SCAN_BUS);
+        //delay(DLY_SCAN_BUS);
         twi_addr++;
     }
     return OK;

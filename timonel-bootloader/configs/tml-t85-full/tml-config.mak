@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Full: All features enabled, except APP_USE_TPL_PG and CHECK_EMPTY_FL
+# Configuration:   Full: All features enabled, except APP_USE_TPL_PG
 
 MCU = attiny85
 
@@ -35,7 +35,7 @@ APP_USE_TPL_PG = false
 CMD_SETPGADDR  = true
 TWO_STEP_INIT  = true
 USE_WDT_RESET  = true
-CHECK_EMPTY_FL = false
+TIMEOUT_EXIT   = true
 CMD_READFLASH  = true
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false

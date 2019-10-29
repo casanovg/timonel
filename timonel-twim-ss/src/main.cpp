@@ -1,13 +1,17 @@
 /*
   main.cpp (timonel-twim-ss)
   ==========================
-  Timonel TWI library test program
-  for single slave setup v1.3
-  ----------------------------
-  2019-06-06 Gustavo Casanova
-  ---------------------------
-*/
-#include <Arduino.h>
+  Timonel library test program (Single Slave) v1.4 "Valen"
+  ----------------------------------------------------------------------------
+  This demo implements an I2C serial commander to control interactively a
+  Tiny85 microcontroller running the Timonel bootloader from an ESP8266
+  master. It uses a serial console configured at 9600 N 8 1 for feedback.
+  ----------------------------------------------------------------------------
+  2019-03-19 Gustavo Casanova
+  ----------------------------------------------------------------------------
+*/  
+    
+//#include <Arduino.h>
 //#include <Memory>
 #include "NbMicro.h"
 #include "TimonelTwiM.h"
@@ -22,7 +26,6 @@ void setup(void);
 void loop(void);
 bool CheckApplUpdate(void);
 void ListTwiDevices(byte sda = 0, byte scl = 0);
-byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda = 0, byte scl = 0);
 void PrintStatus(Timonel tml);
 void ThreeStarDelay(void);
 void ReadChar(void);
@@ -313,8 +316,7 @@ void PrintStatus(Timonel timonel) {
     byte twi_address = timonel.GetTwiAddress();
     byte version_major = tml_status.version_major;
     byte version_minor = tml_status.version_minor;
-    if (((tml_status.signature == T_SIGNATURE_CTM) || (tml_status.signature == T_SIGNATURE_AUT)) && \
-       ((version_major != 0) || (version_minor != 0))) {
+    if ((tml_status.signature == T_SIGNATURE) && ((version_major != 0) || (version_minor != 0))) {
         String version_mj_nick = "";
         switch (version_major) {
             case 0: {
@@ -340,9 +342,11 @@ void PrintStatus(Timonel timonel) {
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
-        USE_SERIAL.printf_P("      Features code: %d ", tml_status.features_code);
-        if (tml_status.auto_clock_tweak == true) {
-            USE_SERIAL.printf_P("(Auto-Twk)");
+        USE_SERIAL.printf_P("      Features code: %d | %d ", tml_status.features_code, tml_status.ext_features_code);
+        if ((tml_status.ext_features_code >> F_AUTO_CLK_TWEAK) & true) {
+            USE_SERIAL.printf_P("(Auto)");
+        } else {
+            USE_SERIAL.printf_P("(Fixed)");
         }
         USE_SERIAL.printf_P("\n\r");
         USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
@@ -367,7 +371,7 @@ void ThreeStarDelay(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.3 twim-ss)\n\r");
+    USE_SERIAL.printf_P("\n\r Timonel I2C Bootloader and Application Test (v1.4 twim-ss)\n\r");
 }
 
 // Function ShowMenu
@@ -407,23 +411,3 @@ void ListTwiDevices(byte sda, byte scl) {
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
-// Function GetALlTimonels
-byte GetAllTimonels(Timonel tml_arr[], byte tml_arr_size, byte sda, byte scl) {
-    byte timonels = 0;
-    TwiBus twi(sda, scl);
-    TwiBus::DeviceInfo dev_info_arr[(((HIG_TWI_ADDR + 1) - LOW_TWI_ADDR) / 2)];
-    twi.ScanBus(dev_info_arr, (((HIG_TWI_ADDR + 1) - LOW_TWI_ADDR) / 2));
-    for (byte i = 0; i < (((HIG_TWI_ADDR + 1) - LOW_TWI_ADDR) / 2); i++) {
-        if ((dev_info_arr[i].firmware != "Timonel") && (timonels < tml_arr_size)) {
-            USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\r");
-            USE_SERIAL.printf_P("Pos: %02d | ", timonels);
-            byte tml_addr = dev_info_arr[i].addr;
-            USE_SERIAL.printf_P("Timonel found at address: %02d, creating object ...\n\r", tml_addr);
-            tml_arr[timonels].SetTwiAddress(tml_addr);
-            timonels++;
-        }
-        delay(10);
-    }
-    USE_SERIAL.printf_P("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\r");
-    return 0;
-}
