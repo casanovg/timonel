@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard
+# Configuration:   Small: Only CMD_SETPGADDR enabled
 
 MCU = attiny85
 
@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1C00
+TIMONEL_START = 1C40
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -35,7 +35,7 @@ APP_USE_TPL_PG = false
 CMD_SETPGADDR  = true
 TWO_STEP_INIT  = false
 USE_WDT_RESET  = false
-CHECK_EMPTY_FL = false
+TIMEOUT_EXIT   = false
 CMD_READFLASH  = false
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false

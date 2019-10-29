@@ -4,7 +4,7 @@
 #echo "*                                                                     *"
 #echo "* Please use USBasp for flashing Timonel to the ATtiny device         *"
 #echo "* =================================================================== *"
-#echo "* 2019-06-06 Gustavo Casanova                                         *"
+#echo "* 2019-08-09 Gustavo Casanova                                         *"
 #echo "***********************************************************************"
 #echo ""
 

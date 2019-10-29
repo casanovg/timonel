@@ -18,13 +18,13 @@ That's why I started writing this one.
 
 Usage:
 ------
-* Install "timonel.hex" on a Tiny85 (bare chips or Digisparks).
-* Compile your application program and convert the generated .hex into an array of bytes to be included in "timonel-twim-ss" (e.g. uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "tml-hexparser" for helping to create the array (payload).
-* Compile and install "timonel-twim-ss.bin" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. Note: the .bin file provided contains a small payload demo that sends an SOS by blinking PB1.
-* Connect both chips by I2C (SDA, SCL and ground).
-* Open an asynchronous terminal (e.g. MobaXterm) connected to the serial port of the I2C master (9600 N 8 1).
+* [Install](/timonel-bootloader/README.md#Installation) "timonel.hex" on a Tiny85 (bare chips or Digisparks).
+* Compile your [application program](/apps) and convert the generated ".hex" into an array of bytes to be included in "timonel-twim-ss" or "timonel-twim-ms" (e.g. uint8_t payload[size] = { 0xaa, 0xbb, ...}; ). Use ["tml-hexparser"](/timonel-hexparser) for helping to create the array (payload).
+* Use [VS Code](http://code.visualstudio.com) + [PlatformIO](http://platformio.org) to compile and install "timonel-twim-ss.bin" or "timonel-twim-ms.bin" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. __Note:__ the ".bin" file provided contains a small payload demo that sends an SOS by blinking PB1.
+* Connect both chips by __I2C__ (SDA, SCL and ground).
+* Open an asynchronous terminal (e.g. [MobaXterm](http://mobaxterm.mobatek.net)) connected to the serial port of the I2C master (9600 N 8 1).
 * Run the commands shown on screen for erasing and flashing new firmware on the Tiny85.
-* It is also possible to update the bootloader itself by using "timonel-updater" (based on the micronucleus upgrade program).
+* It is also possible to update the bootloader itself by using ["timonel-updater"](/timonel-updater) (based on the micronucleus upgrade program).
 
 Contributing:
 -------------
@@ -32,6 +32,8 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 Version History:
 ----------------
+__v1.4__ - 2019-10-29: Functional Release: Significant memory saving by inlining the TWI driver functions, now the smaller version "tml-t85-small" occupies ~1Kb, leaving 7Kb available for user applications. Transmission speed improvement by adjusting the code to transmit and receive 32-byte packets (half memory-page on an ATtiny85). User-application autorun is now optional. Internal clock configuration support improved.
+
 __v1.3__ - 2019-06-06: Functional Release: Bootloader inline functions (smaller code) and low fuse auto clock tweaking. TWI master UploadApplication refactoring, now supports both types of page address calculation and both modes of APP_USE_TPL_PG. Several bug fixes.
 
 __v1.2__ - 2019-05-15: Functional Release: "Good-neighbor" behavior fixes data dump operation interferences among Timonel devices in multi-device bus setups. The TWI master functionality has been packed in a couple of Arduino libraries to ease the handling of the several configuration options. Timonel-master-ss firmware shows its usage. The TWI master code was moved to PlatformIO.

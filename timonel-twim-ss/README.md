@@ -1,11 +1,11 @@
 Timonel TWI master - Single slave
 =================================
 
-This test application shows the usage of TWI master libraries.
+This test application [shows](http://youtu.be/-7GOMToGvzI) the usage of TWI master libraries.
 
-It is a serial console based application, Arduino-compatible, that allows sending commands to a device that runs the Timonel bootloader. Its main functions are:
+It is a serial console-based application, Arduino-compatible, that allows sending commands to a device that runs the Timonel bootloader. Its main functions are:
 
-* Searches a device running Timonel bootloader on the TWI bus and initialize it.
+* Searches a device running Timonel bootloader on the TWI bus and initializes it.
 
 * Uploads an application to the device. The application to send to the AVR bootloader (payload) is compiled as part of this TWI master application. The utility "timonel-hexparser" is used to convert an AVR application into a TWI master payload.
 

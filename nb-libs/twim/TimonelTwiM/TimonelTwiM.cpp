@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: TimonelTwiM.cpp (Library)
  *  ........................................... 
- *  Version: 1.3 / 2019-06-06
+ *  Version: 1.4 / 2019-08-09
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library interacts with a microcontroller
@@ -27,6 +27,11 @@ Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMic
         USE_SERIAL.printf_P("[%s] Bootloader instance created without TWI address.\r\n", __func__);
 #endif /* DEBUG_LEVEL */
     }
+}
+
+// Class destructor
+Timonel::~Timonel() {
+    // Destructor
 }
 
 /* _________________________
@@ -94,13 +99,14 @@ byte Timonel::DeleteApplication(void) {
     USE_SERIAL.printf_P("\n\r[%s] Delete Flash Memory >>> 0x%02X\r\n", __func__, DELFLASH);
 #endif /* DEBUG_LEVEL */
     byte twi_errors = TwiCmdXmit(DELFLASH, ACKDELFL);
-    twi_errors += BootloaderInit(DLY_DEL_INIT);
+    delay(DLY_DEL_INIT);    /* Long delay (~750 ms) to allow complete erasing before trying to initialize */
+    twi_errors += BootloaderInit();
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     if (twi_errors > 0) {
         USE_SERIAL.printf_P("\n\n\r###################################################\n\r");
         USE_SERIAL.printf_P("# [%s] # WARNING !!!\n\r# Timonel couldn't be initialized after delete!\n\r", __func__);
         USE_SERIAL.printf_P("# Maybe it's taking too long to delete the memory,\n\r");
-        USE_SERIAL.printf_P("# try increasing BootloaderInit(delay) ...\n\r");
+        USE_SERIAL.printf_P("# try increasing delay(DLY_DEL_INIT) ...\n\r");
         USE_SERIAL.printf_P("###################################################\n\n\r");
     }
 #endif /* DEBUG_LEVEL */
@@ -127,7 +133,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     USE_SERIAL.printf_P("\n\r");
 #endif /* DEBUG_LEVEL */
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
-#pragma GCC warning "Address handling code included in Timonel::UploadApplication!"
+#pragma GCC warning "Address handling code included in Timonel::UploadApplication!"    
     if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) {
         // .............................................................................
         // If AUTO_PAGE_ADDR is disabled, the TWI master calculates the pages addresses
@@ -161,7 +167,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             // If the user application fits in memory (can use also the trampoline page)
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
             USE_SERIAL.printf_P("[%s] Payload (%d bytes) fits in AVR memory (trampoline page available), uploading ...\n\r", __func__, payload_size);
-#endif                                                                       /* DEBUG_LEVEL */
+#endif /* DEBUG_LEVEL */
             twi_errors += FillSpecialPage(TPL_PAGE, payload[1], payload[0]); /* Calculate and fill trampoline page */
             twi_errors += SetPageAddress(start_address);
         } else {
@@ -180,13 +186,13 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
         // .............................................................................
     } else {
 #else
-    if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) {
+        if (!((status_.features_code >> F_AUTO_PAGE_ADDR) & true)) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-        USE_SERIAL.printf_P("[%s] WARNING! AUTO_PAGE_ADDR is disabled in Timonel, please setup TWI master to support it!\n\n\r", __func__);
-#endif  /* DEBUG_LEVEL */
-        return ERR_AUTO_CALC;
-    }
-#endif  /* FEATURES_CODE >> !(F_AUTO_PAGE_ADDR) */
+            USE_SERIAL.printf_P("[%s] WARNING! AUTO_PAGE_ADDR is disabled in Timonel, please setup TWI master to support it!\n\n\r", __func__);
+#endif /* DEBUG_LEVEL */
+            return ERR_AUTO_CALC;
+        }      
+#endif /* FEATURES_CODE >> !(F_AUTO_PAGE_ADDR) */
         // .............................................................................
         // If AUTO_PAGE_ADDR is enabled, the bootloader calculates the pages addresses
         // .............................................................................
@@ -204,7 +210,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
-                USE_SERIAL.printf_P("[%s] Trampoline page is available for the application.\n\r", __func__);
+                USE_SERIAL.printf_P("[%s] Trampoline page is available for the application.\n\r", __func__);                
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
@@ -223,18 +229,18 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
             } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
                 USE_SERIAL.printf_P("[%s] Warning! Payload (%d bytes) doesn't fit in AVR flash memory with current Timonel setup ...\n\r", __func__, payload_size);
-                USE_SERIAL.printf_P("[%s] Trampoline page is NOT available for the application.\n\r", __func__);
+                USE_SERIAL.printf_P("[%s] Trampoline page is NOT available for the application.\n\r", __func__);                
                 USE_SERIAL.printf_P("[%s] Trampoline: %d (Timonel start: %d)\n\r", __func__, status_.bootloader_start - TRAMPOLINE_LEN, status_.bootloader_start);
                 USE_SERIAL.printf_P("[%s]   App size: %d\n\r", __func__, payload_size);
                 USE_SERIAL.printf_P("[%s] --------------------------------------\n\r", __func__);
                 USE_SERIAL.printf_P("[%s]   Overflow: %d bytes\n\n\r", __func__, (payload_size - (status_.bootloader_start - SPM_PAGESIZE)));
 #endif /* DEBUG_LEVEL */
                 return ERR_APP_OVF_MC;
-            }
+            }            
 #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_APP_USE_TPL_PG) & true))
         }
-#endif  /* FEATURES_CODE >> F_APP_USE_TPL_PG */
-        // .............................................................................
+#endif /* FEATURES_CODE >> F_APP_USE_TPL_PG */        
+        // .............................................................................        
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
     }
 #endif /* FEATURES_CODE >> !(F_AUTO_PAGE_ADDR) */
@@ -246,14 +252,14 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     }
     // .....................................
     // ...... Application upload loop ......
-    // .....................................
+    // .....................................    
     for (int i = 0; i < payload_size; i++) {
         if (i < (payload_size - padding)) {
             // If there are payload unsent data, place them in a data packet
             data_packet[packet_ix] = payload[i];
         } else {
             // If there is no more payload data and the last a data packet
-            // is incomplete, add padding data at the end of it (0xFF)
+            // is incomplete, add padding data at the end of it (0xFF)            
             data_packet[packet_ix] = 0xFF;
         }
         if (packet_ix++ == (MST_PACKET_SIZE - 1)) {
@@ -307,7 +313,7 @@ byte Timonel::UploadApplication(byte payload[], int payload_size, const int star
     }
     // .....................................
     // .......... Upload loop end ..........
-    // .....................................
+    // .....................................     
     if (twi_errors == 0) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("\n\r[%s] Application was successfully uploaded to AVR flash memory ...\n\n\r", __func__);
@@ -399,8 +405,7 @@ byte Timonel::DumpMemory(const word flash_size, const byte rx_packet_size, const
 /////////////////////////////////////////////////////////////////////////////
 
 // Function BootloaderInit (Initializes Timonel in 1 or 2 steps, as required by its features)
-byte Timonel::BootloaderInit(const word delay_ms) {
-    delay(delay_ms);
+byte Timonel::BootloaderInit(void) {
     byte twi_errors = 0;
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Timonel device %02d * Initialization Step 1 required by features *\r\n", __func__, addr_);
@@ -436,29 +441,19 @@ byte Timonel::QueryStatus(void) {
 #endif /* DEBUG_LEVEL */
         return twi_errors;
     } else {
-        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && ((twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_CTM) || (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT))) {
+        if ((twi_reply_arr[CMD_ACK_POS] == ACKTMNLV) && (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE)) {
             status_.signature = twi_reply_arr[S_SIGNATURE];
             status_.version_major = twi_reply_arr[S_MAJOR];
             status_.version_minor = twi_reply_arr[S_MINOR];
             status_.features_code = twi_reply_arr[S_FEATURES];
+            status_.ext_features_code = twi_reply_arr[S_EXT_FEATURES];
             status_.bootloader_start = (twi_reply_arr[S_BOOT_ADDR_MSB] << 8) + twi_reply_arr[S_BOOT_ADDR_LSB];
             status_.application_start = (twi_reply_arr[S_APPL_ADDR_LSB] << 8) + twi_reply_arr[S_APPL_ADDR_MSB];
             status_.trampoline_addr = (~(((twi_reply_arr[S_APPL_ADDR_MSB] << 8) | twi_reply_arr[S_APPL_ADDR_LSB]) & 0xFFF));
             status_.trampoline_addr++;
             status_.trampoline_addr = ((((status_.bootloader_start >> 1) - status_.trampoline_addr) & 0xFFF) << 1);
             status_.low_fuse_setting = twi_reply_arr[S_LOW_FUSE];
-            if ((twi_reply_arr[S_CHECK_EMPTY_FL] >> S_CHECK_EMPTY_FL) & true) {
-                status_.check_empty_fl = twi_reply_arr[S_CHECK_EMPTY_FL];
-                status_.oscillator_cal = 0;
-            } else {
-                status_.check_empty_fl = 0;
-                status_.oscillator_cal = twi_reply_arr[S_OSCCAL];
-            }
-            if (twi_reply_arr[S_SIGNATURE] == T_SIGNATURE_AUT) {
-                status_.auto_clock_tweak = true;
-            } else {
-                status_.auto_clock_tweak = false;
-            }
+            status_.oscillator_cal = twi_reply_arr[S_OSCCAL];
         }
         return OK;
     }

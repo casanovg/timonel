@@ -1,25 +1,45 @@
-# Timonel Bootloader v1.3 #
+# Timonel Bootloader v1.4 #
 
 This bootloader version has several improvements:
 
-* The TWI (I2C) driver implementation, with inline functions inside the bootloader source code, allows significant memory saving. Now the smaller version "tml-t85-small" occupies ~ 1K byte, leaving 7K bytes available for user applications.
+* __Significant memory savings:__ by inlining the TWI (I2C) driver functions' implementation inside the bootloader source code, now the smaller version "tml-t85-small" occupies ~ 1K byte, leaving 7K bytes available for user applications.
 
-* Different internal-clock configurations support has been improved. Now the bootloader adapts its clock speed by modifying the OSCCAL register to compensate fuse configurations in 1, 2 and 8 MHz (At 16 Mhz it works without any type of compensation). This can be done in two ways:
-1-The compensation is configured at the time of bootloader compilation by setting the LOW_FUSE variable.
-2-It adapts at runtime by directly reading the value of the low fuse. This last mode is selected by enabling "AUTO_CLK_TWEAK". It allows the bootloader to continue working without recompiling despite changing the fuses settings, but it takes a little more memory. In both cases, the bootloader restores the original configuration after its execution so that the application can function at the speed for which it was designed.
+* __Transmission speed improvement:__ the code was adjusted to allow the bootloader to transmit and receive 32-byte packets (Half memory-page on an ATtiny85). This produces a significant performance increase to the user application upload and flash memory reading functions.
 
-* The code was adjusted to allow the bootloader to transmit and receive 32-byte packets (1/2 page of an ATtiny85). This produces a significant performance increase to the user application upload and flash memory reading functions.
+* __User application autorun is now optional:__ implemented by adding a TIMEOUT_EXIT feature to allow selecting whether the user application will run automatically after a timeout when the bootloader is not initialized, or, it will only be run controlled by the TWI master. The CHECK_EMPTY_FL optional feature was deprecated since the READFLSH command can be used for the same purpose. Improved command reply switch-case.
+
+* __Different internal-clock configurations support improved:__ now the bootloader adapts its clock speed by modifying the OSCCAL register to compensate fuse configurations in 1, 2 and 8 MHz (At 16 Mhz it works without any type of compensation). This can be done in two ways:
+  1. The compensation is configured at the time of bootloader compilation by setting the LOW_FUSE variable.
+ 
+  2. It adapts at runtime by directly reading the value of the low fuse. This last mode is selected by enabling "AUTO_CLK_TWEAK". It allows the bootloader to continue working without recompiling despite changing the fuses settings, but it takes a little more memory. In both cases, the bootloader restores the original configuration after its execution so that the application can function at the speed for which it was designed.
 
 ## Compilation ##
-A script has been added to launch make with different configurations: "make-timonel.sh". This script has several arguments, including "--all", which compiles all the preconfigured options found in the "configs" directory. The flashable ".hex" binary files are saved in the "releases" directory. This bootloader version has been compiled with the "avr-gcc 8.3.0 64-bit" toolchain downloaded from this site: "http://blog.zakkemble.net/avr-gcc-builds", it's also included under the tools directory. The scripts are included mainly to ease to repetitive work of flashing several devices but, of course, the bootloader can be compiled and flashed using avr-gcc and avrdude directly.
+The __"make-timonel.sh"__ script allows launching ["make"](http://www.gnu.org/software/make) with different configurations. It has several arguments, including __"--all"__, which compiles all the preconfigured options found in the __"configs"__ directory. The flashable __".hex"__ binary files are saved in the __"releases"__ directory.
 
-## Flashing ##
-The script "flash-timonel-bootloader.sh" allows flashing Timonel on the device by using the "avrdude" utility. The supported arguments are 2: 1-Binary file name (without ".hex" extension), located under "releases" directory.
-2-Clock speed in MHz: 16, 8, 2, 1.
+E.g: __`./make-timonel.sh tml-t85-small timonel 13 1B80 1 false;`__
+
+   * Generates a __\"timonel.hex\"__ binary file based on __\"tml-t85-small\"__ config.
+   * Assigns the TWI address __17__ to the device.
+   * Sets __0x1B00__ as  the bootloader start memory position.
+   * Sets the device low fuse to operate at __8 MHz__.
+   * __Disables__ automatic clock tweaking.
+
+__Note:__ This bootloader version has been compiled with the __"avr-gcc 8.3.0 64-bit"__ toolchain downloaded from [this site](http://blog.zakkemble.net/avr-gcc-builds)., it's also included under the [\"avr-toolchains\"](http://github.com/casanovg/avr-toolchains) repository. The scripts are included mainly to ease to repetitive work of flashing several devices but, of course, the bootloader can be compiled and flashed using avr-gcc and avrdude directly.
+
+## <a id="Installation"></a>Flashing Timonel on the device ##
+The script __"flash-timonel-bootloader.sh"__ allows flashing Timonel on the device by using the ["avrdude"](http://savannah.nongnu.org/projects/avrdude) utility with an [AVR programmer](http://www.fischl.de/usbasp). The supported arguments are:
+1. Binary file name (without ".hex" extension), located under "releases" directory.
+
+2. Clock speed in MHz: 16, 8, 2, 1.
 The bootloader can be flashed to bare ATtiny85/45/25 chips, Digispark boards and other Tiny85-compatible devices using an AVR programmer (e.g. USBasp).
 
-## Optional features ##
-This bootloader version has several optional features that allow finding the right balance between characteristics, flash memory usage, and performance. They're enabled from the configuration file "tml-config.mak" placed inside specific configuration folders (e.g. "tml-t85-cfg", the default one). It's a makefile include that adds or removes sections of the source code that will be part of the ".hex" binary file when compiling it. As a general rule of thumb, more enabled features = bigger bootloader size = less space for user applications. The available options are briefly described below:
+E.g: __`./flash-timonel-bootloader.sh timonel 1;`__
+
+   * Flashes __\"timonel.hex\"__ binary file on the device with avrdude.
+   * Sets the device's low fuse to run at __1 MHz__ (possible values are 1, 2, 8 and 16).
+
+## Setting optional features ##
+The bootloader has several optional features that allow finding the right balance between characteristics, flash memory usage, and performance. They're enabled from the configuration file __"tml-config.mak"__ placed inside specific configuration folders (e.g. "tml-t85-cfg", the default one). It's a makefile include that adds or removes sections of the source code that will be part of the ".hex" binary file when compiling it. As a general rule of thumb, more enabled features = bigger bootloader size = less space for user applications. The available options are briefly described below:
 
 * __ENABLE_LED_UI__: If this is enabled, the GPIO ping defined by LED_UI_PIN is used to display Timonel activity when certain functions are run. This is useful mainly for debugging. PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING CONNECTED TO A POWER SOURCE BY ACCIDENT! (Default: false).
            

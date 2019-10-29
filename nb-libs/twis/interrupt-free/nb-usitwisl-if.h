@@ -1,14 +1,14 @@
 /*
  *  NB USI TWI Interrupt-Free Driver
  *  Author: Gustavo Casanova
- *  ...........................................
- *  File: nb-usitwisl.h (Slave driver headers)
- *  ........................................... 
- *  Version: 1.3 / 2019-06-06
+ *  .............................................
+ *  File: nb-usitwisl-if.h (Slave driver headers)
+ *  .............................................
+ *  Version: 1.4 / 2019-08-09
  *  gustavo.casanova@nicebots.com
- *  ........................................... 
+ *  .............................................
  *  Based on work by Atmel (AVR312) et others
- *  ...........................................
+ *  .............................................
  */
 
 #ifndef _NB_USITWISL_IF_H_
@@ -21,7 +21,7 @@
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE  32
+#define TWI_RX_BUFFER_SIZE  64
 #endif /* TWI_RX_BUFFER_SIZE */
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
@@ -32,7 +32,7 @@
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE  32
+#define TWI_TX_BUFFER_SIZE  64
 #endif /* TWI_TX_BUFFER_SIZE */
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)
@@ -42,28 +42,17 @@
 #endif /* TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK */
 
 // Device modes
-typedef enum {                      /* TWI driver operational modes */
-    STATE_CHECK_RECEIVED_ADDRESS,
-    STATE_SEND_DATA_BYTE,
-    STATE_RECEIVE_ACK_AFTER_SENDING_DATA,
-    STATE_CHECK_RECEIVED_ACK,
-    STATE_RECEIVE_DATA_BYTE,
-    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK
+typedef enum {                                          /* TWI driver operational modes */
+    STATE_CHECK_RECEIVED_ADDRESS = 0,
+    STATE_SEND_DATA_BYTE = 1,
+    STATE_RECEIVE_ACK_AFTER_SENDING_DATA = 2,
+    STATE_CHECK_RECEIVED_ACK = 3,
+    STATE_RECEIVE_DATA_BYTE = 4,
+    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK = 5
 } OverflowState;
 
-// USI TWI driver globals
-uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-uint8_t rx_byte_count;              /* Received byte quantity in RX buffer */
-uint8_t rx_head;
-uint8_t rx_tail;
-uint8_t tx_head;
-uint8_t tx_tail;
-OverflowState device_state;
-
 // Function pointers
-void (*fptrReceiveEvent)(uint8_t);
-void (*fptrRequestEvent)(void);
+void (*p_receive_event)(uint8_t);
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(uint8_t);
