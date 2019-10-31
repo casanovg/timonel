@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for TinyX5 MCUs
  *  Author: Gustavo Casanova
  *  ...........................................
- *  Version: 1.4 "Sandra" / 2019-04-07 (Cati)
+ *  Version: 1.4 "Sandra" / 2019-10-29
  *  gustavo.casanova@nicebots.com
  */
 

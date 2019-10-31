@@ -1,9 +1,9 @@
 /*
  *******************************************************
  * Timonel Intel Hex Parser                            *
- * Version: 0.3 | For Unix & Windows                   *
+ * Version: 0.3 "Cati" | For Unix & Windows            *
  * ................................................... *
- * 2018-07-14 gustavo.casanova@nicebots.com            *
+ * 2018-04-07 gustavo.casanova@nicebots.com            *
  * ................................................... *
  * Based on code from BootloadHID project              *
  * ................................................... *

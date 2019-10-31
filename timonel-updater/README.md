@@ -1,7 +1,6 @@
-Timonel Updater
-===============
+# Timonel Updater
 
-__NOTE:__ This bootloader updater has been included from the micronucleus project: github.com/micronucleus
+__NOTE:__ This bootloader updater has been included from the [micronucleus](github.com/micronucleus) project.
 
 Usage:
 ------
@@ -85,3 +84,6 @@ Taking inspiration from computer viruses, when upgrade runs it goes through this
    forwarding any requests to the new bootloader's interrupt vector table. At this point the viral
    upgrader has completed it's life cycle and has disabled itself. It should never run again, booting
    directly in to the bootloader instead.
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbLTM0NzMwMDEzNF19
+-->
