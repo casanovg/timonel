@@ -17,7 +17,7 @@
 #define _TIMONELTWIM_H_
 
 #include "../../cmd/nb-twi-cmd.h"
-#include "NbMicro.h"
+#include "../NbMicro/NbMicro.h"
 #include "Wire.h"
 #include "libconfig.h"
 #include "stdbool.h"

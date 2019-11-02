@@ -9,8 +9,8 @@
 */
 #include <Arduino.h>
 //#include <Memory>
-#include "NbMicro.h"
-#include "TimonelTwiM.h"
+#include "../../../nb-libs/twim/NbMicro/NbMicro.h"
+#include "../../../nb-libs/twim/TimonelTwiM/TimonelTwiM.h"
 #include "payload.h"
 
 #define USE_SERIAL Serial
