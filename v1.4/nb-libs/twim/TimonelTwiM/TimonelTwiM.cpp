@@ -29,6 +29,11 @@ Timonel::Timonel(const byte twi_address, const byte sda, const byte scl) : NbMic
     }
 }
 
+// Class destructor
+Timonel::~Timonel() {
+    // Destructor
+}
+
 /* _________________________
   |                         | 
   |        GetStatus        |

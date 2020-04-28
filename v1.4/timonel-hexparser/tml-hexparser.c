@@ -1,16 +1,16 @@
 /*
  *******************************************************
  * Timonel Intel Hex Parser                            *
- * Version: 0.3 | For Unix & Windows                   *
+ * Version: 0.3 "Cati" | For Unix & Windows            *
  * ................................................... *
- * 2018-07-14 gustavo.casanova@nicebots.com            *
+ * 2018-04-07 gustavo.casanova@nicebots.com            *
  * ................................................... *
  * Based on code from BootloadHID project              *
  * ................................................... *
  * NOTE:                                               *
  * -----                                               *
  * To compile on Windows, you need to install "MinGW"  *
- * with, at least the "mingw32-base" package from      *
+ * with, at least, the "mingw32-base" package from     *
  * the installation manager. You also have to verify   *
  * that your path variable includes "C:\MinGW\bin".    *
  *******************************************************

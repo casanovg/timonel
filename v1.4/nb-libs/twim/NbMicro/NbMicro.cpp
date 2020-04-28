@@ -199,6 +199,11 @@ TwiBus::TwiBus(byte sda, byte scl) : sda_(sda), scl_(scl) {
     }
 }
 
+// Class destructor
+TwiBus::~TwiBus() {
+    // Destructor
+}
+
 /* _________________________
   |                         | 
   |        ScanBus A        |
@@ -215,16 +220,18 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
     while (twi_addr < HIG_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
-            if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Timonel bootloader found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
-#endif /* DEBUG_LEVEL */
-                *p_app_mode = false;
-            } else {
-#if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-                USE_SERIAL.printf_P("[%s] Application firmware found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
-#endif /* DEBUG_LEVEL */
-                *p_app_mode = true;
+            if (p_app_mode != nullptr) {
+                if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
+    #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+                    USE_SERIAL.printf_P("[%s] Timonel bootloader found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
+    #endif /* DEBUG_LEVEL */
+                    *p_app_mode = false;
+                } else {
+    #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
+                    USE_SERIAL.printf_P("[%s] Application firmware found at address: %d (0x%X)\n\r", __func__, twi_addr, twi_addr);
+    #endif /* DEBUG_LEVEL */
+                    *p_app_mode = true;
+                }
             }
             return twi_addr;
         }

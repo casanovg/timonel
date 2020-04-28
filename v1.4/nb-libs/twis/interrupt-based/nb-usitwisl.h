@@ -57,9 +57,9 @@ void (*p_receive_event)(uint8_t);
 void (*p_enable_slow_ops)(void);
 
 // USI TWI driver prototypes
+void UsiTwiDriverInit(uint8_t);
 void UsiTwiTransmitByte(uint8_t);
 uint8_t UsiTwiReceiveByte(void);
-void UsiTwiDriverInit(void);
 //void TwiStartHandler(void);
 //void UsiOverflowHandler(void);
 
