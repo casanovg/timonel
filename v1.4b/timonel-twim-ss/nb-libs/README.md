@@ -1,2 +1,0 @@
-# nb-libs
-NB Libraries
