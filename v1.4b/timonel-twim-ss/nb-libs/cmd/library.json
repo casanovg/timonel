@@ -1,0 +1,13 @@
+{
+    "name": "cmd",
+    "keywords": "nb cmd",
+    "description": "NB TWI command set: This file defines the comm protocol over TWI (I2C).",
+    "include": "cmd",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/casanovg/nb-libs.git"
+    },
+    "version": "1.3",
+    "frameworks": "arduino",
+    "platforms": "*"
+}
