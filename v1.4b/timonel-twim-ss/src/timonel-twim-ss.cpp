@@ -11,11 +11,12 @@
   ----------------------------------------------------------------------------
 */
 
-//#include <Arduino.h>
-//#include <Memory>
-#include <NbMicro/NbMicro.h>
-#include <TimonelTwiM/TimonelTwiM.h>
-#include <TwiBus/TwiBus.h>
+#include <NbMicro.h>
+#include <TimonelTwiM.h>
+#include <TwiBus.h>
+// #include <NbMicro/NbMicro.h>
+// #include <TimonelTwiM/TimonelTwiM.h>
+// #include <TwiBus/TwiBus.h>
 
 #include "payload.h"
 
