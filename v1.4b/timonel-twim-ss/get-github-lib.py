@@ -2,9 +2,9 @@ import os
 
 Import("env")
 
-PR_LIB_DIR = "nb-libs"
+PR_LIB_DIR = "nb-lib"
 GITHUB_USR = "casanovg"
-GITHUB_REP = "nb-libs"
+GITHUB_REP = "nb-lib"
 NBLIBS_DIR = env.subst("$PROJECT_DIR/" + PR_LIB_DIR)
 
 LIB_DEPS =  "twi/arduino/* "
