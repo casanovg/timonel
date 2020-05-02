@@ -4,3 +4,4 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+nb-libs/
