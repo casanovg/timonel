@@ -23,10 +23,10 @@
    7) Repeats the routine 3 times.
 */
 
-//#include <Arduino.h>
-//#include <Memory>
-#include "NbMicro.h"
-#include "TimonelTwiM.h"
+#include <NbMicro.h>
+#include <TimonelTwiM.h>
+#include <TwiBus.h>
+
 #include "payload.h"
 
 #define USE_SERIAL Serial
@@ -115,7 +115,7 @@ void setup() {
                 if (errors == 0) {
                     USE_SERIAL.printf_P("OK!\n\r");
                 } else {
-                    USE_SERIAL.printf_P("Error!\n\r", errors);
+                    USE_SERIAL.printf_P("Error! (%d)\n\r", errors);
                 }
                 delay(1000);
                 USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
@@ -133,7 +133,7 @@ void setup() {
                 if (errors == 0) {
                     USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b successful!      \n\r");
                 } else {
-                    USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b error!           \n\r", errors);
+                    USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b error! (%d)           \n\r", errors);
                 }
                 delay(10);
                 USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
