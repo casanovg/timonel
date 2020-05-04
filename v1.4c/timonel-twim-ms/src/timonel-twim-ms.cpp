@@ -1,7 +1,7 @@
 /*
-  main.cpp (timonel-twim-ms)
-  ==========================
-  Timonel library test program (Multi Slave) v1.4 "Beni"
+  Timonel-TwiM-MS.cpp
+  ===================
+  Timonel libraries test program (Multi Slave) v1.4
   ----------------------------------------------------------------------------
   This demo shows how to control and update several Tiny85 microcontrollers
   running the Timonel bootloader from an ESP8266 master.
