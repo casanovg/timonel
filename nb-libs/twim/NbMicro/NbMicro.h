@@ -4,26 +4,24 @@
  *  ...........................................
  *  File: NbMicro.h (Header)
  *  ........................................... 
- *  Version: 1.4 / 2019-08-09
+ *  Version: 0.9.0 / 2020-04-29
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library handles the communication protocol
  *  with slave devices that implement the NB command set over a TWI
- *  bus. In addition, the TwiBus class has methods to scan the bus in
- *  search of the existing slave devices addresses. For single-slave
- *  setups or those where all addresses are known in advance, this
- *  last one could be dropped to save memory.
+ *  bus.
  */
 
 #ifndef _NBMICRO_H_
 #define _NBMICRO_H_
 
+#include <nb-twi-cmd.h>
+
 #include <unordered_set>
-#include "../../cmd/nb-twi-cmd.h"
+
 #include "Arduino.h"
 #include "Wire.h"
 #include "libconfig.h"
-#include "stdbool.h"
 
 typedef uint8_t byte;
 
@@ -54,28 +52,5 @@ class NbMicro {
 
    private:
 };
-
-#if ((defined MULTI_DEVICE) && (MULTI_DEVICE == true))
-// Class TwiBus: Represents a Two Wire Interfase (I2C) bus
-class TwiBus {
-   public:
-    typedef struct device_info_ {
-        byte addr = 0;
-        String firmware = "";
-        byte version_major = 0;
-        byte version_minor = 0;
-    } DeviceInfo;
-    TwiBus(byte sda = 0, byte scl = 0);
-    ~TwiBus();
-    byte ScanBus(bool *p_app_mode = nullptr);
-    byte ScanBus(DeviceInfo dev_info_arr[],
-                 byte arr_size = HIG_TWI_ADDR + 1,
-                 byte start_twi_addr = LOW_TWI_ADDR);
-
-   private:
-    byte sda_ = 0, scl_ = 0;
-    bool reusing_twi_connection_ = true;
-};
-#endif /* MULTI_DEVICE */
 
 #endif /* _NBMICRO_H_ */

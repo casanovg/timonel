@@ -1,25 +1,25 @@
 /*
-  main.cpp (timonel-twim-ss)
-  ==========================
-  Timonel library test program (Single Slave) v1.4 "Valen"
+  timonel-twim-ss.cpp
+  ===================
+  Timonel library test program (Single Slave) v1.4
   ----------------------------------------------------------------------------
   This demo implements an I2C serial commander to control interactively a
   Tiny85 microcontroller running the Timonel bootloader from an ESP8266
   master. It uses a serial console configured at 9600 N 8 1 for feedback.
   ----------------------------------------------------------------------------
-  2019-03-19 Gustavo Casanova
+  2020-04-29 Gustavo Casanova
   ----------------------------------------------------------------------------
-*/  
-    
-//#include <Arduino.h>
-//#include <Memory>
-#include "NbMicro.h"
-#include "TimonelTwiM.h"
+*/
+
+#include <NbMicro.h>
+#include <TimonelTwiM.h>
+#include <TwiBus.h>
+
 #include "payload.h"
 
 #define USE_SERIAL Serial
-#define SDA 0       /* I2C SDA pin */
-#define SCL 2       /* I2C SCL pin */
+#define SDA 0 /* I2C SDA pin */
+#define SCL 2 /* I2C SCL pin */
 
 // Prototypes
 void setup(void);
@@ -41,7 +41,7 @@ byte block_rx_size = 0;
 bool new_key = false;
 bool new_byte = false;
 bool new_word = false;
-bool app_mode = false;  /* This holds the slave device running mode info: bootloader or application */
+bool app_mode = false; /* This holds the slave device running mode info: bootloader or application */
 char key = '\0';
 word flash_page_addr = 0x0;
 word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
@@ -51,7 +51,7 @@ Timonel tml; /* From now on, we'll keep a Timonel instance active */
 // Setup block
 void setup() {
     bool *p_app_mode = &app_mode; /* This is to take different actions depending on whether the bootloader or the application is active */
-    USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
+    USE_SERIAL.begin(9600);       /* Initialize the serial port for debugging */
     //Wire.begin(SDA, SCL);
     ClrScr();
     delay(150);
@@ -96,11 +96,11 @@ void loop() {
                 USE_SERIAL.printf_P("\n  .\n\r . .\n\r. . .\n\n\r");
                 Wire.begin(SDA, SCL);
                 delay(500);
-// #if ESP8266
-//                 ESP.restart();
-// #else
-//                 resetFunc();
-// #endif /* ESP8266 */
+                // #if ESP8266
+                //                 ESP.restart();
+                // #else
+                //                 resetFunc();
+                // #endif /* ESP8266 */
                 break;
             }
             // ******************
@@ -153,8 +153,7 @@ void loop() {
                 USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
                 if (cmd_errors == 0) {
                     USE_SERIAL.printf_P(" successful        ");
-                }
-                else {
+                } else {
                     USE_SERIAL.printf_P(" [ command error! %d ]", cmd_errors);
                 }
                 USE_SERIAL.printf_P("\n\n\r");
@@ -199,17 +198,16 @@ void loop() {
             case 'W': {
                 USE_SERIAL.printf_P("\n\rBootloader Cmd >>> Upload app firmware to flash memory, \x1b[5mPLEASE WAIT\x1b[0m ...");
                 byte cmd_errors = tml.UploadApplication(payload, sizeof(payload), flash_page_addr);
-                USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");                
+                USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
                 if (cmd_errors == 0) {
                     USE_SERIAL.printf_P(" successful        ");
-                }
-                else {
+                } else {
                     USE_SERIAL.printf_P(" [ command error! %d ]", cmd_errors);
                 }
                 USE_SERIAL.printf_P("\n\n\r");
                 break;
             }
-#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))                
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
             // ********************************
             // * Timonel ::: READFLSH command *
             // ********************************
@@ -334,7 +332,7 @@ void PrintStatus(Timonel timonel) {
         }
         USE_SERIAL.printf_P("\n\r Timonel v%d.%d %s ", version_major, version_minor, version_mj_nick.c_str());
         USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
-        USE_SERIAL.printf_P(" ====================================\n\r");        
+        USE_SERIAL.printf_P(" ====================================\n\r");
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         word app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
@@ -410,4 +408,3 @@ void ListTwiDevices(byte sda, byte scl) {
     }
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
-
