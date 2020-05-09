@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: TimonelTwiM.h (Header)
  *  ........................................... 
- *  Version: 1.4 / 2019-08-09
+ *  Version: 0.9.0 / 2020-04-29
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  *  This TWI (I2C) master library interacts with a microcontroller
@@ -16,11 +16,9 @@
 #ifndef _TIMONELTWIM_H_
 #define _TIMONELTWIM_H_
 
-#include "../../cmd/nb-twi-cmd.h"
-#include "NbMicro.h"
-#include "Wire.h"
+#include <NbMicro.h>
+
 #include "libconfig.h"
-#include "stdbool.h"
 
 // Class Timonel: Represents an ATTiny85/45/25 microcontroller running the Timonel bootloader
 class Timonel : public NbMicro {
