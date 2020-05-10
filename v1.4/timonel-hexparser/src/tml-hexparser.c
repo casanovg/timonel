@@ -1,19 +1,22 @@
 /*
- *******************************************************
- * Timonel Intel Hex Parser                            *
- * Version: 0.4 "Cati" | For Unix & Windows            *
- * ................................................... *
- * 2020-05-10 gustavo.casanova@nicebots.com            *
- * ................................................... *
- * Based on code from BootloadHID project              *
- * ................................................... *
- * NOTE:                                               *
- * -----                                               *
- * To compile on Windows, you need to install "MinGW"  *
- * with, at least, the "mingw32-base" package from     *
- * the installation manager. You also have to verify   *
- * that your path variable includes "C:\MinGW\bin".    *
- *******************************************************
+ ********************************************************
+ * Timonel Intel Hex Parser                             *
+ * Version: 0.4 "Cati" | For Unix & Windows             *
+ * .................................................... *
+ * 2020-05-10 gustavo.casanova@nicebots.com             *
+ * .................................................... *
+ * Based on code from BootloadHID project               *
+ * .................................................... *
+ * NOTE:                                                *
+ * -----                                                *
+ * This program was moved to a PlatformIO project, from *
+ * where it can be compiled with "platformio run" or    *
+ * using its corresponding icon in VS Code. To compile  *
+ * it outside PlatformIO with make on Windows, you need *
+ * to install "MinGW" with the "mingw32-base" package   *
+ * from the installation manager. Also verify that your *
+ * path variable includes "C:\MinGW\bin".               *
+ ********************************************************
  */ 
 
 #include <stdio.h>
