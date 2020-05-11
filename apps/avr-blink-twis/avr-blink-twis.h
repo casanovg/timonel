@@ -1,5 +1,5 @@
 /*
- *  AVR SOS TWIS
+ *  AVR BLINK TWIS
  *  Author: Gustavo Casanova / Nicebots
  *  ...........................................
  *  File: header.h (Application headers)
@@ -9,8 +9,8 @@
  *  ...........................................
  */
 
-#ifndef _AVR_SOS_H_
-#define _AVR_SOS_H_
+#ifndef _AVR_BLINK_TWIS_H_
+#define _AVR_BLINK_TWIS_H_
 
 #ifndef __AVR_ATtiny85__
 #define __AVR_ATtiny85__
@@ -27,8 +27,8 @@
 #include "../../nb-libs/cmd/nb-twi-cmd.h"
 #include "../../nb-libs/twis/interrupt-based/nb-usitwisl.h"
 
-#define LED_PIN PB1       /* >>> WARNING: Only use PB4 to monitor  <<< */
-#define LED_DDR DDRB      /* >>> monitor activity if ADC2 is NOT   <<< */
-#define LED_PORT PORTB    /* >>> implemented !!!					 <<< */
+#define LED_PIN PB1
+#define LED_DDR DDRB
+#define LED_PORT PORTB
 
-#endif /* _AVR_SOS_H_ */
+#endif // _AVR_BLINK_TWIS_H_

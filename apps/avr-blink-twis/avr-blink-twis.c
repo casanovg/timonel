@@ -1,28 +1,22 @@
 /*
- *  AVR SOS TWIS
+ *  AVR BLINK TWIS
  *  Author: Gustavo Casanova / Nicebots
  *  ...........................................
- *  File: main.cpp (Application source)
+ *  File: avr-blink-twis.c (Blink application)
  *  ........................................... 
  *  Version: 1.0 / 2019-06-22
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
 
-/* TWI available commands:
-   -----------------------
-   a - (SETIO1_1) Start "SOS" blinking
-   s - (SETIO1_0) Stop "SOS" blinking
-   x - (RESETMCU) Reset device
-*/
+/* This a led blink test program compatible with
+   the NB command-set through TWI (I2C).
 
-/* Morse Code:
-   -----------
-   1.Short mark, dot or "dit" (.): "dot duration" is one time unit long
-   2.Longer mark, dash or "dah" (-): three time units long
-   3.Inter-element gap between the dots and dashes within a character: one dot duration or one unit long (_).
-   4.Short gap (between letters): three time units long (___).
-   5.Medium gap (between words): seven time units long (_______).
+   Available NB TWI commands:
+   ------------------------------
+   a - (SETIO1_1) Start blinking
+   s - (SETIO1_0) Stop blinking
+   x - (RESETMCU) Reset device
 */
 
 // Includes
@@ -31,8 +25,8 @@
 #define LONG_DELAY 0xFFFF
 
 // Global variables
-uint8_t command[32] = {0};           /* I2C Command received from master  */
-uint8_t commandLength = 0;           /* I2C Command number of bytes  */
+uint8_t command[32] = {0}; /* I2C Command received from master  */
+uint8_t commandLength = 0; /* I2C Command number of bytes  */
 
 bool reset_now = false;
 bool slow_ops_enabled = false;
@@ -54,19 +48,19 @@ int main(void) {
        |    Setup Block    |
        |___________________|
     */
-    DisableWatchDog();                  /* Disable watchdog to avoid continuous loop after reset */
-    SetCPUSpeed1MHz();                  /* Set prescaler = 1 (System clock / 1) */
+    DisableWatchDog(); /* Disable watchdog to avoid continuous loop after reset */
+    SetCPUSpeed1MHz(); /* Set prescaler = 1 (System clock / 1) */
     // Set output pins
-    LED_DDR |= (1 << LED_PIN);          /* Set led control pin Data Direction Register for output */
-    LED_PORT &= ~(1 << LED_PIN);        /* Turn led off */
-    _delay_ms(250);                     /* Delay to allow programming at 1 MHz after power on */
-    SetCPUSpeed8MHz();                  /* Set the CPU prescaler for 8 MHz */
+    LED_DDR |= (1 << LED_PIN);   /* Set led control pin Data Direction Register for output */
+    LED_PORT &= ~(1 << LED_PIN); /* Turn led off */
+    _delay_ms(250);              /* Delay to allow programming at 1 MHz after power on */
+    SetCPUSpeed8MHz();           /* Set the CPU prescaler for 8 MHz */
     // Initialize I2C
-    p_receive_event = ReceiveEvent;     /* Pointer to TWI receive event function */
-    p_enable_slow_ops = EnableSlowOps;  /* Pointer to enable slow options function */
-    UsiTwiDriverInit(TWI_ADDR);         /* NOTE: TWI_ADDR is defined in Makefile! */    
-    sei();                              /* Enable Interrupts */
-    
+    p_receive_event = ReceiveEvent;    /* Pointer to TWI receive event function */
+    p_enable_slow_ops = EnableSlowOps; /* Pointer to enable slow options function */
+    UsiTwiDriverInit(TWI_ADDR);        /* NOTE: TWI_ADDR is defined in Makefile! */
+    sei();                             /* Enable Interrupts */
+
     /*  ___________________
        |                   | 
        |     Main Loop     |
@@ -76,14 +70,13 @@ int main(void) {
         if (reset_now == true) {
             ResetMCU();
         }
-        
+
         if (toggle_delay-- == 0) {
             if (blink == true) {
                 LED_PORT ^= (1 << LED_PIN); /* Toggle PB1 */
             }
-            toggle_delay = LONG_DELAY;            
+            toggle_delay = LONG_DELAY;
         }
-        
     }
     return 0;
 }
@@ -188,7 +181,8 @@ void DisableWatchDog(void) {
    |________________|
 */
 void ResetMCU(void) {
-    LED_PORT &= ~(1 << LED_PIN);     /* Turn led off */
+    LED_PORT &= ~(1 << LED_PIN); /* Turn led off */
     wdt_enable(WDTO_15MS);
-    for (;;) {}
+    for (;;) {
+    }
 }
