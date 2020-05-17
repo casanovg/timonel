@@ -18,8 +18,8 @@
 #include "payload.h"
 
 #define USE_SERIAL Serial
-#define SDA 0 /* I2C SDA pin */
-#define SCL 2 /* I2C SCL pin */
+#define SDA 2 /* I2C SDA pin */
+#define SCL 0 /* I2C SCL pin */
 
 // Prototypes
 void setup(void);

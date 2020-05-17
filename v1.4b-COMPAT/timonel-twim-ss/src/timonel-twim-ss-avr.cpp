@@ -24,45 +24,49 @@
 // Prototypes
 void setup(void);
 void loop(void);
-bool CheckApplUpdate(void);
-void ListTwiDevices(byte sda = 0, byte scl = 0);
-void PrintStatus(Timonel tml);
-void ThreeStarDelay(void);
-void ReadChar(void);
-word ReadWord(void);
-void ShowHeader(void);
-void ShowMenu(void);
-void ClrScr(void);
-void PrintLogo(void);
+// bool CheckApplUpdate(void);
+// void ListTwiDevices(byte sda = 0, byte scl = 0);
+// //void PrintStatus(Timonel tml);
+// void ThreeStarDelay(void);
+// void ReadChar(void);
+// word ReadWord(void);
+// //void ShowHeader(void);
+// //void ShowMenu(void);
+// //void ClrScr(void);
+// //void PrintLogo(void);
 
-// Global variables
-byte slave_address = 0;
-byte block_rx_size = 0;
-bool new_key = false;
-bool new_byte = false;
-bool new_word = false;
-bool app_mode = false; /* This holds the slave device running mode info: bootloader or application */
-char key = '\0';
-word flash_page_addr = 0x0;
-word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
+// // Global variables
+// byte slave_address = 0;
+// byte block_rx_size = 0;
+// bool new_key = false;
+// bool new_byte = false;
+// bool new_word = false;
+// bool app_mode = false; /* This holds the slave device running mode info: bootloader or application */
+// char key = '\0';
+// word flash_page_addr = 0x0;
+// word timonel_start = 0xFFFF; /* Timonel start address, 0xFFFF means 'not set' */
 
-Timonel tml; /* From now on, we'll keep a Timonel instance active */
+// Timonel tml; /* From now on, we'll keep a Timonel instance active */
 
 // Setup block
 void setup() {
-    bool *p_app_mode = &app_mode; /* This is to take different actions depending on whether the bootloader or the application is active */
+    //bool *p_app_mode = &app_mode; /* This is to take different actions depending on whether the bootloader or the application is active */
     USE_SERIAL.begin(9600);       /* Initialize the serial port for debugging */
 
-    ClrScr();
-    delay(150);
-    PrintLogo();
-    TwiBus i2c(SDA, SCL);
-    byte slave_address = i2c.ScanBus(p_app_mode);
-    tml.SetTwiAddress(slave_address);
-    ShowHeader();
-    tml.GetStatus();
-    PrintStatus(tml);
-    ShowMenu();
+    //ClrScr();
+    // delay(150);
+    // PrintLogo();
+    // TwiBus i2c(SDA, SCL);
+    // byte slave_address = i2c.ScanBus(p_app_mode);
+    // tml.SetTwiAddress(slave_address);
+    // ShowHeader();
+    // tml.GetStatus();
+    // PrintStatus(tml);
+    // ShowMenu();
+}
+
+void loop() {
+    //
 }
 
 #ifndef ARDUINO_ARCH_ESP8266
@@ -412,4 +416,4 @@ void ListTwiDevices(byte sda, byte scl) {
     USE_SERIAL.printf_P("...........................................................\n\n\r");
 }
 
-#endif // ARDUINO_ARCH_ESP8266
+#endif  // ARDUINO_ARCH_ESP8266
