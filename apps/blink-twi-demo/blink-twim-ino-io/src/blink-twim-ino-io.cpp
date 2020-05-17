@@ -33,9 +33,9 @@ void loop() {
             case 'A': {
                 byte ret = p_micro->TwiCmdXmit(SETIO1_1, ACKIO1_1);
                 if (ret) {
-                    USE_SERIAL.printf_P("Error: %d\n\r", ret);
+                    USE_SERIAL.printf_P(" > Error: %d\n\r", ret);
                 } else {
-                    USE_SERIAL.printf_P("OK (%d)\n\r", ret);
+                    USE_SERIAL.printf_P(" > OK: ACKIO1_1\n\r", ret);
                 }
                 break;
             }
@@ -46,9 +46,9 @@ void loop() {
             case 'S': {
                 byte ret = p_micro->TwiCmdXmit(SETIO1_0, ACKIO1_0);
                 if (ret) {
-                    USE_SERIAL.printf_P("Error: %d\n\r", ret);
+                    USE_SERIAL.printf_P(" > Error: %d\n\r", ret);
                 } else {
-                    USE_SERIAL.printf_P("OK (%d)\n\r", ret);
+                    USE_SERIAL.printf_P(" > OK: ACKIO1_0\n\r", ret);
                 }
                 break;
             }                
@@ -62,7 +62,7 @@ void loop() {
                 if (ret) {
                     USE_SERIAL.printf_P("Error: %d\n\r", ret);
                 } else {
-                    USE_SERIAL.printf_P("OK (%d)\n\r", ret);
+                    USE_SERIAL.printf_P(" > OK: ACKRESET\n\r", ret);
                 }
                                 
                 delay(500);
@@ -131,7 +131,7 @@ void ShowHeader(void) {
 
 // Function ShowMenu
 void ShowMenu(void) {
-        USE_SERIAL.printf_P("Application command ('a', 's', 'z' reboot, 'x' reset MCU, '?' help): ");
+        USE_SERIAL.printf_P("Application command ('a' blink, 's' stop, 'z' reboot, 'x' reset MCU, '?' help): ");
 }
 
 // Function ListTwidevices
