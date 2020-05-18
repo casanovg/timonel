@@ -5,8 +5,9 @@
 #ifndef _BLINK_TWIM_INO_IO_H_
 #define _BLINK_TWIM_INO_IO_H_
 
+#include <Arduino.h>
 #include <NbMicro.h>
-#include <TwiBus.h>
+//#include <TwiBus.h>
 #include <nb-twi-cmd.h>
 #include <stdio.h>
 
@@ -25,6 +26,8 @@ void ClrScr(void);
 void ShowHeader(void);
 void ShowMenu(void);
 void ListTwiDevices(uint8_t sda, uint8_t scl);
-uint8_t FindSlave(void);
+//uint8_t FindSlave(void);
+//void resetFunc(void);
+void(* resetFunc) (void) = 0;
 
-#endif // _BLINK_TWIM_INO_IO_H_
+#endif  // _BLINK_TWIM_INO_IO_H_
