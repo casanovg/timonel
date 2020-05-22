@@ -19,30 +19,33 @@
 ////////////                    NBMICRO CLASS                    ////////////
 /////////////////////////////////////////////////////////////////////////////
 
-// Class constructor
+/* _________________________
+  |                         | 
+  |       Constructor       |
+  |_________________________|
+*/
 NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
 #ifdef ARDUINO_ARCH_ESP8266
+    // If the TWI address is not in use, create a new NbMicro object
     if ((!active_addresses.insert(addr_).second) && (addr_ != 0)) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
-        USE_SERIAL.printf_P("[%s] Error: The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
+        USE_SERIAL.printf_P("[%s] Error:     The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
         USE_SERIAL.printf_P("[%s] Execution terminated, please review the devices' TWI addresses on your code.\r\n", __func__);
 #endif  // DEBUG_LEVEL
         delay(DLY_NBMICRO);
         std::terminate();
-        //throw std::logic_error(addr_.toString() + " is already in use");
-        //exit(1);
     }
+    // If SDA and SCL pins are not specified, use the default ones
     if (!((sda_ == 0) && (scl_ == 0))) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Creating a new TWI connection with address %02d\n\r", __func__, addr_);
 #endif                           // DEBUG_LEVEL
         Wire.begin(sda_, scl_);  // Init I2C sda_:GPIO0, scl_:GPIO2 (ESP-01) / sda_:D3, scl_:D4 (NodeMCU)
-        reusing_twi_connection_ = false;
     } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Reusing the TWI connection with address %02d\n\r", __func__, addr_);
 #endif  // DEBUG_LEVEL
-        reusing_twi_connection_ = true;
+        Wire.begin(SDA_STD_PIN, SCL_STD_PIN);  // Init I2C with default SDA and SCL pins
     }
 #else   // -----
     for (uint8_t i = 0; i < TWI_DEVICE_QTY; i++) {
@@ -172,22 +175,29 @@ byte NbMicro::TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply, byte
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////
-////////////             NbMicro internal functions              ////////////
-/////////////////////////////////////////////////////////////////////////////
-
-// Class destructor
+/* _________________________
+  |                         | 
+  |       Destructor        |
+  |_________________________|
+*/
 NbMicro::~NbMicro() {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Freeing TWI address %02d ...\r\n", __func__, addr_);
 #endif  // DEBUG_LEVEL
-    //active_addresses.erase(addr_);
+#ifdef ARDUINO_ARCH_ESP8266
+    active_addresses.erase(addr_);
+#endif  // ARDUINO_ARCH_ESP8266
 }
 
-// Function InitMicro (Initializes the microcontroller firmware)
+/* _________________________
+  |                         | 
+  |        InitMicro        |
+  |_________________________|
+*/
 byte NbMicro::InitMicro(void) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Initializing Micro %02d ...\r\n", __func__, addr_);
 #endif  // DEBUG_LEVEL
+    // Initialize the microcontroller firmware
     return (TwiCmdXmit(INITSOFT, ACKINITS));
 }

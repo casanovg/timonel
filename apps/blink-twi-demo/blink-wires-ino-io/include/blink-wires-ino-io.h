@@ -29,7 +29,8 @@
 #define TWI_ADDR 12
 #define LONG_DELAY 0x3FFFF
 
-#define LED_PIN PB1
+//#define LED_PIN PB1 // Digispark ATtiny85
+#define LED_PIN PB5 // Arduino Pro Mini
 #define LED_DDR DDRB
 #define LED_PORT PORTB
 

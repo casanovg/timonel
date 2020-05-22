@@ -118,6 +118,14 @@ void RequestEvent(void) {
             Wire.write(opCodeAck);
             break;
         }
+        case INFORMAT: {
+            char info[6] = {'H', 'e', 'l', 'l', 'o', '!'};
+            Wire.write(opCodeAck);
+            for (int i = 0; i < sizeof(info); i++) {
+                Wire.write(info[i]);
+            }
+            break;
+        }
         // ******************
         // * RESETMCU Reply *
         // ******************

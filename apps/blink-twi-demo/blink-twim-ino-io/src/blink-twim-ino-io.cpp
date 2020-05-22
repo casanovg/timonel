@@ -12,6 +12,8 @@ char key = '\0';
 //byte slave_address = FindSlave();
 //NbMicro *p_micro = new NbMicro(slave_address, SDA, SCL);
 NbMicro *p_micro = new NbMicro(12, SDA, SCL);
+NbMicro *p_micra = new NbMicro(13, SDA, SCL);
+//--- NbMicro *p_micro = new NbMicro(12);
 
 // put your setup code here, to run once:
 void setup() {
@@ -57,6 +59,28 @@ void loop() {
                 }
                 break;
             }
+            // *********************************
+            // * Test app ||| INFORMAT Command *
+            // *********************************
+            case 'i':
+            case 'I': {
+                byte ret_len = 1 + 6; // 1 ack byte + 6 data bytes
+                char info_ret[ret_len];
+                byte ret = p_micro->TwiCmdXmit(INFORMAT, ACKINFOR, (byte*)info_ret, ret_len);
+                if (ret) {
+                    USE_SERIAL.print(" > Error: ");
+                    USE_SERIAL.println(ret);
+
+                } else {
+                    USE_SERIAL.println(" > OK: ACKINFOR");
+                    USE_SERIAL.println("");
+                    for (byte i = 1; i < ret_len; i++) {
+                        USE_SERIAL.print(info_ret[i]);
+                    }
+                    USE_SERIAL.println("\n\r");
+                }
+                break;
+            }            
             // *********************************
             // * Test app ||| RESETINY Command *
             // *********************************
@@ -129,6 +153,7 @@ void ShowHeader(void) {
     //ClrScr();
     delay(250);
     USE_SERIAL.println("\n\rBlink Twi Master Test");
+    USE_SERIAL.println(".....................");
     uint8_t dev_addr = p_micro->GetTwiAddress();
     if (dev_addr != 0) {
         USE_SERIAL.print("Detected device at TWI address: ");
@@ -140,7 +165,7 @@ void ShowHeader(void) {
 
 // Function ShowMenu
 void ShowMenu(void) {
-    USE_SERIAL.print("Application command ('a' blink, 's' stop, 'z' reboot, 'x' reset slave): ");
+    USE_SERIAL.print("Application command ('a' blink, 's' stop, 'i' info, 'z' reboot, 'x' reset slave): ");
 }
 
 // Function FindSlave

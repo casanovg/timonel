@@ -44,11 +44,11 @@ class NbMicro {
                     byte twi_reply_arr[] = nullptr, byte reply_size = 0);
     byte TwiCmdXmit(byte twi_cmd_arr[], byte cmd_size, byte twi_reply,
                     byte twi_reply_arr[] = nullptr, byte reply_size = 0);
+    byte InitMicro(void);
 
    protected:
-    byte InitMicro(void);
     byte addr_ = 0, sda_ = 0, scl_ = 0;
-    bool reusing_twi_connection_ = true;
+    //bool reusing_twi_connection_ = true;
 #ifndef ARDUINO_ARCH_ESP8266
     byte active_addresses_[TWI_DEVICE_QTY] = {0};
 #endif  // !(ARDUINO_ARCH_ESP8266)
@@ -56,4 +56,4 @@ class NbMicro {
    private:
 };
 
-#endif /* _NBMICRO_H_ */
+#endif // _NBMICRO_H_
