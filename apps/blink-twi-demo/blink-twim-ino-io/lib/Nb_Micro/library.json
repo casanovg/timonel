@@ -1,6 +1,6 @@
 {
     "name": "NbMicro",
-    "version": "1.0.99",
+    "version": "1.1.0",
     "keywords": "nbmicro, i2c, twi, master, communications, arduino",
     "description": "This library handles the communication protocol with devices that implement the NB command set over a TWI (I2C) bus.",
     "repository": {

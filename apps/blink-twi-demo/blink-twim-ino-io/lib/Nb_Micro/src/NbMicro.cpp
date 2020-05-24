@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: NbMicro.cpp (Library)
  *  ........................................... 
- *  Version: 1.0.1 / 2020-05-07
+ *  Version: 1.1.0 / 2020-05-24
  *  gustavo.casanova@gmail.com
  *  ...........................................
  *  This library handles the communication protocol with devices
@@ -44,19 +44,17 @@ NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda
     } else {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Reusing the TWI connection with address %02d\n\r", __func__, addr_);
-#endif  // DEBUG_LEVEL
+#endif                                         // DEBUG_LEVEL
         Wire.begin(SDA_STD_PIN, SCL_STD_PIN);  // Init I2C with default SDA and SCL pins
     }
 #else   // -----
     for (uint8_t i = 0; i < TWI_DEVICE_QTY; i++) {
-        if (active_addresses_[i] == addr_) {
-            //throw std::logic_error(addr_.toString() + " is already in use");
-            exit(ERR_TWI_ADDR_NA);
+        if (active_addresses[i] == addr_) {
+            abort();
         }
-        if (active_addresses_[i] == 0) {
-            active_addresses_[i] = addr_;
+        if (active_addresses[i] == 0) {
+            active_addresses[i] = addr_;
             break;
-            ;
         }
     }
     Wire.begin();  // Init I2C sda:PC4/18/A4, scl:PC5/19/A5 (ATmega)
@@ -186,6 +184,13 @@ NbMicro::~NbMicro() {
 #endif  // DEBUG_LEVEL
 #ifdef ARDUINO_ARCH_ESP8266
     active_addresses.erase(addr_);
+#else   // -----
+    for (uint8_t i = 0; i < TWI_DEVICE_QTY; i++) {
+        if (active_addresses[i] == addr_) {
+            active_addresses[i] = 0;
+            break;
+        }
+    }
 #endif  // ARDUINO_ARCH_ESP8266
 }
 

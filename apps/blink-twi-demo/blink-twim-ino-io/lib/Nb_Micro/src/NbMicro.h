@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: NbMicro.h (Header)
  *  ........................................... 
- *  Version: 1.0.1 / 2020-05-07
+ *  Version: 1.1.0 / 2020-05-24
  *  gustavo.casanova@gmail.com
  *  ...........................................
  *  This library handles the communication protocol with devices
@@ -26,6 +26,8 @@ typedef uint8_t byte;
 #ifdef ARDUINO_ARCH_ESP8266
 #include <unordered_set>
 static std::unordered_set<byte> active_addresses;
+#else   // -----
+static byte active_addresses[TWI_DEVICE_QTY] = {0};
 #endif  // ARDUINO_ARCH_ESP8266
 
 /* 
@@ -49,11 +51,8 @@ class NbMicro {
    protected:
     byte addr_ = 0, sda_ = 0, scl_ = 0;
     //bool reusing_twi_connection_ = true;
-#ifndef ARDUINO_ARCH_ESP8266
-    byte active_addresses_[TWI_DEVICE_QTY] = {0};
-#endif  // !(ARDUINO_ARCH_ESP8266)
 
    private:
 };
 
-#endif // _NBMICRO_H_
+#endif  // _NBMICRO_H_

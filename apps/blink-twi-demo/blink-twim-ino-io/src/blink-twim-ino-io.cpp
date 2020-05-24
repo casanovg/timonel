@@ -9,6 +9,12 @@ byte block_rx_size = 0;
 bool new_key = false;
 char key = '\0';
 
+void lumpa(uint8_t adr) {
+    NbMicro *p_lumpa = new NbMicro(adr, SDA, SCL);
+    p_lumpa->GetTwiAddress();
+    delete p_lumpa;
+}
+
 //byte slave_address = FindSlave();
 //NbMicro *p_micro = new NbMicro(slave_address, SDA, SCL);
 NbMicro *p_micro = new NbMicro(12, SDA, SCL);
@@ -21,6 +27,10 @@ void setup() {
     ClrScr();
     ShowHeader();
     ShowMenu();
+
+    lumpa(15);
+    lumpa(15);
+
 }
 
 // Main loop
