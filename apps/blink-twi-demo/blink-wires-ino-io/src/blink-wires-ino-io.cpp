@@ -44,7 +44,7 @@ int main(void) {
        |    Setup Block    |
        |___________________|
     */
-    DisableWatchDog(); /* Disable watchdog to avoid continuous loop after reset */
+    DisableWatchDog();           /* Disable watchdog to avoid continuous loop after reset */
     LED_DDR |= (1 << LED_PIN);   /* Set led control pin Data Direction Register for output */
     LED_PORT &= ~(1 << LED_PIN); /* Turn led off */
     _delay_ms(250);              /* Delay to allow programming at 1 MHz after power on */
@@ -53,6 +53,7 @@ int main(void) {
     Wire.begin(TWI_ADDR);
     Serial.begin(9600);
     sei(); /* Enable Interrupts */
+    ClrScr();
     Serial.println("\n\rBlink wire slave test started");
     Serial.println(".............................\n\r");
 
@@ -90,7 +91,6 @@ void ReceiveEvent(byte received_bytes) {
         Serial.print("0x");
         Serial.print(command[i], HEX);
         Serial.print(" ");
-
     }
 }
 
@@ -172,4 +172,16 @@ void ResetMCU(void) {
     wdt_enable(WDTO_15MS);
     for (;;) {
     }
+}
+
+/*  ______________
+   |              |
+   | Clear Screen |
+   |______________|
+*/
+void ClrScr(void) {
+    Serial.write(27);     // ESC command
+    Serial.print("[2J");  // clear screen command
+    Serial.write(27);     // ESC command
+    Serial.print("[H");   // cursor to home command
 }

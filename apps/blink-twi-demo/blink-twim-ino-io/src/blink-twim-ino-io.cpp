@@ -15,9 +15,9 @@ void lumpa(uint8_t adr) {
     delete p_lumpa;
 }
 
-//byte slave_address = FindSlave();
-//NbMicro *p_micro = new NbMicro(slave_address, SDA, SCL);
-NbMicro *p_micro = new NbMicro(12, SDA, SCL);
+byte slave_address = FindSlave();
+NbMicro *p_micro = new NbMicro(slave_address, SDA, SCL);
+//NbMicro *p_micro = new NbMicro(12, SDA, SCL);
 NbMicro *p_micra = new NbMicro(13, SDA, SCL);
 //--- NbMicro *p_micro = new NbMicro(12);
 
@@ -30,7 +30,6 @@ void setup() {
 
     lumpa(15);
     lumpa(15);
-
 }
 
 // Main loop
@@ -74,9 +73,9 @@ void loop() {
             // *********************************
             case 'i':
             case 'I': {
-                byte ret_len = 1 + 6; // 1 ack byte + 6 data bytes
+                byte ret_len = 1 + 6;  // 1 ack byte + 6 data bytes
                 char info_ret[ret_len];
-                byte ret = p_micro->TwiCmdXmit(INFORMAT, ACKINFOR, (byte*)info_ret, ret_len);
+                byte ret = p_micro->TwiCmdXmit(INFORMAT, ACKINFOR, (byte *)info_ret, ret_len);
                 if (ret) {
                     USE_SERIAL.print(" > Error: ");
                     USE_SERIAL.println(ret);
@@ -90,7 +89,7 @@ void loop() {
                     USE_SERIAL.println("\n\r");
                 }
                 break;
-            }            
+            }
             // *********************************
             // * Test app ||| RESETINY Command *
             // *********************************
@@ -162,8 +161,14 @@ void ClrScr(void) {
 void ShowHeader(void) {
     //ClrScr();
     delay(250);
-    USE_SERIAL.println("\n\rBlink Twi Master Test");
-    USE_SERIAL.println(".....................");
+    USE_SERIAL.print("\n\rBlink TWI Master Test ");
+#ifdef ARDUINO_ARCH_ESP8266
+    USE_SERIAL.print("(ESP8266 ");
+#else  // -----
+    USE_SERIAL.print("(AVR ");
+#endif  // ARDUINO_ARCH_ESP8266
+    USE_SERIAL.println("microprocessor)");
+    USE_SERIAL.println("...............................................................");
     uint8_t dev_addr = p_micro->GetTwiAddress();
     if (dev_addr != 0) {
         USE_SERIAL.print("Detected device at TWI address: ");
@@ -179,8 +184,8 @@ void ShowMenu(void) {
 }
 
 // Function FindSlave
-// uint8_t FindSlave(void) {
-//     bool *p_app_mode = false;
-//     TwiBus i2c(SDA, SCL);
-//     return (i2c.ScanBus(p_app_mode));
-// }
+uint8_t FindSlave(void) {
+    bool *p_app_mode = false;
+    TwiBus i2c(SDA, SCL);
+    return (i2c.ScanBus(p_app_mode));
+}

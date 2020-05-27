@@ -30,12 +30,12 @@
 #define LONG_DELAY 0x3FFFF
 
 //#define LED_PIN PB1 // Digispark ATtiny85
-#define LED_PIN PB5 // Arduino Pro Mini
+#define LED_PIN PB5  // Arduino Pro Mini
 #define LED_DDR DDRB
 #define LED_PORT PORTB
 
 void RequestEvent(void);
 void ReceiveEvent(uint8_t received_bytes);
-
+void ClrScr(void);
 
 #endif  // _BLINK_WIRES_INO_IO__H_

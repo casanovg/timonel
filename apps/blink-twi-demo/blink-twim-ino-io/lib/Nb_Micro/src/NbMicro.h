@@ -32,7 +32,7 @@ static byte active_addresses[TWI_DEVICE_QTY] = {0};
 
 /* 
  * ===================================================================
- * Class NbMicro: Represents a slave microcontroller
+ * NbMicro class: Represents a slave microcontroller
  * using the NB command set connected to the TWI bus
  * ===================================================================
  */
@@ -50,7 +50,6 @@ class NbMicro {
 
    protected:
     byte addr_ = 0, sda_ = 0, scl_ = 0;
-    //bool reusing_twi_connection_ = true;
 
    private:
 };

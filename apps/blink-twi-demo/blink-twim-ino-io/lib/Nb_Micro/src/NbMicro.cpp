@@ -16,7 +16,7 @@
 #include <Arduino.h>
 
 /////////////////////////////////////////////////////////////////////////////
-////////////                    NBMICRO CLASS                    ////////////
+////////////                    NbMicro class                    ////////////
 /////////////////////////////////////////////////////////////////////////////
 
 /* _________________________
@@ -26,7 +26,7 @@
 */
 NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda_(sda), scl_(scl) {
 #ifdef ARDUINO_ARCH_ESP8266
-    // If the TWI address is not in use, create a new NbMicro object
+    // If the TWI address is not in use, create a new NbMicro object (ESP micros)
     if ((!active_addresses.insert(addr_).second) && (addr_ != 0)) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
         USE_SERIAL.printf_P("[%s] Error:     The TWI address [%02d] is in use! Unable to create another device object with it ...\r\n", __func__, addr_);
@@ -35,6 +35,7 @@ NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda
         delay(DLY_NBMICRO);
         std::terminate();
     }
+    // Start the TWI driver (ESP micros)
     // If SDA and SCL pins are not specified, use the default ones
     if (!((sda_ == 0) && (scl_ == 0))) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
@@ -48,6 +49,7 @@ NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda
         Wire.begin(SDA_STD_PIN, SCL_STD_PIN);  // Init I2C with default SDA and SCL pins
     }
 #else   // -----
+    // If the TWI address is not in use, create a new NbMicro object (AVR micros)
     for (uint8_t i = 0; i < TWI_DEVICE_QTY; i++) {
         if (active_addresses[i] == addr_) {
             abort();
@@ -57,6 +59,7 @@ NbMicro::NbMicro(byte twi_address, byte sda, byte scl) : addr_(twi_address), sda
             break;
         }
     }
+    // Start the TWI driver using the default SDA and SCL pins (AVR micros)
     Wire.begin();  // Init I2C sda:PC4/18/A4, scl:PC5/19/A5 (ATmega)
 #endif  // ARDUINO_ARCH_ESP8266
 }
