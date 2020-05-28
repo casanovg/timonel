@@ -89,7 +89,7 @@ byte TwiBus::ScanBus(bool *p_app_mode) {
         delay(DLY_SCAN_BUS);
         twi_addr++;
     }
-    return OK;
+    return 0;
 }
 
 /* _________________________
@@ -113,7 +113,14 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
     while (twi_addr <= HIG_TWI_ADDR) {
         Wire.beginTransmission(twi_addr);
         if (Wire.endTransmission() == 0) {
+            // User application range address
+            dev_info_arr[found_devices].addr = twi_addr;
+            dev_info_arr[found_devices].firmware = L_APP;
+            dev_info_arr[found_devices].version_major = 0;
+            dev_info_arr[found_devices].version_minor = 0;            
+#if DETECT_TIMONEL
             if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
+                // Timonel bootloader address range
                 Timonel tml(twi_addr);
                 Timonel::Status sts = tml.GetStatus();
                 dev_info_arr[found_devices].addr = twi_addr;
@@ -124,16 +131,12 @@ byte TwiBus::ScanBus(DeviceInfo dev_info_arr[], byte arr_size, byte start_twi_ad
                 }
                 dev_info_arr[found_devices].version_major = sts.version_major;
                 dev_info_arr[found_devices].version_minor = sts.version_minor;
-            } else {
-                dev_info_arr[found_devices].addr = twi_addr;
-                dev_info_arr[found_devices].firmware = L_APP;
-                dev_info_arr[found_devices].version_major = 0;
-                dev_info_arr[found_devices].version_minor = 0;
             }
+#endif  // DETECT_TIMONEL            
             found_devices++;
         }
         //delay(DLY_SCAN_BUS);
         twi_addr++;
     }
-    return OK;
+    return 0;
 }

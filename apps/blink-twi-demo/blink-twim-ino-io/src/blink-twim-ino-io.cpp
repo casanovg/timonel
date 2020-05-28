@@ -5,31 +5,25 @@
 #include <blink-twim-ino-io.h>
 
 // Global variables
-byte block_rx_size = 0;
+NbMicro *p_micro = nullptr;
 bool new_key = false;
 char key = '\0';
 
-void lumpa(uint8_t adr) {
-    NbMicro *p_lumpa = new NbMicro(adr, SDA, SCL);
-    p_lumpa->GetTwiAddress();
-    delete p_lumpa;
-}
-
-byte slave_address = FindSlave();
-NbMicro *p_micro = new NbMicro(slave_address, SDA, SCL);
-//NbMicro *p_micro = new NbMicro(12, SDA, SCL);
-NbMicro *p_micra = new NbMicro(13, SDA, SCL);
-//--- NbMicro *p_micro = new NbMicro(12);
-
 // put your setup code here, to run once:
 void setup() {
-    USE_SERIAL.begin(9600); /* Initialize the serial port for debugging */
+    USE_SERIAL.begin(9600);  // Initialize the serial port for debugging
     ClrScr();
+    // Detect slave
+    byte slave_address = FindSlave();
+    if (slave_address) {
+        p_micro = new NbMicro(slave_address, SDA, SCL);
+    } else {
+        USE_SERIAL.println("No slave detected over the TWI bus");
+        delay(1000);
+        abort();
+    }
     ShowHeader();
     ShowMenu();
-
-    lumpa(15);
-    lumpa(15);
 }
 
 // Main loop
@@ -164,7 +158,7 @@ void ShowHeader(void) {
     USE_SERIAL.print("\n\rBlink TWI Master Test ");
 #ifdef ARDUINO_ARCH_ESP8266
     USE_SERIAL.print("(ESP8266 ");
-#else  // -----
+#else   // -----
     USE_SERIAL.print("(AVR ");
 #endif  // ARDUINO_ARCH_ESP8266
     USE_SERIAL.println("microprocessor)");

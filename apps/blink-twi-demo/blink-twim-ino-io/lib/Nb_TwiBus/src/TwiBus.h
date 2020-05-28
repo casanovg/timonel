@@ -16,9 +16,13 @@
 #define _TWIBUS_H_
 
 #include <Arduino.h>
-#include <TimonelTwiM.h>
+#include <Wire.h>
 
 #include "libconfig.h"
+
+#if DETECT_TIMONEL
+#include <TimonelTwiM.h>
+#endif  // DETECT_TIMONEL
 
 /* 
  * ===================================================================
@@ -42,7 +46,6 @@ class TwiBus {
 
    private:
     byte sda_ = 0, scl_ = 0;
-    //bool reusing_twi_connection_ = true;
 };
 
 #endif /* _TWIBUS_H_ */

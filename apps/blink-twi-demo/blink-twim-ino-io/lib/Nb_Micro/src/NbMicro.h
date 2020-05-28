@@ -15,9 +15,9 @@
 #define _NBMICRO_H_
 
 #include <Arduino.h>
+#include <Wire.h>
 #include <nb-twi-cmd.h>
 
-#include "Wire.h"
 #include "libconfig.h"
 
 typedef uint8_t byte;
