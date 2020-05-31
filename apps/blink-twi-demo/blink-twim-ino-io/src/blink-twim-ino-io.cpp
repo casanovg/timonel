@@ -1,6 +1,16 @@
-//
-// *****
-//
+/*
+ *  Blink TWI Master for Arduino (PlatformIO)
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: blink-twim-ino-io.cpp (Application)
+ *  ........................................... 
+ *  Version: 1.0 / 2020-05-29
+ *  gustavo.casanova@gmail.com
+ *  ...........................................
+ *  This library allows scanning the TWI (I2C) bus in search
+ *  of connected devices addresses and data. If a device found
+ *  is running Timonel, it returns its version number.
+ */
 
 #include <blink-twim-ino-io.h>
 
@@ -111,7 +121,7 @@ void loop() {
             // ******************
             case 'z':
             case 'Z': {
-                USE_SERIAL.print("\nResetting TWI Master ...\n\r\n.\n.\n.\n");
+                USE_SERIAL.print("\n\rResetting TWI Master ...\n\n\r  .\n\r . .\n\r. . .\n\n\r");
 #ifdef ARDUINO_ARCH_ESP8266
                 ESP.restart();
 #else
@@ -156,8 +166,8 @@ void ShowHeader(void) {
     //ClrScr();
     delay(250);
     USE_SERIAL.print("\n\rBlink TWI Master Test ");
-#ifdef ARDUINO_ARCH_ESP8266
-    USE_SERIAL.print("(ESP8266 ");
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+    USE_SERIAL.print("(ESP ");
 #else   // -----
     USE_SERIAL.print("(AVR ");
 #endif  // ARDUINO_ARCH_ESP8266
@@ -179,7 +189,8 @@ void ShowMenu(void) {
 
 // Function FindSlave
 uint8_t FindSlave(void) {
-    bool *p_app_mode = false;
-    TwiBus i2c(SDA, SCL);
-    return (i2c.ScanBus(p_app_mode));
+    bool app_mode = false;
+    bool *p_app_mode = &app_mode;
+    TwiBus twi_bus(SDA, SCL);
+    return (twi_bus.ScanBus(p_app_mode));
 }

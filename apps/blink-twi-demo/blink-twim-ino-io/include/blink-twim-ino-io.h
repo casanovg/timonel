@@ -1,6 +1,16 @@
-//
-// ***** ***** *****
-//
+/*
+ *  Blink TWI Master for Arduino (PlatformIO)
+ *  Author: Gustavo Casanova
+ *  ...........................................
+ *  File: blink-twim-ino-io.h (Header)
+ *  ........................................... 
+ *  Version: 1.0 / 2020-05-29
+ *  gustavo.casanova@gmail.com
+ *  ...........................................
+ *  This library allows scanning the TWI (I2C) bus in search
+ *  of connected devices addresses and data. If a device found
+ *  is running Timonel, it returns its version number.
+ */
 
 #ifndef _BLINK_TWIM_INO_IO_H_
 #define _BLINK_TWIM_INO_IO_H_
@@ -12,10 +22,10 @@
 #include <stdio.h>
 
 #define USE_SERIAL Serial
-#define SDA 2  // I2C SDA pin
-#define SCL 0  // I2C SCL pin
+#define SDA 21  // I2C SDA pin - ESP8266 2 - ESP32 21
+#define SCL 22  // I2C SCL pin - ESP8266 0 - ESP32 22
 
-#define DEBUG_LEVEL 1
+// #define DEBUG_LEVEL 1
 
 typedef byte uint8_t;
 
