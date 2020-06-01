@@ -26,7 +26,7 @@
   |_________________________|
 */
 TwiBus::TwiBus(uint8_t sda, uint8_t scl) : sda_(sda), scl_(scl) {
-#ifdef ARDUINO_ARCH_ESP8266
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
     // Start the TWI driver (ESP micros)
     // If SDA and SCL pins are not specified, use the default ones
     if (!((sda_ == 0) && (scl_ == 0))) {
@@ -117,11 +117,11 @@ uint8_t TwiBus::ScanBus(DeviceInfo dev_info_arr[], uint8_t arr_size, uint8_t sta
             dev_info_arr[found_devices].addr = twi_addr;
             dev_info_arr[found_devices].firmware = L_APP;
             dev_info_arr[found_devices].version_major = 0;
-            dev_info_arr[found_devices].version_minor = 0;            
+            dev_info_arr[found_devices].version_minor = 0;
 #if DETECT_TIMONEL
             if (twi_addr < (((HIG_TWI_ADDR + 1 - LOW_TWI_ADDR) / 2) + LOW_TWI_ADDR)) {
                 // Timonel bootloader address range
-                Timonel tml(twi_addr);
+                Timonel tml(twi_addr, sda_, scl_);
                 Timonel::Status sts = tml.GetStatus();
                 dev_info_arr[found_devices].addr = twi_addr;
                 if (sts.signature == T_SIGNATURE) {
@@ -132,7 +132,7 @@ uint8_t TwiBus::ScanBus(DeviceInfo dev_info_arr[], uint8_t arr_size, uint8_t sta
                 dev_info_arr[found_devices].version_major = sts.version_major;
                 dev_info_arr[found_devices].version_minor = sts.version_minor;
             }
-#endif  // DETECT_TIMONEL            
+#endif  // DETECT_TIMONEL
             found_devices++;
         }
         //delay(DLY_SCAN_BUS);

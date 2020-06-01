@@ -43,12 +43,12 @@ class Timonel : public NbMicro {
     uint8_t RunApplication(void);
     uint8_t DeleteApplication(void);
     uint8_t UploadApplication(uint8_t payload[],
-                           uint16_t payload_size,
-                           const uint16_t start_address = 0);
+                              uint16_t payload_size,
+                              const uint16_t start_address = 0);
 #if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
     uint8_t DumpMemory(const uint16_t flash_size = MCU_TOTAL_MEM,
-                    const uint8_t rx_packet_size = SLV_PACKET_SIZE,
-                    const uint8_t values_per_line = VALUES_PER_LINE);
+                       const uint8_t rx_packet_size = SLV_PACKET_SIZE,
+                       const uint8_t values_per_line = VALUES_PER_LINE);
 #endif /* FEATURES_CODE >> F_CMD_READFLASH */
 
    private:
@@ -59,10 +59,10 @@ class Timonel : public NbMicro {
 #if (!((defined FEATURES_CODE) && ((FEATURES_CODE >> F_AUTO_PAGE_ADDR) & true)))
     uint8_t SetPageAddress(const uint16_t page_addr);
     uint8_t FillSpecialPage(const uint8_t page_type,
-                         const uint8_t app_reset_msb = 0,
-                         const uint8_t app_reset_lsb = 0);
+                            const uint8_t app_reset_msb = 0,
+                            const uint8_t app_reset_lsb = 0);
     uint16_t CalculateTrampoline(const uint16_t bootloader_start,
-                             const uint16_t application_start);
+                                 const uint16_t application_start);
 #endif /* FEATURES_CODE >> F_CMD_SETPGADDR */
 };
 

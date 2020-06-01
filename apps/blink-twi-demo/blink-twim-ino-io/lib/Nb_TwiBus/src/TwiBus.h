@@ -41,8 +41,8 @@ class TwiBus {
     ~TwiBus();
     uint8_t ScanBus(bool *p_app_mode = nullptr);
     uint8_t ScanBus(DeviceInfo dev_info_arr[],
-                 uint8_t arr_size = HIG_TWI_ADDR + 1,
-                 uint8_t start_twi_addr = LOW_TWI_ADDR);
+                    uint8_t arr_size = HIG_TWI_ADDR + 1,
+                    uint8_t start_twi_addr = LOW_TWI_ADDR);
 
    private:
     uint8_t sda_ = 0, scl_ = 0;

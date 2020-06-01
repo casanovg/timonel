@@ -506,7 +506,7 @@ uint8_t Timonel::BootloaderInit(void) {
 uint8_t Timonel::QueryStatus(void) {
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 1))
     USE_SERIAL.printf_P("[%s] Querying Timonel device %02d to get status ...\r\n", __func__, addr_);
-#endif                                        /* DEBUG_LEVEL */
+#endif                                           /* DEBUG_LEVEL */
     uint8_t twi_reply_arr[S_REPLY_LENGTH] = {0}; /* Status received from I2C slave */
     uint8_t twi_errors = TwiCmdXmit(GETTMNLV, ACKTMNLV, twi_reply_arr, S_REPLY_LENGTH);
     if (twi_errors != 0) {
@@ -576,8 +576,8 @@ uint8_t Timonel::SetPageAddress(const uint16_t page_addr) {
     const uint8_t reply_size = 2;
     uint8_t twi_cmd_arr[cmd_size] = {STPGADDR, 0, 0, 0};
     uint8_t twi_reply_arr[reply_size];
-    twi_cmd_arr[1] = ((page_addr & 0xFF00) >> 8);             /* Flash page address MSB */
-    twi_cmd_arr[2] = (page_addr & 0xFF);                      /* Flash page address LSB */
+    twi_cmd_arr[1] = ((page_addr & 0xFF00) >> 8);                /* Flash page address MSB */
+    twi_cmd_arr[2] = (page_addr & 0xFF);                         /* Flash page address LSB */
     twi_cmd_arr[3] = (uint8_t)(twi_cmd_arr[1] + twi_cmd_arr[2]); /* Checksum */
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL == 1))
     USE_SERIAL.printf_P(" (a:%02X%02X) ", twi_cmd_arr[1], twi_cmd_arr[2]);

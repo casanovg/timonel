@@ -26,6 +26,7 @@ char key = '\0';
 uint16_t flash_page_addr = 0x0;
 uint16_t timonel_start = 0xFFFF;  // Timonel start address, 0xFFFF means 'not set'
 Timonel *p_timonel = nullptr;     // Pointer to a bootloader objetct
+void (*resetFunc)(void) = 0;
 
 // Setup block
 void setup() {
@@ -441,9 +442,11 @@ void PrintStatus(Timonel timonel) {
 #else   // -----
         USE_SERIAL.print("\n\r Timonel v");
         USE_SERIAL.print(version_major);
+        USE_SERIAL.print(".");
         USE_SERIAL.print(version_minor);
+        USE_SERIAL.print(" ");
         USE_SERIAL.print(version_mj_nick.c_str());
-        USE_SERIAL.print("TWI: ");
+        USE_SERIAL.print(" TWI: ");
         USE_SERIAL.println(twi_address);
         USE_SERIAL.println(" ====================================");
         USE_SERIAL.print(" Bootloader address: 0x");
@@ -451,21 +454,21 @@ void PrintStatus(Timonel timonel) {
         uint16_t app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
             USE_SERIAL.print("  Application start: 0x");
-            USE_SERIAL.print(app_start);
+            USE_SERIAL.print(app_start, HEX);
             USE_SERIAL.print(" - 0x");
             USE_SERIAL.println(tml_status.trampoline_addr, HEX);
         } else {
-            USE_SERIAL.print("  Application start Not set: 0x");
-            USE_SERIAL.println(app_start);
+            USE_SERIAL.print("  Application start: Not set: 0x");
+            USE_SERIAL.println(app_start, HEX);
         }
         USE_SERIAL.print("      Features code: ");
         USE_SERIAL.print(tml_status.features_code);
         USE_SERIAL.print(" | ");
         USE_SERIAL.print(tml_status.ext_features_code);
         if ((tml_status.ext_features_code >> F_AUTO_CLK_TWEAK) & true) {
-            USE_SERIAL.print("(Auto)");
+            USE_SERIAL.print(" (Auto)");
         } else {
-            USE_SERIAL.print("(Fixed)");
+            USE_SERIAL.print(" (Fixed)");
         }
         USE_SERIAL.println("");
         USE_SERIAL.print("           Low fuse: 0x");

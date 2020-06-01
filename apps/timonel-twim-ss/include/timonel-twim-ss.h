@@ -25,6 +25,5 @@ void ShowHeader(void);
 void ShowMenu(void);
 void ClrScr(void);
 void PrintLogo(void);
-void (*resetFunc)(void) = 0;
 
 #endif  // _TIMONEL_TWIM_SS_H_

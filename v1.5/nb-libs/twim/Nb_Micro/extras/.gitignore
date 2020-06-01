@@ -1,0 +1,72 @@
+# v1.4
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+#*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+#VisualStudio (GC: Project definitions not updated anymore, caution!)
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.suo
+*.vsarduino.h
+
+#Other
+desktop.ini
+.vscode/
+nb-libs/.vscode/ipch/c5ffa119e5b8ca6c/MAIN.ipch
+nb-libs/.vscode/ipch/528fd501c8588d7e/mmap_address.bin
+nb-libs/.vscode/ipch/6f3f0649822dbb13/NBMICRO.ipch
+nb-libs/.vscode/ipch/6f3f0649822dbb13/NBMICRO.ipch
+nb-libs/.vscode/ipch/a47334719675ce0a/mmap_address.bin
+nb-libs/.vscode/ipch/6f3f0649822dbb13/NBMICRO.ipch
+nb-libs/.vscode/ipch/c5ffa119e5b8ca6c/MAIN.ipch
+nb-libs/.vscode/ipch/8010edf3dfd92573/mmap_address.bin
