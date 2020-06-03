@@ -32,8 +32,8 @@
 #include "payload.h"
 
 #define USE_SERIAL Serial
-#define SDA 2  // I2C SDA pin - ESP8266 2 - ESP32 21
-#define SCL 0  // I2C SCL pin - ESP8266 0 - ESP32 22
+#define SDA 21  // I2C SDA pin - ESP8266 2 - ESP32 21
+#define SCL 22  // I2C SCL pin - ESP8266 0 - ESP32 22
 #define MAX_TWI_DEVS 28
 #define LOOP_COUNT 3
 #define T_SIGNATURE 84
@@ -50,11 +50,6 @@ void (*resetFunc)(void) = 0;
 void setup() {
     // Initialize the serial port for debugging
     USE_SERIAL.begin(9600);
-// #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
-//     Wire.begin(SDA, SCL);
-// #else   // -----
-//     Wire.begin();
-// #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
     ClrScr();
     PrintLogo();
     ShowHeader();
