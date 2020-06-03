@@ -58,7 +58,7 @@
 #define F_CMD_SETPGADDR 3   // Features 4 (8)  : Set page address command enabled
 #define F_TWO_STEP_INIT 4   // Features 5 (16) : Two-step initialization required
 #define F_USE_WDT_RESET 5   // Features 6 (32) : Reset by watchdog timer enabled
-#define F_TIMEOUT_EXIT 6    // Features 7 (64) : If not initialized, exit to app after timeout
+#define F_APP_AUTORUN 6     // Features 7 (64) : If not initialized, exit to app after timeout
 #define F_CMD_READFLASH 7   // Features 8 (128): Read flash command enabled
 // *** Extended features byte (8 bits)
 #define F_AUTO_CLK_TWEAK 0   // Ext features 1 (1)  : Auto clock tweaking by reading low fuse

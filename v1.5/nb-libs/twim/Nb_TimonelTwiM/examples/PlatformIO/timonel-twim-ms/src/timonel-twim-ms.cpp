@@ -96,7 +96,7 @@ void setup() {
                 Timonel::Status sts = tml_pool[i]->GetStatus();
                 if ((sts.features_code >> F_USE_WDT_RESET) & true) {
                     USE_SERIAL.printf_P("\n\r ***************************************************************************************\n\r");
-                    USE_SERIAL.printf_P(" * WARNING! The Timonel bootloader with TWI address %02d has the \"TIMEOUT_EXIT\" feature. *\n\r", dev_info_arr[i].addr);
+                    USE_SERIAL.printf_P(" * WARNING! The Timonel bootloader with TWI address %02d has the \"APP_AUTORUN\" feature. *\n\r", dev_info_arr[i].addr);
                     USE_SERIAL.printf_P(" * enabled. This TWI master firmware can't control it properly! Please recompile it    *\n\r");
                     USE_SERIAL.printf_P(" * using a configuration with that option disabled (e.g. \"tml-t85-small\").             *\n\r");
                     USE_SERIAL.printf_P(" ***************************************************************************************\n\r");

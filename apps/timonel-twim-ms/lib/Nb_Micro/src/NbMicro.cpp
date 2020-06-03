@@ -99,8 +99,8 @@ uint8_t NbMicro::SetTwiAddress(uint8_t twi_address) {
   |                                                 | 
   | TwiCmdXmit (single byte command)                |
   | - If no error                       -> return 0 |
-  | - If ack error on single byte reply -> return 3 |
-  | - If ack error on multi byte reply  -> return 4 |
+  | - If ack error on single byte reply -> return 5 |
+  | - If ack error on multi byte reply  -> return 6 |
   |_________________________________________________|
 */
 // Send a TWI command to the microcontroller (Overload A: single byte command)
@@ -122,8 +122,8 @@ uint8_t NbMicro::TwiCmdXmit(uint8_t twi_cmd, uint8_t twi_reply, uint8_t twi_repl
   |                                                 | 
   | TwiCmdXmit (multibyte command)                  |
   | - If no error                       -> return 0 |
-  | - If ack error on single byte reply -> return 1 |
-  | - If ack error on multi byte reply  -> return 2 |
+  | - If ack error on single byte reply -> return 3 |
+  | - If ack error on multi byte reply  -> return 4 |
   |_________________________________________________|
 */
 // Send a TWI command to the microcontroller (Overload B: multibyte command)
@@ -152,7 +152,7 @@ uint8_t NbMicro::TwiCmdXmit(uint8_t twi_cmd_arr[], uint8_t cmd_size, uint8_t twi
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Error parsing 0x%02X command <<< 0x%02X (single byte reply)\n\r", __func__, twi_cmd_arr[0], reply);
 #endif                               // DEBUG_LEVEL
-            return ERR_CMD_PARSE_S;  // Error: reply doesn't match command (single byte)
+            return ERR_CMD_PARSE_S;  // Error: reply doesn't match command (single byte reply)
         }
     }
     // TWI command reply (multiple bytes expected)
@@ -171,7 +171,7 @@ uint8_t NbMicro::TwiCmdXmit(uint8_t twi_cmd_arr[], uint8_t cmd_size, uint8_t twi
 #if ((defined DEBUG_LEVEL) && (DEBUG_LEVEL >= 2))
             USE_SERIAL.printf_P("[%s] > Error parsing 0x%02X command <<< 0x%02X (multibyte reply)\n\r", __func__, twi_cmd_arr[0], twi_reply_arr[0]);
 #endif                               // DEBUG_LEVEL
-            return ERR_CMD_PARSE_M;  // Error: reply doesn't match command (multi byte)
+            return ERR_CMD_PARSE_M;  // Error: reply doesn't match command (multi byte reply)
         }
     }
 }

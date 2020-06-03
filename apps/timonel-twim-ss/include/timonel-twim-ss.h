@@ -25,5 +25,6 @@ void ShowHeader(void);
 void ShowMenu(void);
 void ClrScr(void);
 void PrintLogo(void);
+void RotaryDelay(void);
 
 #endif  // _TIMONEL_TWIM_SS_H_

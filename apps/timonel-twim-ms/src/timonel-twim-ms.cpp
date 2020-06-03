@@ -58,8 +58,11 @@ void setup() {
     ClrScr();
     PrintLogo();
     ShowHeader();
-
-    // Routine loop
+    /*  ____________________
+       |                    | 
+       |    Routine loop    |
+       |____________________|
+    */    
     for (uint8_t loop = 0; loop < LOOP_COUNT; loop++) {
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
         USE_SERIAL.printf_P("\n\rPASS %d OF %d ...\n\r", loop + 1, LOOP_COUNT);
@@ -104,7 +107,10 @@ void setup() {
             delay(1000);
         }
         Timonel *tml_pool[tml_count];
-        // Create and initialize bootloader objects found
+        //
+        // **************************************************
+        // * Create and initialize bootloader objects found *
+        // **************************************************
         for (uint8_t i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
                 tml_pool[i] = new Timonel(dev_info_arr[i].addr, SDA, SCL);
@@ -115,7 +121,7 @@ void setup() {
                 USE_SERIAL.println(dev_info_arr[i].addr);
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
                 Timonel::Status sts = tml_pool[i]->GetStatus();
-                if ((sts.features_code >> F_USE_WDT_RESET) & true) {
+                if ((sts.features_code >> F_APP_AUTORUN) & true) {
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                     USE_SERIAL.printf_P("\n\r ***************************************************************************************\n\r");
                     USE_SERIAL.printf_P(" * WARNING! The Timonel bootloader with TWI address %02d has the \"APP_AUTORUN\" feature. *\n\r", dev_info_arr[i].addr);
@@ -143,7 +149,10 @@ void setup() {
         ThreeStarDelay();
         USE_SERIAL.println("\n");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
-        // Delete user applications from devices
+        //
+        // *********************************************
+        // * Delete user applications from all devices *
+        // *********************************************
         for (uint8_t i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
                 delay(10);
@@ -154,15 +163,15 @@ void setup() {
                 USE_SERIAL.print(dev_info_arr[i].addr);
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
                 uint8_t errors = tml_pool[i]->DeleteApplication();
-                delay(500);
-                tml_pool[i]->TwiCmdXmit(RESETMCU, ACKRESET);
-                delay(500);
+                // delay(500);
+                // tml_pool[i]->TwiCmdXmit(RESETMCU, ACKRESET);
+                // delay(500);
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 if (errors == 0) {
                     USE_SERIAL.printf_P("OK!\n\r");
                 } else {
                     USE_SERIAL.printf_P("Error! (%d)\n\r", errors);
-                    Wire.begin(SDA, SCL);
+                    //Wire.begin(SDA, SCL);
                 }
                 delay(1000);
                 USE_SERIAL.printf_P("\n\rGetting status of device %d\n\r", dev_info_arr[i].addr);
@@ -172,7 +181,7 @@ void setup() {
                 } else {
                     USE_SERIAL.print(" Error! ");
                     USE_SERIAL.println(errors);
-                    Wire.begin();
+                    //Wire.begin();
                 }
                 delay(1000);
                 USE_SERIAL.print("\n\rGetting status of device ");
@@ -188,7 +197,10 @@ void setup() {
 #else   // -----
         USE_SERIAL.println("");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
-        // Upload user applications to devices and run them
+        //
+        // ***************************************************
+        // * Upload and run user applications on all devices *
+        // ***************************************************
         for (uint8_t i = 0; i <= (tml_count); i++) {
             if (dev_info_arr[i].firmware == "Timonel") {
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
@@ -224,21 +236,49 @@ void setup() {
                 tml_pool[i]->GetStatus();
                 PrintStatus(*tml_pool[i]);
                 delay(10);
+
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+                Timonel::Status sts = tml_pool[i]->GetStatus();
+                if ((sts.features_code >> F_CMD_READFLASH) & true) {
+                    USE_SERIAL.printf_P("\n\rDumping device %d flash memory\n\r", dev_info_arr[i].addr);
+                    tml_pool[i]->DumpMemory(MCU_TOTAL_MEM, SLV_PACKET_SIZE, 32);
+                }
                 USE_SERIAL.printf_P("Running application on device %d\n\r", dev_info_arr[i].addr);
 #else   // -----
                 USE_SERIAL.print("\n\rRunning application on device ");
                 USE_SERIAL.println(dev_info_arr[i].addr);
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
-                tml_pool[i]->RunApplication();
+                errors = tml_pool[i]->RunApplication();
+                tml_pool[i]->GetStatus();
+                delay(500);
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+                if (errors == 0) {
+                    USE_SERIAL.printf_P("User application should be running\n\r");
+                } else {
+                    USE_SERIAL.printf_P("Bootloader exit to app error! (%d)           \n\r", errors);
+                }
+#else   // -----
+                if (errors == 0) {
+                    USE_SERIAL.println("User application should be running");
+                } else {
+                    USE_SERIAL.print("Bootloader exit to app error! ");
+                    USE_SERIAL.println(errors);
+                }
+#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
+
+                delay(10);
+                delete tml_pool[i];
                 delay(1500);
             }
         }
-        // Reset applications and prepare for another cycle, then clean objects
+        //
+        // ************************************************************************
+        // * Reset applications and prepare for another cycle, then clean objects *
+        // ************************************************************************
         if (loop < LOOP_COUNT - 1) {
+            uint8_t dly = 10;
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
-            USE_SERIAL.printf_P("\n\rLetting application run 28 seconds before resetting and starting next cycle   ");
-            uint8_t dly = 28;
+            USE_SERIAL.printf_P("\n\rLetting application run %d seconds before resetting and starting next cycle   ", dly);
             while (dly--) {
                 USE_SERIAL.printf_P("\b\b| ");
                 delay(250);
@@ -252,8 +292,9 @@ void setup() {
             USE_SERIAL.printf_P("\b\b* ");
             USE_SERIAL.printf_P("\n\n\r");
 #else   // -----
-            USE_SERIAL.print("\n\rLetting application run 28 seconds before resetting and starting next cycle   ");
-            uint8_t dly = 28;
+            USE_SERIAL.print("\n\rLetting application run ");
+            USE_SERIAL.print(dly);
+            USE_SERIAL.print(" seconds before resetting and starting next cycle   ");
             while (dly--) {
                 USE_SERIAL.print("\b\b| ");
                 delay(250);
@@ -272,8 +313,9 @@ void setup() {
             // set at compile time, this is shared across all devices when the app is running.
             // Once discovered, the app TWI address is used to send the reset command to all devices.
             uint8_t app_addr = twi_bus.ScanBus();
-            NbMicro *micro = new NbMicro;
-            micro->SetTwiAddress(app_addr); /* NOTE: All devices share the same TWI application address (44) */
+            //NbMicro *micro = new NbMicro(0, SDA, SCL);
+            NbMicro *micro = new NbMicro(app_addr, SDA, SCL);
+            //micro->SetTwiAddress(app_addr); /* NOTE: All devices share the same TWI application address (44) */
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
             USE_SERIAL.printf_P("Resetting devices running application at address %d\n\r", micro->GetTwiAddress());
 #else   // -----
@@ -299,16 +341,11 @@ void setup() {
             USE_SERIAL.println(" passes! Letting application run ...\n");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
         }
-        for (uint8_t i = 0; i < tml_count; i++) {
-            delete tml_pool[i];
-        }
+        // for (uint8_t i = 0; i < tml_count; i++) {
+        //     delete tml_pool[i];
+        // }
     }
     delay(3000);
-#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
-    ESP.restart();
-#else   // ------
-    resetFunc();
-#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
 }
 
 // Main loop

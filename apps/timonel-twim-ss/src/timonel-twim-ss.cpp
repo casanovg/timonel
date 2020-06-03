@@ -15,8 +15,8 @@
 #include "payload.h"
 
 #define USE_SERIAL Serial
-#define SDA 21  // I2C SDA pin - ESP8266 2 - ESP32 21
-#define SCL 22  // I2C SCL pin - ESP8266 0 - ESP32 22
+#define SDA 2  // I2C SDA pin - ESP8266 2 - ESP32 21
+#define SCL 0  // I2C SCL pin - ESP8266 0 - ESP32 22
 
 // Global variables
 bool new_key = false;
@@ -26,6 +26,7 @@ char key = '\0';
 uint16_t flash_page_addr = 0x0;
 uint16_t timonel_start = 0xFFFF;  // Timonel start address, 0xFFFF means 'not set'
 Timonel *p_timonel = nullptr;     // Pointer to a bootloader objetct
+//NbMicro *p_micro = nullptr;       // Pointer to an application objetct
 void (*resetFunc)(void) = 0;
 
 // Setup block
@@ -33,11 +34,32 @@ void setup() {
     bool *p_app_mode = &app_mode;  // This is to take different actions depending on whether the bootloader or the application is active
     USE_SERIAL.begin(9600);        // Initialize the serial port for debugging
     ClrScr();
-    delay(150);
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+    USE_SERIAL.printf_P("\n\rTimonel TWIM SS, please wait ...");
+#else // -----
+    USE_SERIAL.print("\n\rWaiting until a TWI slave device is detected on the bus   ");
+#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
+    delay(2500);
+    ClrScr();
     PrintLogo();
     TwiBus twi_bus(SDA, SCL);
-    uint8_t slave_address = twi_bus.ScanBus(p_app_mode);
+    uint8_t slave_address = 0;
+    // Keep waiting until a slave device is detected
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+    USE_SERIAL.printf_P("\n\rWaiting until a TWI slave device is detected on the bus   ");
+#else // -----
+    USE_SERIAL.print("\n\rWaiting until a TWI slave device is detected on the bus   ");
+#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
+    while (slave_address == 0) {
+#if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+        slave_address = twi_bus.ScanBus(p_app_mode);
+        RotaryDelay();
+    }
+    USE_SERIAL.printf_P("\b\b* ");
+    USE_SERIAL.printf_P("\n\r");    
+#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
     p_timonel = new Timonel(slave_address, SDA, SCL);
+    //p_micro = new NbMicro(44, SDA, SCL);
     ShowHeader();
     p_timonel->GetStatus();
     PrintStatus(*p_timonel);
@@ -60,6 +82,15 @@ void loop() {
             case 'a':
             case 'A': {
                 //SetPB1On();
+                //byte ret = p_micro->TwiCmdXmit(SETIO1_1, ACKIO1_1);
+                byte ret = p_timonel->TwiCmdXmit(SETIO1_1, ACKIO1_1);
+                if (ret) {
+                    USE_SERIAL.print(" > Error: ");
+                    USE_SERIAL.println(ret);
+
+                } else {
+                    USE_SERIAL.println(" > OK: ACKIO1_1");
+                }                
                 break;
             }
             // *********************************
@@ -68,6 +99,14 @@ void loop() {
             case 's':
             case 'S': {
                 //SetPB1Off();
+                byte ret = p_timonel->TwiCmdXmit(SETIO1_0, ACKIO1_0);
+                if (ret) {
+                    USE_SERIAL.print(" > Error: ");
+                    USE_SERIAL.println(ret);
+
+                } else {
+                    USE_SERIAL.println(" > OK: ACKIO1_0");
+                }                
                 break;
             }
             // *********************************
@@ -76,15 +115,24 @@ void loop() {
             case 'x':
             case 'X': {
                 //ResetTiny();
+                byte ret = p_timonel->TwiCmdXmit(RESETMCU, ACKRESET);
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 USE_SERIAL.printf_P("\n  .\n\r . .\n\r. . .\n\n\r");
                 //Wire.begin(SDA, SCL);
+                if (ret) {
+                    USE_SERIAL.print(" > Error: ");
+                    USE_SERIAL.println(ret);
+
+                } else {
+                    USE_SERIAL.println(" > OK: ACKRESET");
+                }                
 #else   // -----
                 USE_SERIAL.print("\n  .\n\r . .\n\r. . .\n\n\r");
                 //Wire.begin();
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
                 delay(500);
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
+                // Wire.begin(SDA, SCL);
                 ESP.restart();
 #else   // ------
                 resetFunc();
@@ -127,13 +175,15 @@ void loop() {
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 USE_SERIAL.printf_P("\nBootloader Cmd >>> Run application ...\r\n");
                 USE_SERIAL.printf_P("\n. . .\n\r . .\n\r  .\n\n\r");
+                USE_SERIAL.printf_P("Please wait ...\n\r");
 #else   // -----
                 USE_SERIAL.println("\nBootloader Cmd >>> Run application ...");
                 USE_SERIAL.println("\n. . .\n\r . .\n\r  .\n");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
                 p_timonel->RunApplication();
+                p_timonel->GetStatus(); // Not sure why this is necessary to launch the user application
                 app_mode = true;
-                delay(2000);
+                delay(500);
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 ESP.restart();
 #else   // -----
@@ -501,6 +551,18 @@ void ShowHeader(void) {
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
 }
 
+// Function RotaryDelay
+void RotaryDelay(void) {
+    USE_SERIAL.printf_P("\b\b| ");
+    delay(250);
+    USE_SERIAL.printf_P("\b\b/ ");
+    delay(250);
+    USE_SERIAL.printf_P("\b\b- ");
+    delay(250);
+    USE_SERIAL.printf_P("\b\b\\ ");
+    delay(250);
+}
+
 // Function ShowMenu
 void ShowMenu(void) {
     if (app_mode == true) {
@@ -578,3 +640,5 @@ void ListTwiDevices(uint8_t sda, uint8_t scl) {
     USE_SERIAL.println("...........................................................\n");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
 }
+
+
