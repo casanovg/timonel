@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: header.h (Application headers)
  *  ........................................... 
- *  Version: 1.0 / 2019-06-22
+ *  Version: 1.1 / 2020-06-03
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
@@ -24,8 +24,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <util/delay.h>
-#include "../../nb-libs/cmd/nb-twi-cmd.h"
-#include "../../nb-libs/twis/interrupt-based/nb-usitwisl.h"
+#include "nb-libs/cmd/nb-twi-cmd.h"
+#include "nb-libs/twis/interrupt-based/nb-usitwisl.h"
 
 #define LED_PIN PB1
 #define LED_DDR DDRB

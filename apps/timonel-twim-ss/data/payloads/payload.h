@@ -1,7 +1,17 @@
-
 //
+// avr-blink-twis
+// --------------
 // Start Address: 0x0 
-// End Address: 0x352 
+// End Address: 0x352
+// Date: 2020-06-03
+// Source code:
+// https://github.com/casanovg/timonel/tree/master/apps/avr-blink-twis
+//
+// This is a payload file to include in the Timonel-TwiM-SS and Timonel-TwiM-MS
+// I2C-master demo applications. Once uploaded and run by the Timonel bootloader
+// on an ATTiny85, it blinks PB1 and replies to NB TWI (I2C) commands.
+//
+// Produced from an Intel hex file with the Timonel Hex Parser tool.
 //
 uint8_t payload[851] = {
     0x0e, 0xc0, 0x28, 0xc0, 0x27, 0xc0, 0x26, 0xc0, 
