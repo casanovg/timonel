@@ -2,7 +2,7 @@
 # File: Makefile
 # Project: Timonel - TWI Bootloader
 # ........................................................
-# 2019-06-06 gustavo.casanova@nicebots.com
+# 2020-06-19 gustavo.casanova@nicebots.com
 #
 
 CONFIG ?= tml-t85-std
@@ -54,10 +54,14 @@ CC = avr-gcc
 
 # compiler options
 CFLAGS += -Wall -g2 -Os -std=gnu99
-CFLAGS += -I$(LIBDIR) -I$(CONFIGPATH) -I$(CMDDIR) -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU)
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
+# The "LIBDIR" path is required when including an external TWI driver, deprecated from v1.4 onwards
+# CFLAGS += -I$(LIBDIR)
+CFLAGS += -I$(CONFIGPATH) -I$(CMDDIR) -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -mno-interrupts
 ## Splits up object files per function
-CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct
+CFLAGS += -ffunction-sections -fdata-sections
+# The "nostartfiles" option allows ditching the compiler-supplied "crt1.S" file to include a custom one
+CFLAGS += -nostartfiles
 CFLAGS += -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
 
 CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
