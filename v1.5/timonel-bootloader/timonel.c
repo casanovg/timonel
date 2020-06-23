@@ -104,6 +104,9 @@ inline static void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) _
 inline static void Reply_READFLSH(const uint8_t *command) __attribute__((always_inline));
 #endif  // CMD_READFLASH
 inline static void Reply_INITSOFT(MemPack *p_mem_pack) __attribute__((always_inline));
+#if CMD_READDEVS
+inline static void Reply_READDEVS(void) __attribute__((always_inline));
+#endif  // CMD_READDEVS
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(const uint8_t data_byte);
@@ -151,18 +154,18 @@ int main(void) {
 #endif                                    // APP_AUTORUN
     uint16_t led_delay = SHORT_LED_DLY;   // Blinking delay when the bootloader isn't initialized
 #if AUTO_CLK_TWEAK                        // Automatic clock tweaking made at run time, based on low fuse value
-//#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
+                                          //#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
     uint8_t factory_osccal = OSCCAL;      // Preserve factory oscillator calibration
-    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+    if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
         // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
         OSCCAL += OSC_FAST;  // Speed oscillator up for TWI to work
-    } else if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == HFPLL_CLK_SRC) {
+    } else if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == HFPLL_CLK_SRC) {
         // HF PLL (16 MHz) clock source set in low fuse. No clock tweaking needed ...
     } else {
         // Unknown clock source set in low fuse! the prescaler will be reset to 1 to use the external clock as is
         ResetPrescaler();  // If using an external CPU clock source, don't reduce its frequency
     }
-    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+    if (!((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) >> LFUSE_PRESC_BIT) & true)) {
         // Prescaler fuse bit set to divide clock by 8, setting the CPU prescaler division factor to 1
         ResetPrescaler();  // Reset prescaler to divide by 1
     }
@@ -253,10 +256,10 @@ int main(void) {
                     asm volatile("cbr r31, 0x80");  // Clear bit 7 of r31
 #endif                                              // CLEAR_BIT_7_R31
 #if AUTO_CLK_TWEAK
-                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                    if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
                         OSCCAL = factory_osccal;  // Back the oscillator calibration to its original setting
                     }
-                    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+                    if (!((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) >> LFUSE_PRESC_BIT) & true)) {
                         RestorePrescaler();  // Restore prescaler to divide by 8
                     }
 #else
@@ -282,7 +285,7 @@ int main(void) {
                         boot_page_erase(page_to_del);  // Erase flash memory ...
                     }
 #if AUTO_CLK_TWEAK
-                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                    if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
                         OSCCAL = factory_osccal;  // Back the oscillator calibration to its original setting
                     }
 #else
@@ -364,10 +367,10 @@ int main(void) {
                     // = >>> Timeout: Run the application <<< =
                     // ========================================
 #if AUTO_CLK_TWEAK
-                    if ((boot_lock_fuse_bits_get(L_FUSE_ADDR) & 0x0F) == RCOSC_CLK_SRC) {
+                    if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
                         OSCCAL = factory_osccal;  // Back the oscillator calibration to its original setting
                     }
-                    if (!((boot_lock_fuse_bits_get(L_FUSE_ADDR) >> LFUSE_PRESC_BIT) & true)) {
+                    if (!((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) >> LFUSE_PRESC_BIT) & true)) {
                         RestorePrescaler();  // Restore prescaler to divide by 8
                     }
 #else
@@ -428,6 +431,12 @@ inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
             return;
         }
 #endif  // TWO_STEP_INIT
+#if CMD_READDEVS
+        case READDEVS: {
+            Reply_READDEVS();
+            return;
+        }
+#endif  // CMD_READDEVS
     }
 }
 
@@ -439,18 +448,18 @@ inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     mem_position = (void *)(TIMONEL_START - 1);
     uint8_t reply[GETTMNLV_RPLYLN];
     reply[0] = ACKTMNLV;
-    reply[1] = ID_CHAR_3;                        // "T" Signature
-    reply[2] = TIMONEL_VER_MJR;                  // Major version number
-    reply[3] = TIMONEL_VER_MNR;                  // Minor version number
-    reply[4] = TML_FEATURES;                     // Optional features
-    reply[5] = TML_EXT_FEATURES;                 // Extended optional features
-    reply[6] = ((TIMONEL_START & 0xFF00) >> 8);  // Bootloader start address MSB
-    reply[7] = (TIMONEL_START & 0xFF);           // Bootloader start address LSB
-    reply[8] = *mem_position;                    // Trampoline second byte (MSB)
-    reply[9] = *(--mem_position);                // Trampoline first byte (LSB)
-    reply[10] = boot_lock_fuse_bits_get(0);      // Low fuse setting
-    reply[11] = OSCCAL;                          // Internal RC oscillator calibration
-    p_mem_pack->flags |= (1 << FL_INIT_1);  // First-step of single or two-step initialization
+    reply[1] = ID_CHAR_3;                                    // "T" Signature
+    reply[2] = TIMONEL_VER_MJR;                              // Major version number
+    reply[3] = TIMONEL_VER_MNR;                              // Minor version number
+    reply[4] = TML_FEATURES;                                 // Optional features
+    reply[5] = TML_EXT_FEATURES;                             // Extended optional features
+    reply[6] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
+    reply[7] = (TIMONEL_START & 0xFF);                       // Bootloader start address LSB
+    reply[8] = *mem_position;                                // Trampoline second byte (MSB)
+    reply[9] = *(--mem_position);                            // Trampoline first byte (LSB)
+    reply[10] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);  // Low fuse bits
+    reply[11] = OSCCAL;                                      // Internal RC oscillator calibration
+    p_mem_pack->flags |= (1 << FL_INIT_1);                   // First-step of single or two-step initialization
 #if ENABLE_LED_UI
     LED_UI_PORT &= ~(1 << LED_UI_PIN);  // Turn led off to indicate initialization
 #endif                                  // ENABLE_LED_UI
@@ -503,10 +512,10 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
         p_mem_pack->app_reset_lsb = command[1];
         p_mem_pack->app_reset_msb = command[2];
 #endif  // AUTO_PAGE_ADDR
-        // This section modifies the reset vector to point to this bootloader.
-        // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
-        // the reset vector modification MUST BE done by the TWI master's upload program.
-        // Otherwise, Timonel won't have the execution control after power-on reset.
+    // This section modifies the reset vector to point to this bootloader.
+    // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
+    // the reset vector modification MUST BE done by the TWI master's upload program.
+    // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
         reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
@@ -569,8 +578,29 @@ inline void Reply_READFLSH(const uint8_t *command) {
 inline void Reply_INITSOFT(MemPack *p_mem_pack) {
     p_mem_pack->flags |= (1 << FL_INIT_2);  // Two-step init step 1: receive INITSOFT command
     UsiTwiTransmitByte(ACKINITS);
-
 }
+
+// ******************
+// * READDEVS Reply *
+// ******************
+#if CMD_READDEVS
+inline void Reply_READDEVS(void) {
+    uint8_t reply[READDEVS_RPLYLN];
+    reply[0] = ACKRDEVS;
+    reply[1] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);      // Low fuse bits
+    reply[2] = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);     // High fuse bits
+    reply[3] = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS); // Extended fuse bits
+    reply[4] = boot_lock_fuse_bits_get(GET_LOCK_BITS);          // Device lock bits
+    reply[5] = boot_signature_byte_get(0x00);                   // Signature byte 0
+    reply[6] = boot_signature_byte_get(0x02);                   // Signature byte 1
+    reply[7] = boot_signature_byte_get(0x04);                   // Signature byte 2
+    reply[8] = boot_signature_byte_get(0x01);                   // Calibration data for internal oscillator at 8.0 MHz
+    reply[9] = boot_signature_byte_get(0x03);                   // Calibration data for internal oscillator at 6.4 MHz
+    for (uint8_t i = 0; i < READDEVS_RPLYLN; i++) {
+        UsiTwiTransmitByte(reply[i]);
+    }
+}
+#endif  // READDEVS
 
 // Function ResetPrescaler
 inline void ResetPrescaler(void) {

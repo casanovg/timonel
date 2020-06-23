@@ -1,8 +1,8 @@
 # Timonel Bootloader v1.5
 
-This version has several improvements:
+Changes from previous version:
 
-* **Significant memory savings:** by inlining the TWI (I2C) driver functions' implementation inside the bootloader source code, now the smaller version "tml-t85-small" occupies \~ 1K byte, leaving 7K bytes available for user applications.
+* **Slightly smaller bootloader footprint:** some memory got by removing unused pre-checks from the "crt1.S" initialization file (before calling main), and tweaking compiler options. Now smallest bootloader size, when compiled using the "tml-t85-small" @8Mhz configuration, is ~880 bytes (less than 14 pages). This leaves **7.3 Kbytes (114 pages) available for the user application** on an ATtiny85.
 * **Transmission speed improvement:** the code was adjusted to allow the bootloader to transmit and receive 32-byte packets (Half memory-page on an ATtiny85). This produces a significant performance increase to the user application upload and flash memory reading functions.
 * **User application autorun is now optional:** implemented by adding a APP\_AUTORUN feature to allow selecting whether the user application will run automatically after a timeout when the bootloader is not initialized, or, it will only be run controlled by the TWI master. The CHECK\_EMPTY\_FL optional feature was deprecated since the READFLSH command can be used for the same purpose. Improved command reply switch-case.
 * **Different internal-clock configurations support improved:** now the bootloader adapts its clock speed by modifying the OSCCAL register to compensate fuse configurations in 1, 2 and 8 MHz (At 16 Mhz it works without any type of compensation). This can be done in two ways:

@@ -342,7 +342,7 @@ void loop() {
                 USE_SERIAL.printf_P("\n\rHelp ...\n\r========\n\r");
 #else   // -----
                     USE_SERIAL.println("\b\rHelp ...\n\r========");
-#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM \
+#endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
         //ShowHelp();
                 break;
             }
@@ -455,6 +455,11 @@ void PrintStatus(Timonel timonel) {
     uint8_t twi_address = timonel.GetTwiAddress();
     uint8_t version_major = tml_status.version_major;
     uint8_t version_minor = tml_status.version_minor;
+    uint16_t app_start = tml_status.application_start;
+    uint8_t app_start_msb = ((tml_status.application_start >> 8) & 0xFF);
+    uint8_t app_start_lsb = (tml_status.application_start & 0xFF);
+    uint16_t trampoline = ((~(((app_start_lsb << 8) | app_start_msb) & 0xFFF)) + 1);
+    trampoline = ((((tml_status.bootloader_start >> 1) - trampoline) & 0xFFF) << 1);        
     if ((tml_status.signature == T_SIGNATURE) && ((version_major != 0) || (version_minor != 0))) {
         String version_mj_nick = "";
         switch (version_major) {
@@ -476,21 +481,31 @@ void PrintStatus(Timonel timonel) {
         USE_SERIAL.printf_P("(TWI: %02d)\n\r", twi_address);
         USE_SERIAL.printf_P(" ====================================\n\r");
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
-        uint16_t app_start = tml_status.application_start;
         if (app_start != 0xFFFF) {
-            USE_SERIAL.printf_P("  Application start: 0x%X (0x%X)\n\r", app_start, tml_status.trampoline_addr);
+            USE_SERIAL.printf_P("  Application start: 0x%X (0x%X)\n\r", app_start, trampoline);
         } else {
             USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
         }
         USE_SERIAL.printf_P("      Features code: %d | %d ", tml_status.features_code, tml_status.ext_features_code);
-        if ((tml_status.ext_features_code >> F_AUTO_CLK_TWEAK) & true) {
+        if ((tml_status.ext_features_code >> E_AUTO_CLK_TWEAK) & true) {
             USE_SERIAL.printf_P("(Auto)");
         } else {
             USE_SERIAL.printf_P("(Fixed)");
         }
         USE_SERIAL.printf_P("\n\r");
         USE_SERIAL.printf_P("           Low fuse: 0x%02X\n\r", tml_status.low_fuse_setting);
-        USE_SERIAL.printf_P("             RC osc: 0x%02X\n\n\r", tml_status.oscillator_cal);
+        USE_SERIAL.printf_P("             RC osc: 0x%02X", tml_status.oscillator_cal);
+#if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_CMD_READDEVS) & true))
+        if ((tml_status.ext_features_code >> E_CMD_READDEVS) & true) {
+            Timonel::DevSettings dev_settings = timonel.GetDevSettings();
+            USE_SERIAL.printf_P("\n\r ....................................\n\r");
+            USE_SERIAL.printf_P(" Fuse settings: L=0x%02X H=0x%02X E=0x%02X\n\r", dev_settings.low_fuse_bits, dev_settings.high_fuse_bits, dev_settings.extended_fuse_bits);
+            USE_SERIAL.printf_P(" Lock bits: 0x%02X\n\r", dev_settings.lock_bits);
+            USE_SERIAL.printf_P(" Signature: 0x%02X 0x%02X 0x%02X\n\r", dev_settings.signature_byte_0, dev_settings.signature_byte_1, dev_settings.signature_byte_2);
+            USE_SERIAL.printf_P(" Oscillator: 8.0Mhz=0x%02X, 6.4Mhz=0x%02X", dev_settings.calibration_0, dev_settings.calibration_1);
+        }
+#endif  // E_CMD_READDEVS
+        USE_SERIAL.printf_P("\n\n\r");
 #else   // -----
             USE_SERIAL.print("\n\r Timonel v");
             USE_SERIAL.print(version_major);
@@ -503,12 +518,11 @@ void PrintStatus(Timonel timonel) {
             USE_SERIAL.println(" ====================================");
             USE_SERIAL.print(" Bootloader address: 0x");
             USE_SERIAL.println(tml_status.bootloader_start, HEX);
-            uint16_t app_start = tml_status.application_start;
             if (app_start != 0xFFFF) {
                 USE_SERIAL.print("  Application start: 0x");
                 USE_SERIAL.print(app_start, HEX);
                 USE_SERIAL.print(" - 0x");
-                USE_SERIAL.println(tml_status.trampoline_addr, HEX);
+                USE_SERIAL.println(trampoline, HEX);
             } else {
                 USE_SERIAL.print("  Application start: Not set: 0x");
                 USE_SERIAL.println(app_start, HEX);

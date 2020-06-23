@@ -25,11 +25,12 @@
 
 /* Includes */
 #include <avr/boot.h>
+#include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
-#include "../nb-libs/nb-twi-cmd/src/nb-twi-cmd.h"
+#include "../../nb-twi-cmd/src/nb-twi-cmd.h"
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */        
 /* VVVVVV [   from the I2C master by using the GETTMNLV command.               ] VVVVVV */
@@ -104,6 +105,11 @@
                                     /* that isn't bigger than SPM_PAGESIZE (usually 64 bytes). This keeps  */
                                     /* the app data integrity in case the master sends wrong page sizes.   */
 
+// Bit 5
+#ifndef CMD_READDEVS
+#define CMD_READDEVS    false       /* This option enables the READDEVS command. It allows reading all     */
+#endif /* CMD_READDEVS */           /* fuse bits, lock bits, and device signature imprint table.           */
+
 /* ^^^^^^ [       End of feature settings shown in the GETTMNLV command.       ] ^^^^^^ */
 /* ====== [       ......................................................       ] ====== */
 
@@ -145,6 +151,7 @@
 #define GETTMNLV_RPLYLN 12          /* GETTMNLV command reply length */
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
+#define READDEVS_RPLYLN 10          /* READDEVS command reply length */
 
 // Memory page definitions
 #define RESET_PAGE      0           /* Interrupt vector table address start location. */
@@ -155,9 +162,6 @@
 #endif /* LOW_FUSE */               /* is enabled, this value is irrelevant.                               */
                                     /* NOTE: This value can be set externally as a makefile option and it  */
                                     /* is shown in the GETTMNLV command.                                   */
-#define L_FUSE_ADDR     0x0000      /* Low fuse register address */
-#define H_FUSE_ADDR     0x0003      /* High fuse register address */
-#define E_FUSE_ADDR     0x0002      /* Extended fuse register address */
 #define HFPLL_CLK_SRC   0x01        /* HF PLL (16 MHz) clock source low fuse value */
 #define RCOSC_CLK_SRC   0x02        /* RC oscillator (8 MHz) clock source low fuse value */
 #define LFUSE_PRESC_BIT 7           /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
@@ -186,6 +190,11 @@
           "r" ((uint8_t)(BOOT_TEMP_BUFF_ERASE))  \
     );                                           \
 }))
+
+// Boot.h patch for ATtiny85
+#ifndef SIGRD
+#define SIGRD RSIG
+#endif /* SIGRD */
 
 // Features code calculation for GETTMNLV replies
 #if (ENABLE_LED_UI == true)
@@ -252,7 +261,11 @@
 #else
     #define EF_BIT_3    0
 #endif /* CHECK_PAGE_IX */
-#define EF_BIT_4    0       /* EF Bit 4 not used */
+#if (CMD_READDEVS == true)
+    #define EF_BIT_4    16
+#else
+    #define EF_BIT_4    0
+#endif /* CMD_READDEVS */
 #define EF_BIT_5    0       /* EF Bit 5 not used */
 #define EF_BIT_6    0       /* EF Bit 6 not used */
 #define EF_BIT_7    0       /* EF Bit 7 not used */
