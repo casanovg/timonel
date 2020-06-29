@@ -203,6 +203,9 @@ void loop() {
 #else   // -----
                     USE_SERIAL.print("\n\rBootloader Cmd >>> Delete app firmware from flash memory, \x1b[5mPLEASE WAIT\x1b[0m ...");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
+
+                p_timonel->WriteEeprom(49, 0xFF);
+                
                 uint8_t cmd_errors = p_timonel->DeleteApplication();
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
@@ -342,7 +345,7 @@ void loop() {
                 uint16_t ee_addr = 49;
                 uint8_t ee_data = p_timonel->ReadEeprom(ee_addr);
                 if (ee_data != 71) {
-                    USE_SERIAL.printf_P("\n\rEEPROM data not found, writing \'71\'\n\n\r");
+                    USE_SERIAL.printf_P("\n\rEEPROM data at position 0x%04X unknown (%d), writing \'71\'\n\n\r", ee_data);
                     p_timonel->WriteEeprom(ee_addr, 71);
                 } else {
                     USE_SERIAL.printf_P("\n\rEEPROM data at address %d: \'%c\'\n\n\r", ee_addr, ee_data);
