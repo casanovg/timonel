@@ -12,8 +12,8 @@
  *  class to implement the NB command set over the TWI (I2C) bus.
  */
 
-#ifndef _TIMONELTWIM_H_
-#define _TIMONELTWIM_H_
+#ifndef TIMONELTWIM_H
+#define TIMONELTWIM_H
 
 #include <Arduino.h>
 #include <NbMicro.h>
@@ -63,6 +63,10 @@ class Timonel : public NbMicro {
     } DevSettings;
     DevSettings GetDevSettings(void);
 #endif  // EXT_FEATURES >> F_CMD_READDEVS
+#if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_EEPROM_ACCESS) & true))
+        bool WriteEeprom(const uint16_t eeprom_addr, uint8_t data_byte);
+        uint8_t ReadEeprom(const uint16_t eeprom_addr);
+#endif   // EXT_FEATURES >> E_EEPROM_ACCESS
 
    private:
     Status status_;  // Global struct that holds a Timonel instance's running status */
@@ -79,4 +83,4 @@ class Timonel : public NbMicro {
 #endif  // FEATURES_CODE >> F_CMD_SETPGADDR
 };
 
-#endif  // _TIMONELTWIM_H_
+#endif  // TIMONELTWIM_H

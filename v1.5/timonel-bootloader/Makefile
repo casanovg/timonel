@@ -77,6 +77,7 @@ CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
 CFLAGS += -DAPP_AUTORUN=$(APP_AUTORUN)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
 CFLAGS += -DCMD_READDEVS=$(CMD_READDEVS)
+CFLAGS += -DEEPROM_ACCESS=$(EEPROM_ACCESS)
 # Bootloader additional features
 CFLAGS += -DAUTO_CLK_TWEAK=$(AUTO_CLK_TWEAK)
 CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
@@ -152,7 +153,8 @@ $(TARGET).hex:	$(TARGET).bin
 	@echo \| ... USE_WDT_RESET = $(USE_WDT_RESET)
 	@echo \| ... APP_AUTORUN = $(APP_AUTORUN)
 	@echo \| ... CMD_READFLASH = $(CMD_READFLASH)
-	@echo \| ... CMD_READDEVS = $(CMD_READDEVS)    
+	@echo \| ... CMD_READDEVS = $(CMD_READDEVS)
+	@echo \| ... EEPROM_ACCESS = $(EEPROM_ACCESS)
 	@echo \|-----------------------------------------------------------------------
 	@echo \| ... AUTO_CLK_TWEAK = $(AUTO_CLK_TWEAK)
 	@echo \| ... LOW_FUSE = $(LOW_FUSE)	

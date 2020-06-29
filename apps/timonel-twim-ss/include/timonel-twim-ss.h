@@ -3,12 +3,12 @@
   ==================
   Timonel library test header (Single Slave) v1.5
   ----------------------------------------------------------------------------
-  2020-04-29 Gustavo Casanova
+  2020-06-22 Gustavo Casanova
   ----------------------------------------------------------------------------
 */
 
-#ifndef _TIMONEL_TWIM_SS_H_
-#define _TIMONEL_TWIM_SS_H_
+#ifndef TIMONEL_TWIM_SS_H
+#define TIMONEL_TWIM_SS_H
 
 #include <NbMicro.h>
 #include <TimonelTwiM.h>
@@ -27,4 +27,4 @@ void ClrScr(void);
 void PrintLogo(void);
 void RotaryDelay(void);
 
-#endif  // _TIMONEL_TWIM_SS_H_
+#endif  // TIMONEL_TWIM_SS_H

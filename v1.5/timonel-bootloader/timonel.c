@@ -107,6 +107,10 @@ inline static void Reply_INITSOFT(MemPack *p_mem_pack) __attribute__((always_inl
 #if CMD_READDEVS
 inline static void Reply_READDEVS(void) __attribute__((always_inline));
 #endif  // CMD_READDEVS
+#if EEPROM_ACCESS
+inline static void Reply_WRITEEPR(const uint8_t *command) __attribute__((always_inline));
+inline static void Reply_READEEPR(const uint8_t *command) __attribute__((always_inline));
+#endif  // EEPROM_ACCESS
 
 // USI TWI driver prototypes
 void UsiTwiTransmitByte(const uint8_t data_byte);
@@ -137,10 +141,10 @@ inline static void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inli
 
 // Main function
 int main(void) {
-    /*  ___________________
-       |                   | 
-       |    Setup Block    |
-       |___________________|
+    /* ___________________
+      |                   | 
+      |    Setup Block    |
+      |___________________|
     */
     MCUSR = 0;  // Disable watchdog
     WDTCR = ((1 << WDCE) | (1 << WDE));
@@ -205,46 +209,48 @@ int main(void) {
     p_mem_pack->app_reset_lsb = 0x00;
     p_mem_pack->app_reset_msb = 0x00;
 #endif  // AUTO_PAGE_ADDR
-    /*  ___________________
-       |                   | 
-       |     Main Loop     |
-       |___________________|
+    /* ___________________
+      |                   | 
+      |     Main Loop     |
+      |___________________|
     */
     for (;;) {
-        /* ......................................................
-           . USI TWI INTERRUPT EMULATION (START)                 .
-           . Check the USI status register to verify whether      .
-           . a TWI start condition handler should be triggered   .
-           ......................................................
+        /*......................................................
+          . USI TWI INTERRUPT EMULATION [ START ]               .
+          . Check the USI status register to verify whether      .
+          . a TWI start condition handler should be triggered   .
+          ......................................................
         */
         if (((USISR >> TWI_START_COND_FLAG) & true) && ((USICR >> TWI_START_COND_INT) & true)) {
             // If so, run the USI start handler ...
             TwiStartHandler();
         }
-        /* ......................................................
-           . USI TWI INTERRUPT EMULATION (OVERFLOW)              .
-           . Check the USI status register to verify whether a    .
-           . 4-bit counter overflow handler should be triggered  .
-           ......................................................
+        /*......................................................
+          . USI TWI INTERRUPT EMULATION [ OVERFLOW ]            .
+          . Check the USI status register to verify whether a    .
+          . 4-bit counter overflow handler should be triggered  .
+          ......................................................
         */
         if (((USISR >> USI_OVERFLOW_FLAG) & true) && ((USICR >> USI_OVERFLOW_INT) & true)) {
             // If so, run the USI overflow handler ...
             slow_ops_enabled = UsiOverflowHandler(p_mem_pack);
         }
-        /*  ____________________________
-           |                            |
-           |   Bootloader initialized   |
-           |____________________________|
+        /*..............................
+          :                             .
+          :   Bootloader initialized     .
+          :   ----------------------    .
+          ..............................
         */
 #if !(TWO_STEP_INIT)
         if ((p_mem_pack->flags >> FL_INIT_1) & true) {
 #else
         if (((p_mem_pack->flags >> FL_INIT_1) & true) && ((p_mem_pack->flags >> FL_INIT_2) & true)) {
 #endif  // TWO_STEP_INIT
-            /*  ________________
-               |                |
-               |    Slow-Ops    |
-               |________________|
+            /*....................
+              :                   .
+              :     Slow-Ops       .
+              :     --------      .
+              ....................
             */
             if (slow_ops_enabled == true) {
                 slow_ops_enabled = false;
@@ -308,7 +314,7 @@ int main(void) {
                 if ((p_mem_pack->page_ix == SPM_PAGESIZE) && (p_mem_pack->page_addr < TIMONEL_START)) {
 #else
                 if ((p_mem_pack->page_ix == SPM_PAGESIZE) && (p_mem_pack->page_addr < TIMONEL_START - SPM_PAGESIZE)) {
-#endif  // APP_USE_TPL_PG || !(AUTO_PAGE_ADDR)
+#endif  // (APP_USE_TPL_PG || !(AUTO_PAGE_ADDR))
 #if ENABLE_LED_UI
                     LED_UI_PORT ^= (1 << LED_UI_PIN);  // Turn led on and off to indicate writing ...
 #endif                                                 // ENABLE_LED_UI
@@ -351,10 +357,11 @@ int main(void) {
                     p_mem_pack->page_ix = 0;
                 }
             }
-        /*  ____________________________
-           |                            |
-           | Bootloader NOT initialized |
-           |____________________________|
+        /*..................................
+          :                                 .
+          :   Bootloader NOT initialized     .
+          :   --------------------------    .
+          :.................................
         */
         } else {
             if (led_delay-- == 0) {
@@ -390,10 +397,10 @@ int main(void) {
     return 0;
 }
 
-/*  ________________________
-   |                        |
-   | TWI data receive event |
-   |________________________|
+/* __________________________
+  |                          |
+  |  TWI data receive event  |
+  |__________________________|
 */
 inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
     switch (command[0]) {
@@ -437,12 +444,24 @@ inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
             return;
         }
 #endif  // CMD_READDEVS
+#if EEPROM_ACCESS
+        case WRITEEPR: {
+            Reply_WRITEEPR(command);
+            return;
+        }
+        case READEEPR: {
+            Reply_READEEPR(command);
+            return;
+        }        
+#endif  // EEPROM_ACCESS
     }
 }
 
-// ******************
-// * GETTMNLV Reply *
-// ******************
+/* ____________________
+  |                    |
+  |   Reply_GETTMNLV   |
+  |____________________|
+*/
 inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     const __flash uint8_t *mem_position;
     mem_position = (void *)(TIMONEL_START - 1);
@@ -468,27 +487,33 @@ inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     }
 }
 
-// ******************
-// * EXITTMNL Reply *
-// ******************
+/* ____________________
+  |                    |
+  |   Reply_EXITTMNL   |
+  |____________________|
+*/
 inline void Reply_EXITTMNL(MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKEXITT);
     p_mem_pack->flags |= (1 << FL_EXIT_TML);
     p_mem_pack->flags |= (1 << FL_INIT_1);
 }
 
-// ******************
-// * DELFLASH Reply *
-// ******************
+/* ____________________
+  |                    |
+  |   Reply_DELFLASH   |
+  |____________________|
+*/
 inline void Reply_DELFLASH(MemPack *p_mem_pack) {
     UsiTwiTransmitByte(ACKDELFL);
     p_mem_pack->flags |= (1 << FL_DEL_FLASH);
 }
 
-// ******************
-// * STPGADDR Reply *
-// ******************
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
+/* ____________________
+  |                    |
+  |   Reply_STPGADDR   |
+  |____________________|
+*/
 inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = {0};
     p_mem_pack->page_addr = ((command[1] << 8) + command[2]);  // Sets the flash memory page base address
@@ -499,11 +524,13 @@ inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
         UsiTwiTransmitByte(reply[i]);
     }
 }
-#endif  // CMD_SETPGADDR || !AUTO_PAGE_ADDR
+#endif  // (CMD_SETPGADDR || !AUTO_PAGE_ADDR)
 
-// ******************
-// * WRITPAGE Reply *
-// ******************
+/* ____________________
+  |                    |
+  |   Reply_WRITPAGE   |
+  |____________________|
+*/
 inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[WRITPAGE_RPLYLN] = {0};
     reply[0] = ACKWTPAG;
@@ -512,10 +539,10 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
         p_mem_pack->app_reset_lsb = command[1];
         p_mem_pack->app_reset_msb = command[2];
 #endif  // AUTO_PAGE_ADDR
-    // This section modifies the reset vector to point to this bootloader.
-    // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
-    // the reset vector modification MUST BE done by the TWI master's upload program.
-    // Otherwise, Timonel won't have the execution control after power-on reset.
+        // This section modifies the reset vector to point to this bootloader.
+        // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
+        // the reset vector modification MUST BE done by the TWI master's upload program.
+        // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
         reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
@@ -544,10 +571,12 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     }
 }
 
-// ******************
-// * READFLSH Reply *
-// ******************
 #if CMD_READFLASH
+/* ____________________
+  |                    |
+  |   Reply_READFLSH   |
+  |____________________|
+*/
 inline void Reply_READFLSH(const uint8_t *command) {
     const uint8_t reply_len = (command[3] + 2);  // Reply length: ack + memory positions requested + checksum
     uint8_t reply[reply_len];
@@ -572,18 +601,22 @@ inline void Reply_READFLSH(const uint8_t *command) {
 }
 #endif  // CMD_READFLASH
 
-// ******************
-// * INITSOFT Reply *
-// ******************
+/* ____________________
+  |                    |
+  |   Reply_INITSOFT   |
+  |____________________|
+*/
 inline void Reply_INITSOFT(MemPack *p_mem_pack) {
     p_mem_pack->flags |= (1 << FL_INIT_2);  // Two-step init step 1: receive INITSOFT command
     UsiTwiTransmitByte(ACKINITS);
 }
 
-// ******************
-// * READDEVS Reply *
-// ******************
 #if CMD_READDEVS
+/* ____________________
+  |                    |
+  |   Reply_READDEVS   |
+  |____________________|
+*/
 inline void Reply_READDEVS(void) {
     uint8_t reply[READDEVS_RPLYLN];
     reply[0] = ACKRDEVS;
@@ -602,14 +635,58 @@ inline void Reply_READDEVS(void) {
 }
 #endif  // READDEVS
 
-// Function ResetPrescaler
+#if EEPROM_ACCESS
+/* ____________________
+  |                    |
+  |   Reply_WRITEEPR   |
+  |____________________|
+*/
+inline void Reply_WRITEEPR(const uint8_t *command) {
+    uint8_t reply[WRITEEPR_RPLYLN] = {0};
+    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);    // Set the EEPROM address
+    eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
+    reply[0] = ACKWTEEP;
+    reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    eeprom_update_byte((uint8_t *)eeprom_addr, command[3]);
+    for (uint8_t i = 0; i < WRITEEPR_RPLYLN; i++) {
+        UsiTwiTransmitByte(reply[i]);
+    }    
+}
+
+/* ____________________
+  |                    |
+  |   Reply_READEEPR   |
+  |____________________|
+*/
+inline void Reply_READEEPR(const uint8_t *command) {
+    uint8_t reply[READEEPR_RPLYLN] = {0};
+    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);    // Set the EEPROM address
+    eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
+    reply[0] = ACKRDEEP;
+    reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);
+    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    for (uint8_t i = 0; i < READEEPR_RPLYLN; i++) {
+        UsiTwiTransmitByte(reply[i]);
+    } 
+}
+#endif  // EEPROM_ACCESS
+
+/* ____________________
+  |                    |
+  |   ResetPrescaler   |
+  |____________________|
+*/
 inline void ResetPrescaler(void) {
     // Set the CPU prescaler division factor to 1
     CLKPR = (1 << CLKPCE);  // Prescaler enable
     CLKPR = 0x00;           // Clock division factor 1 (0000)
 }
 
-// Function RestorePrescaler
+/* ______________________
+  |                      |
+  |   RestorePrescaler   |
+  |______________________|
+*/
 inline void RestorePrescaler(void) {
     // Set the CPU prescaler division factor to 8
     CLKPR = (1 << CLKPCE);                    // Prescaler enable
@@ -620,10 +697,10 @@ inline void RestorePrescaler(void) {
 ////////////         USI TWI DRIVER CODE BELOW THIS LINE         ////////////
 /////////////////////////////////////////////////////////////////////////////
 
-/*  ___________________________
-   |                           |
-   | USI TWI byte transmission |
-   |___________________________|
+/* ___________________________
+  |                           |
+  | USI TWI byte transmission |
+  |___________________________|
 */
 void UsiTwiTransmitByte(const uint8_t data_byte) {
     tx_head = ((tx_head + 1) & TWI_TX_BUFFER_MASK);  // Update the TX buffer index
@@ -632,10 +709,10 @@ void UsiTwiTransmitByte(const uint8_t data_byte) {
     tx_buffer[tx_head] = data_byte;  // Write the data byte into the TX buffer
 }
 
-/*  _______________________________
-   |                               |
-   | USI TWI driver initialization |
-   |_______________________________|
+/* _______________________________
+  |                               |
+  | USI TWI driver initialization |
+  |_______________________________|
 */
 void UsiTwiDriverInit(void) {
     // Initialize USI for TWI Slave mode.
@@ -648,10 +725,10 @@ void UsiTwiDriverInit(void) {
     SET_USI_TO_WAIT_FOR_TWI_ADDRESS();      // Wait for TWI start condition and address from master
 }
 
-/*  _______________________________________________________
-   |                                                       |
-   | TWI start condition handler (Interrupt-like function) |
-   |_______________________________________________________|
+/* _______________________________________________________
+  |                                                       |
+  | TWI start condition handler (Interrupt-like function) |
+  |_______________________________________________________|
 */
 inline void TwiStartHandler(void) {
     SET_USI_SDA_AS_INPUT();  // Float the SDA line
@@ -678,10 +755,10 @@ inline void TwiStartHandler(void) {
     SET_USI_TO_SHIFT_8_ADDRESS_BITS();
 }
 
-/*  ______________________________________________________
-   |                                                      |
-   | USI 4-bit overflow handler (Interrupt-like function) |
-   |______________________________________________________|
+/* ______________________________________________________
+  |                                                      |
+  | USI 4-bit overflow handler (Interrupt-like function) |
+  |______________________________________________________|
 */
 inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
     switch (device_state) {

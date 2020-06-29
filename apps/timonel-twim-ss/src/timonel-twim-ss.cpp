@@ -7,7 +7,7 @@
   Tiny85 microcontroller running the Timonel bootloader from an ESP8266
   master. It uses a serial console configured at 9600 N 8 1 for feedback.
   ----------------------------------------------------------------------------
-  2020-04-29 Gustavo Casanova
+  2020-06-22 Gustavo Casanova
   ----------------------------------------------------------------------------
 */
 
@@ -333,6 +333,23 @@ void loop() {
                 p_timonel->DumpMemory(MCU_TOTAL_MEM, SLV_PACKET_SIZE, 32);
                 break;
             }
+#if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_EEPROM_ACCESS) & true))
+            // ********************************
+            // * Timonel ::: READEEPR command *
+            // ********************************
+            case 'p':
+            case 'P': {
+                uint16_t ee_addr = 49;
+                uint8_t ee_data = p_timonel->ReadEeprom(ee_addr);
+                if (ee_data != 71) {
+                    USE_SERIAL.printf_P("\n\rEEPROM data not found, writing \'71\'\n\n\r");
+                    p_timonel->WriteEeprom(ee_addr, 71);
+                } else {
+                    USE_SERIAL.printf_P("\n\rEEPROM data at address %d: \'%c\'\n\n\r", ee_addr, ee_data);
+                }
+                break;
+            }
+#endif  // EXT_FEATURES >> E_EEPROM_ACCESS
 #endif /* CMD_READFLASH) */
             // ******************
             // * ? Help command *
@@ -482,9 +499,9 @@ void PrintStatus(Timonel timonel) {
         USE_SERIAL.printf_P(" ====================================\n\r");
         USE_SERIAL.printf_P(" Bootloader address: 0x%X\n\r", tml_status.bootloader_start);
         if (app_start != 0xFFFF) {
-            USE_SERIAL.printf_P("  Application start: 0x%X (0x%X)\n\r", app_start, trampoline);
+            USE_SERIAL.printf_P("  Application start: 0x%04X (0x%X)\n\r", app_start, trampoline);
         } else {
-            USE_SERIAL.printf_P("  Application start: 0x%X (Not Set)\n\r", app_start);
+            USE_SERIAL.printf_P("  Application start: 0x%04X (Not Set)\n\r", app_start);
         }
         USE_SERIAL.printf_P("      Features code: %d | %d ", tml_status.features_code, tml_status.ext_features_code);
         if ((tml_status.ext_features_code >> E_AUTO_CLK_TWEAK) & true) {
@@ -591,12 +608,21 @@ void ShowMenu(void) {
         Timonel::Status sts = p_timonel->GetStatus();
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
         USE_SERIAL.printf_P("Timonel bootloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_SETPGADDR) & true))        
         if ((sts.features_code & 0x08) == 0x08) {
             USE_SERIAL.printf_P(", 'b' set addr");
         }
+#endif  // F_CMD_SETPGADDR
+#if ((defined FEATURES_CODE) && ((FEATURES_CODE >> F_CMD_READFLASH) & true))
         if ((sts.features_code & 0x80) == 0x80) {
             USE_SERIAL.printf_P(", 'm' mem dump");
         }
+#endif  // F_CMD_READFLASH
+#if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_EEPROM_ACCESS) & true))
+        if ((sts.ext_features_code & 0x20) == 0x20) {
+            USE_SERIAL.printf_P(", 'p' read eeprom");
+        }
+#endif  // EXT_FEATURES >> E_EEPROM_ACCESS
         USE_SERIAL.printf_P("): ");
 #else   // -----
             USE_SERIAL.print("Timonel bootloader ('v' version, 'r' run app, 'e' erase flash, 'w' write flash");
