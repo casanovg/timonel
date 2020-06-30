@@ -25,11 +25,12 @@
 
 /* Includes */
 #include <avr/boot.h>
+#include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
-#include "../nb-libs/nb-twi-cmd/src/nb-twi-cmd.h"
+#include <nb-twi-cmd.h>
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */        
 /* VVVVVV [   from the I2C master by using the GETTMNLV command.               ] VVVVVV */
@@ -38,45 +39,45 @@
 // Features Byte
 // =============
 
-// Bit 1
+// Bit 0
 #ifndef ENABLE_LED_UI               /* If this is enabled, LED_UI_PIN is used to display Timonel activity. */
 #define ENABLE_LED_UI   false       /* PLEASE DISABLE THIS FOR PRODUCTION! IT COULD ACTIVATE SOMETHING     */
 #endif /* ENABLE_LED_UI */          /* CONNECTED TO A POWER SOURCE BY ACCIDENT!                            */
 
-// Bit 2           
+// Bit 1           
 #ifndef AUTO_PAGE_ADDR              /* Automatic page and trampoline address calculation. If this option   */
 #define AUTO_PAGE_ADDR  true        /* is disabled, the trampoline has to be calculated and written by the */
 #endif /* AUTO_PAGE_ADDR */         /* I2C master. Therefore, enabling CMD_SETPGADDR becomes mandatory.    */
 
-// Bit 3                              
+// Bit 2                              
 #ifndef APP_USE_TPL_PG              /* Allow the user appl. to use the trampoline page when AUTO_PAGE_ADDR */
 #define APP_USE_TPL_PG  false       /* is enabled. This is a safety measure since enabling this takes 2    */
 #endif /* APP_USE_TPL_PG */         /* extra memory pages. In the end, disabling this allows 1 extra page. */
                                     /* If AUTO_PAGE_ADDR is disabled, this option is irrelevant since the  */
                                     /* trampoline page writing is to be made by the I2C master.            */
 
-// Bit 4                                
+// Bit 3                                
 #ifndef CMD_SETPGADDR               /* If this is disabled, applications can only be flashed starting      */
 #define CMD_SETPGADDR   false       /* from page 0, this is OK for most applications.                      */
 #endif /* CMD_SETPGADDR */          /* If this is enabled, Timonel expects STPGADDR before each data page. */
                                     /* Enabling this option is MANDATORY when AUTO_PAGE_ADDR is disabled.  */
 
-// Bit 5                              
+// Bit 4                              
 #ifndef TWO_STEP_INIT               /* If this is enabled, Timonel expects a two-step initialization from  */
-#define TWO_STEP_INIT   false       /* an I2C master for starting. Otherwise, single-step init is enough   */
+#define TWO_STEP_INIT   false       /* an I2C master for starting. Otherwise, single-step init is enough.  */
 #endif /* TWO_STEP_INIT */
 
-// Bit 6
+// Bit 5
 #ifndef USE_WDT_RESET               /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
-#define USE_WDT_RESET   true    
+#define USE_WDT_RESET   true
 #endif /* USE_WDT_RESET */
 
-// Bit 7
+// Bit 6
 #ifndef APP_AUTORUN                 /* If this option is set to true (1), the user application loaded will */
 #define APP_AUTORUN     true        /* start automatically after a timeout when the bootloader is not      */
 #endif /* APP_AUTORUN */            /* initialized. Otherwise, It has to be launched by the TWI master.    */
 
-// Bit 8
+// Bit 7
 #ifndef CMD_READFLASH               /* This option enables the READFLSH command. It can be useful for      */
 #define CMD_READFLASH   false       /* backing up the flash memory before flashing a new firmware.         */
 #endif /* CMD_READFLASH */                                   
@@ -84,25 +85,35 @@
 // Extended Features Byte
 // ======================
 
-// Bit 1
+// Bit 0
 #ifndef AUTO_CLK_TWEAK              /* When this feature is enabled, the clock speed adjustment is made at */
 #define AUTO_CLK_TWEAK  false       /* run time by reading low fuse value. It works only for internal CPU  */
 #endif /* AUTO_CLK_TWEAK */         /* clock configurations: RC oscillator or HF PLL.                      */
                                     /* NOTE: This value can be set externally as a makefile option         */
 
-// Bit 2
+// Bit 1
 #define FORCE_ERASE_PG  false       /* If this option is enabled, each flash memory page is erased before  */
                                     /* writing new data. Normally, it shouldn't be necessary to enable it. */
 
-// Bit 3
+// Bit 2
 #define CLEAR_BIT_7_R31 false       /* This is to avoid that the first bootloader instruction is skipped   */
                                     /* after restarting without an user application in memory. See:        */
                                     /* http://www.avrfreaks.net/comment/2561866#comment-2561866            */
                                     
-// Bit 4
+// Bit 3
 #define CHECK_PAGE_IX   false       /* If this option is enabled, the page index size is checked to ensure */
                                     /* that isn't bigger than SPM_PAGESIZE (usually 64 bytes). This keeps  */
                                     /* the app data integrity in case the master sends wrong page sizes.   */
+
+// Bit 4
+#ifndef CMD_READDEVS
+#define CMD_READDEVS    false       /* This option enables the READDEVS command. It allows reading all     */
+#endif /* CMD_READDEVS */           /* fuse bits, lock bits, and device signature imprint table.           */
+
+// Bit 5
+#ifndef EEPROM_ACCESS               /* This option enables the READEEPR and WRITEEPR commands, which allow */
+#define EEPROM_ACCESS   false       /* reading and writing the device EEPROM.                              */
+#endif /* EEPROM_ACCESS */
 
 /* ^^^^^^ [       End of feature settings shown in the GETTMNLV command.       ] ^^^^^^ */
 /* ====== [       ......................................................       ] ====== */
@@ -112,7 +123,7 @@
 /* ---    unless you know how to customize or adapt it to another microcontroller.  --- */
 /* ---    Below options cannot be modified in "tml-config.mak", only in this file.  --- */
 /* ------------------------------------------------------------------------------------ */
-                                    
+
 // TWI commands Xmit packet size
 #define MST_PACKET_SIZE 32          /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
 #define SLV_PACKET_SIZE 32          /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
@@ -141,10 +152,13 @@
 #define FL_BIT_7        6           /* Flag bit 7 (64) : Not used */
 #define FL_BIT_8        7           /* Flag bit 8 (128): Not used */
 
-// Command reply length constants
+// Length constants for command replies
 #define GETTMNLV_RPLYLN 12          /* GETTMNLV command reply length */
 #define STPGADDR_RPLYLN 2           /* STPGADDR command reply length */
 #define WRITPAGE_RPLYLN 2           /* WRITPAGE command reply length */
+#define READDEVS_RPLYLN 10          /* READDEVS command reply length */
+#define WRITEEPR_RPLYLN 2           /* WRITEEPR command reply length */
+#define READEEPR_RPLYLN 3           /* READEEPR command reply length */
 
 // Memory page definitions
 #define RESET_PAGE      0           /* Interrupt vector table address start location. */
@@ -155,9 +169,6 @@
 #endif /* LOW_FUSE */               /* is enabled, this value is irrelevant.                               */
                                     /* NOTE: This value can be set externally as a makefile option and it  */
                                     /* is shown in the GETTMNLV command.                                   */
-#define L_FUSE_ADDR     0x0000      /* Low fuse register address */
-#define H_FUSE_ADDR     0x0003      /* High fuse register address */
-#define E_FUSE_ADDR     0x0002      /* Extended fuse register address */
 #define HFPLL_CLK_SRC   0x01        /* HF PLL (16 MHz) clock source low fuse value */
 #define RCOSC_CLK_SRC   0x02        /* RC oscillator (8 MHz) clock source low fuse value */
 #define LFUSE_PRESC_BIT 7           /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
@@ -186,6 +197,12 @@
           "r" ((uint8_t)(BOOT_TEMP_BUFF_ERASE))  \
     );                                           \
 }))
+
+// "Boot.h" patch to read the signature bytes. For some reason, the SIGRD
+// flag definition is missing in some header files, including the ATtiny85.
+#ifndef SIGRD
+#define SIGRD RSIG
+#endif /* SIGRD */
 
 // Features code calculation for GETTMNLV replies
 #if (ENABLE_LED_UI == true)
@@ -252,8 +269,16 @@
 #else
     #define EF_BIT_3    0
 #endif /* CHECK_PAGE_IX */
-#define EF_BIT_4    0       /* EF Bit 4 not used */
-#define EF_BIT_5    0       /* EF Bit 5 not used */
+#if (CMD_READDEVS == true)
+    #define EF_BIT_4    16
+#else
+    #define EF_BIT_4    0
+#endif /* CMD_READDEVS */
+#if (EEPROM_ACCESS == true)
+    #define EF_BIT_5    32
+#else
+    #define EF_BIT_5    0
+#endif /* EEPROM_ACCESS */
 #define EF_BIT_6    0       /* EF Bit 6 not used */
 #define EF_BIT_7    0       /* EF Bit 7 not used */
 

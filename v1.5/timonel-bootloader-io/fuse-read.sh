@@ -10,7 +10,7 @@ echo "****************************************"
 echo ""
 ARG1=${1:-fuse-settings.txt}
 LF="0x62"
-HF="0xdd"
+HF="0xd5"
 EF="0xfe"
 if avrdude -c USBasp -p attiny85 -B3 -U lfuse:r:lfuse.hex:h -U hfuse:r:hfuse.hex:h -U efuse:r:efuse.hex:h 2>>/dev/null;
 then
