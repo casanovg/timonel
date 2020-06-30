@@ -14,12 +14,14 @@
 #include <TimonelTwiM.h>
 #include <TwiBus.h>
 
+#define EEPROM_TOP 0x1FF
+
 // Prototypes
 void setup(void);
 void loop(void);
 void ListTwiDevices(uint8_t sda = 0, uint8_t scl = 0);
 void PrintStatus(Timonel tml);
-void ReadChar(void);
+uint8_t ReadChar(void);
 uint16_t ReadWord(void);
 void ShowHeader(void);
 void ShowMenu(void);

@@ -24,7 +24,8 @@ bool new_key = false;
 bool new_word = false;
 bool app_mode = false;  // This holds the slave device running mode info: bootloader or application
 char key = '\0';
-uint16_t flash_page_addr = 0x0;
+uint16_t flash_page_addr = 0x0000;
+uint16_t eeprom_addr = 0x0000;
 uint16_t timonel_start = 0xFFFF;  // Timonel start address, 0xFFFF means 'not set'
 Timonel *p_timonel = nullptr;     // Pointer to a bootloader objetct
 //NbMicro *p_micro = nullptr;       // Pointer to an application objetct
@@ -203,9 +204,6 @@ void loop() {
 #else   // -----
                     USE_SERIAL.print("\n\rBootloader Cmd >>> Delete app firmware from flash memory, \x1b[5mPLEASE WAIT\x1b[0m ...");
 #endif  // ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM
-
-                p_timonel->WriteEeprom(49, 0xFF);
-                
                 uint8_t cmd_errors = p_timonel->DeleteApplication();
 #if (ARDUINO_ARCH_ESP8266 || ARDUINO_ESP32_DEV || ESP_PLATFORM)
                 USE_SERIAL.printf_P("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
@@ -338,19 +336,43 @@ void loop() {
             }
 #if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_EEPROM_ACCESS) & true))
             // ********************************
-            // * Timonel ::: READEEPR command *
+            // * Timonel ::: WRITEEPR command *
             // ********************************
             case 'p':
             case 'P': {
-                uint16_t ee_addr = 49;
-                uint8_t ee_data = p_timonel->ReadEeprom(ee_addr);
-                if (ee_data != 71) {
-                    USE_SERIAL.printf_P("\n\rEEPROM data at position 0x%04X unknown (%d), writing \'71\'\n\n\r", ee_data);
-                    p_timonel->WriteEeprom(ee_addr, 71);
-                } else {
-                    USE_SERIAL.printf_P("\n\rEEPROM data at address %d: \'%c\'\n\n\r", ee_addr, ee_data);
+                new_word = false;
+                uint8_t eeprom_data = 0;
+                USE_SERIAL.printf_P("\n\rPlease enter the EEPROM memory address: ");
+                while (new_word == false) {
+                    eeprom_addr = ReadWord();
                 }
+                if (eeprom_addr > EEPROM_TOP) {
+                    USE_SERIAL.printf_P("\n\rWarning: The highest EEPROM address available is %d (0x%X), please correct it !!!", EEPROM_TOP, EEPROM_TOP);
+                    new_word = false;
+                    break;
+                }
+                USE_SERIAL.printf_P("\n\rPlease enter EEPROM data: ");
+                //new_key = false;
+                new_word = false;
+                while (new_word == false) {
+                    eeprom_data = ReadWord();
+                }
+                if (new_word == true) {
+                    USE_SERIAL.printf_P("%d\n\r");
+                    new_key = false;
+                }
+                USE_SERIAL.printf_P("\n\rWriting %d to EEPROM address 0x%04X\n\n\r", eeprom_data, eeprom_addr);
+                p_timonel->WriteEeprom(eeprom_addr, eeprom_data);
                 break;
+            }
+            // ********************************
+            // * Timonel ::: READEEPR command *
+            // ********************************
+            case 'o':
+            case 'O': {
+                for (uint16_t ee_addr = 0; ee_addr <= EEPROM_TOP; ee_addr++) {
+                    USE_SERIAL.printf_P("%03d=%02d ",ee_addr, p_timonel->ReadEeprom(ee_addr));
+                }
             }
 #endif  // EXT_FEATURES >> E_EEPROM_ACCESS
 #endif /* CMD_READFLASH) */
@@ -390,10 +412,11 @@ void loop() {
 }
 
 // Function ReadChar
-void ReadChar() {
+uint8_t ReadChar(void) {
     if (USE_SERIAL.available() > 0) {
         key = USE_SERIAL.read();
         new_key = true;
+        return key;
     }
 }
 
@@ -623,7 +646,7 @@ void ShowMenu(void) {
 #endif  // F_CMD_READFLASH
 #if ((defined EXT_FEATURES) && ((EXT_FEATURES >> E_EEPROM_ACCESS) & true))
         if ((sts.ext_features_code & 0x20) == 0x20) {
-            USE_SERIAL.printf_P(", 'p' read eeprom");
+            USE_SERIAL.printf_P(", 'o/p' read/write eeprom");
         }
 #endif  // EXT_FEATURES >> E_EEPROM_ACCESS
         USE_SERIAL.printf_P("): ");
