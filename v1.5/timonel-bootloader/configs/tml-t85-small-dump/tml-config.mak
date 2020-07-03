@@ -6,7 +6,7 @@
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Small+Dump: Only SETPGADDR and READFLASH enabled
+# Configuration:   Small+Dump: SETPGADDR, READFLASH and EEPROM_ACCESS enabled
 
 MCU = attiny85
 
@@ -37,7 +37,8 @@ TWO_STEP_INIT  = false
 USE_WDT_RESET  = false
 APP_AUTORUN    = false
 CMD_READFLASH  = true
-CMD_READDEVS   = true
+CMD_READDEVS   = false
+EEPROM_ACCESS  = true
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
 LOW_FUSE       = 0x62

@@ -37,8 +37,8 @@ TWO_STEP_INIT  = false
 USE_WDT_RESET  = false
 APP_AUTORUN    = false
 CMD_READFLASH  = false
-CMD_READDEVS   = true
-EEPROM_ACCESS  = true
+CMD_READDEVS   = false
+EEPROM_ACCESS  = false
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
 LOW_FUSE       = 0x62
