@@ -35,8 +35,10 @@ APP_USE_TPL_PG = false
 CMD_SETPGADDR  = false
 TWO_STEP_INIT  = false
 USE_WDT_RESET  = true
-TIMEOUT_EXIT   = true
+APP_AUTORUN    = true
 CMD_READFLASH  = false
+CMD_READDEVS   = false
+EEPROM_ACCESS  = false
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
 LOW_FUSE       = 0x62

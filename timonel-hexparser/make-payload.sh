@@ -29,11 +29,11 @@ if [ "$1" != "" ]; then
 	# Parsing application to create payload header ...
 	echo "Parsing" $1 "...";
 	if [ `uname | grep Linux` ]; then
-		./tml-hexparser $payload > ../timonel-twim-ss/data/payloads/payload.h;
-		./tml-hexparser $payload > ./appl-payload/payload.h;
+		.pio/build/native/tml-hexparser $payload > ../timonel-twim-ss/data/payloads/payload.h;
+		.pio/build/native/tml-hexparser $payload > ./appl-payload/payload.h;
 	else
-		./tml-hexparser.exe $payload > ../timonel-twim-ss/data/payloads/payload.h;
-		./tml-hexparser.exe $payload > ./appl-payload/payload.h;
+		.pio/build/native/tml-hexparser.exe $payload > ../timonel-twim-ss/data/payloads/payload.h;
+		.pio/build/native/tml-hexparser.exe $payload > ./appl-payload/payload.h;
 	fi	
 else
 	echo "";
