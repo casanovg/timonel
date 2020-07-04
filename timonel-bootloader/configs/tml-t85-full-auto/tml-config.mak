@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1A40
+TIMONEL_START = 1940
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -35,8 +35,10 @@ APP_USE_TPL_PG = false
 CMD_SETPGADDR  = true
 TWO_STEP_INIT  = true
 USE_WDT_RESET  = true
-TIMEOUT_EXIT   = true
+APP_AUTORUN    = true
 CMD_READFLASH  = true
+CMD_READDEVS   = true
+EEPROM_ACCESS  = true
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = true
 LOW_FUSE       = 0x62

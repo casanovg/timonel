@@ -155,7 +155,7 @@ if [ ! -z "${ARG3}" ]; then
 fi
 if [ ! -z "${ARG4}" ]; then
     MAK_OPT+=" TIMONEL_START=${ARG4}";
-    echo "*   Flash position: ${ARG4} <- use lower positions if make errors pop up below";
+    echo "*   Flash position: ${ARG4} <- In case of errors, use lower positions!";
 fi
 if [ ! -z "${ARG5}" ]; then
     MAK_OPT+=" LOW_FUSE=${LOW_FUSE}";

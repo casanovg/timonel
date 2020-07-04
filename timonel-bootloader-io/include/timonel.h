@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
-#include "../../nb-twi-cmd/src/nb-twi-cmd.h"
+#include <nb-twi-cmd.h>
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */        
 /* VVVVVV [   from the I2C master by using the GETTMNLV command.               ] VVVVVV */

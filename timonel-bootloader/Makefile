@@ -2,7 +2,7 @@
 # File: Makefile
 # Project: Timonel - TWI Bootloader
 # ........................................................
-# 2019-06-06 gustavo.casanova@nicebots.com
+# 2020-06-20 gustavo.casanova@nicebots.com
 #
 
 CONFIG ?= tml-t85-std
@@ -52,30 +52,37 @@ PROGRAMMER ?= -c USBasp
 AVRDUDE = avrdude $(PROGRAMMER) -p $(MCU) 
 CC = avr-gcc
 
-# compiler options
+# Compiler options
 CFLAGS += -Wall -g2 -Os -std=gnu99
-CFLAGS += -I$(LIBDIR) -I$(CONFIGPATH) -I$(CMDDIR) -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU)
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
+# The "LIBDIR" path is required when including an external TWI driver, deprecated from v1.4 onwards
+# CFLAGS += -I$(LIBDIR)
+CFLAGS += -I$(CONFIGPATH) -I$(CMDDIR) -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 ## Splits up object files per function
-CFLAGS += -nostartfiles -ffunction-sections -fdata-sections -fpack-struct
-CFLAGS += -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop
-
+CFLAGS += -ffunction-sections -fdata-sections
+# The "nostartfiles" option allows ditching the compiler-supplied "crt1.S" file to include a custom one
+CFLAGS += -nostartfiles
+# Optimizations aimed at reducing memory space usage
+CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -mno-interrupts -mtiny-stack
+CFLAGS += -fno-inline-small-functions -fno-move-loop-invariants -fno-tree-scev-cprop -fno-jump-tables
+# Bootloader TWI address and memory start position
 CFLAGS += -DTWI_ADDR=$(TIMONEL_TWI_ADDR)
 CFLAGS += -DTIMONEL_START=0x$(TIMONEL_START)
-
+# Bootloader optional feature selection
 CFLAGS += -DENABLE_LED_UI=$(ENABLE_LED_UI)
 CFLAGS += -DAUTO_PAGE_ADDR=$(AUTO_PAGE_ADDR)
 CFLAGS += -DAPP_USE_TPL_PG=$(APP_USE_TPL_PG)
 CFLAGS += -DCMD_SETPGADDR=$(CMD_SETPGADDR)
 CFLAGS += -DTWO_STEP_INIT=$(TWO_STEP_INIT)
 CFLAGS += -DUSE_WDT_RESET=$(USE_WDT_RESET)
-CFLAGS += -DTIMEOUT_EXIT=$(TIMEOUT_EXIT)
+CFLAGS += -DAPP_AUTORUN=$(APP_AUTORUN)
 CFLAGS += -DCMD_READFLASH=$(CMD_READFLASH)
-
+CFLAGS += -DCMD_READDEVS=$(CMD_READDEVS)
+CFLAGS += -DEEPROM_ACCESS=$(EEPROM_ACCESS)
+# Bootloader additional features
 CFLAGS += -DAUTO_CLK_TWEAK=$(AUTO_CLK_TWEAK)
 CFLAGS += -DLOW_FUSE=$(LOW_FUSE)
 CFLAGS += -DLED_UI_PIN=$(LED_UI_PIN)
-
+# Linker options
 LDFLAGS = -Wl,--relax,--section-start=.text=$(TIMONEL_START),--gc-sections,-Map=$(TARGET).map
 
 SOURCES=$(wildcard $(LIBDIR)/*.c *.S *.c)
@@ -133,33 +140,34 @@ $(TARGET).elf: $(OBJECTS)
 $(TARGET).hex:	$(TARGET).bin
 
 	@echo 
-	@echo ===================================================================
+	@echo ========================================================================
 	@echo \| Building Timonel configuration: $(CONFIG)
-	@echo \|------------------------------------------------------------------
+	@echo \|-----------------------------------------------------------------------
 	@echo \| TIMONEL_START = 0x$(TIMONEL_START) \| TWI_ADDRESS = $(TIMONEL_TWI_ADDR) \| \"""$(TARGET).hex\"
-	@echo ===================================================================
-
+	@echo ========================================================================
 	@echo \| ... ENABLE_LED_UI = $(ENABLE_LED_UI)
 	@echo \| ... AUTO_PAGE_ADDR = $(AUTO_PAGE_ADDR)
 	@echo \| ... APP_USE_TPL_PG = $(APP_USE_TPL_PG)
 	@echo \| ... CMD_SETPGADDR = $(CMD_SETPGADDR)
 	@echo \| ... TWO_STEP_INIT = $(TWO_STEP_INIT)
 	@echo \| ... USE_WDT_RESET = $(USE_WDT_RESET)
-	@echo \| ... TIMEOUT_EXIT = $(TIMEOUT_EXIT)
+	@echo \| ... APP_AUTORUN = $(APP_AUTORUN)
 	@echo \| ... CMD_READFLASH = $(CMD_READFLASH)
-	@echo \|------------------------------------------------------------------
+	@echo \| ... CMD_READDEVS = $(CMD_READDEVS)
+	@echo \| ... EEPROM_ACCESS = $(EEPROM_ACCESS)
+	@echo \|-----------------------------------------------------------------------
 	@echo \| ... AUTO_CLK_TWEAK = $(AUTO_CLK_TWEAK)
 	@echo \| ... LOW_FUSE = $(LOW_FUSE)	
 	@echo \| ... LED_UI_PIN = $(LED_UI_PIN)
-	@echo -------------------------------------------------------------------
+	@echo ------------------------------------------------------------------------
 	@rm -f $(TARGET).hex $(TARGET).eep.hex
 	@avr-objcopy -j .text -j .data -O ihex $(TARGET).bin $(TARGET).hex
 	@echo [Sections]
 	@avr-size $(TARGET).bin
 	@echo
-	@echo [Hexfile] Use the "data" size to calculate the bootloader address!
+	@echo [Hexfile] Take \"data\" size to calculate the bootloader\'s start address!
 	@avr-size $(TARGET).hex
-	@echo -------------------------------------------------------------------
+	@echo ------------------------------------------------------------------------
 
 upgrade: $(TARGET).bin
 	avr-objcopy -O binary $(TARGET).bin $(TARGET).raw
