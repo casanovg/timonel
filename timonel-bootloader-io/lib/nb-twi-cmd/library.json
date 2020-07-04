@@ -1,6 +1,6 @@
 {
     "name": "nb-twi-cmd",
-    "version": "0.7.0",
+    "version": "0.6.9",
     "keywords": "nb-twi-cmd, i2c, twi, communications, protocol, command set",
     "description": "Declares the NB communication protocol over TWI (I2C).",
     "repository": {
