@@ -1,37 +1,32 @@
-# Timonel Bootloader v1.5
+# Timonel Bootloader v1.5 - PlatformIO experimental project
 
-Changes from previous version:
+This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader)", but it was implemented as a [PlatformIO](http://platformio.org) experimental project to handle building in a more structured way. Some advantages of using this platform are:
 
-* **Slightly smaller bootloader footprint:** some memory got by removing unused pre-checks from the "crt1.S" initialization file (before calling main), and tweaking compiler options. Now smallest bootloader size, when compiled using the "tml-t85-small" @8Mhz configuration, is ~880 bytes (less than 14 pages). This leaves **7.3 Kbytes (114 pages) available for the user application** on an ATtiny85.
-* **READDEVS command added:** this optional command allows getting the device signature bytes, lock, and fuse bits from the device.
-* **READEEPR and WRITEEPR commands added:** These optional commands are to read and write data to the device's EEPROM. The extended features flag 5 "EEPROM_ACCESS" includes/excludes both commands from the bootloader binary.
+* Development standardization of all components on a single platform: bootloader master and slave sides, I2C libraries, applications, etc. This is possible even with different frameworks: ESP8266, AVR, Arduino, etc.
+* One-click compilation, handled by structured ".ini" and "JSON" files.
+* Simple and orderly updating of platforms and libraries, with a centralized registry of library versions.
+* GitHub integration, Editor IntelliSense (VS Code).
+
+It is possible that in the future this version will supersede the "Make version", but so far (July 2020), several issues have to be solved:
+
+* The handling of the various bootloader settings in ".ini" files works, but is not yet polished enough.
+* To resolve the previous point, custom variables have been added in the ".ini" files that are unknown by PlatformiIO, throwing warnings at the time of compilation.
+* The size of the binary files obtained in all configurations is substantially larger than their counterparts built with Make.
+* The way to correctly control the platform default compiler version has not been found yet, nor the options that Platformio passes to the compiler and the linker.
 
 ## Compilation
 
-The **"make-timonel.sh"** script allows launching "[make](http://www.gnu.org/software/make)" with different configurations. It has several arguments, including **"--all"**, which compiles all the preconfigured options found in the **"configs"** directory. The flashable **".hex"** binary files are saved in the **"releases"** directory.
+It is possible to compile all the bootloader configurations with a single click using the **"Build"** option of the PlatformIO project tasks, from the icon located in the editor footer or the "platform run" command.
 
-E.g: <b>`./make-timonel.sh tml-t85-small timonel 13 1B80 1 false;`</b>
+The bootloader configurations to be built are controlled by lines added under the "extra_configs" section of the "platformio" option in the platformio.ini file. Each line includes a ".ini" file from the "configs" folder with the specific environment configuration parameters.
 
-* Generates a **"timonel.hex"** binary file based on **"tml-t85-small"** config.
-* Assigns the TWI address **13** to the device in bootloader mode.
-* Sets **0x1B80** as the bootloader start memory position.
-* Sets the device low fuse to operate at **1 MHz** in user-application mode.
-* **Disables** automatic clock tweaking.
-
-**Note:** This bootloader version has been compiled with the **"avr-gcc 8.3.0 64-bit"** toolchain downloaded from [this site](http://blog.zakkemble.net/avr-gcc-builds)., it's also included under the "[avr-toolchains](http://github.com/casanovg/avr-toolchains)" repository. The scripts are included mainly to ease to repetitive work of flashing several devices but, of course, the bootloader can be compiled and flashed using avr-gcc and avrdude directly.
+To build a single configuration (or just a few), it can be added in the "default_envs" section.
 
 ## <a id="Installation"></a>Flashing Timonel on the device
 
-The **"flash-timonel-bootloader.sh"** script allows flashing Timonel on the device by using the "[avrdude](http://savannah.nongnu.org/projects/avrdude)" utility with an [AVR programmer](http://www.fischl.de/usbasp). The supported arguments are:
+To update the bootloader on the device, use the **"PlatformIO Upload"** command found in project tasks, in the editor footer, or through "platformio run" in the command line.
 
-1. Binary file name (without ".hex" extension), located under "releases" directory.
-2. Clock speed in MHz: 16, 8, 2, 1.
-The bootloader can be flashed to bare ATtiny85/45/25 chips, Digispark boards and other Tiny85-compatible devices using an AVR programmer (e.g. USBasp).
-
-E.g: <b>`./flash-timonel-bootloader.sh timonel 1;`</b>
-
-* Flashes **"timonel.hex"** binary file on the device with avrdude.
-* Sets the device's low fuse to run at **1 MHz** (possible values are 1, 2, 8 and 16).
+E.g. **"platformio.exe run -e tml-t85-std --target upload"** will build and flash the Timonel standard configuration into the device using the programmer configured in platformio.ini (default: [USBasp](http://www.fischl.de/usbasp)).
 
 ## Setting optional features
 
@@ -50,3 +45,5 @@ The bootloader has several optional features that allow finding the right balanc
 * **FORCE\_ERASE\_PG**: If this option is enabled, each flash memory page is erased before writing new data. Normally, it shouldn't be necessary to enable it. (Default: false).
 * **CLEAR\_BIT\_7\_R31**: This is to avoid that the first bootloader instruction is skipped after restarting without an user application in memory. See: http://www.avrfreaks.net/comment/2561866#comment-2561866. (Default: false).
 * **CHECK\_PAGE\_IX**: If this option is enabled, the page index size is checked to ensure that isn't bigger than SPM\_PAGESIZE (64 bytes in an ATtiny85). This keeps the app data integrity in case the master sends wrong page sizes. (Default: false).
+* **CMD\_READDEVS**: This option enables the READDEVS command. It allows reading all fuse bits, lock bits, and device signature imprint table. (Default: false).
+* **EEPROM_ACCESS**: This option enables the READEEPR and WRITEEPR commands, which allow reading and writing the device EEPROM. (Default: false).

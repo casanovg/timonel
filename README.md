@@ -1,21 +1,21 @@
-![timonel-bootloader](https://github.com/casanovg/timonel/blob/media/timonel-github-wh.jpg)
+![timonel-bootloader](https://github.com/casanovg/timonel/blob/media/timonel-code.png)
 ## ATtiny85 I2C Bootloader
 
-Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. The aim is to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) acting as I2C master and one or more Tiny85 as I2C slave performing peripheral functions.
+Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. It is designed to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) serving as I2C master and one or more ATtiny85 as I2C slaves that perform peripheral functions.
 
-Some possible cases:
+Some cases:
 
-* A small robot controlled by Raspberry Pi where the specific functions of each limb are delegated to several Tiny85 through an I2C bus.
-* Multi-sensor systems, where each Tiny85 is a node that handles one or more sensors.
+* A small robot controlled by an ESP32 where each limb specific functions are delegated to several Tiny85 through an I2C bus.
+* Multisensor IoT setups, where each Tiny85 is a node that handles one or more sensors.
 * etc ...
 
-In these situations, it's handy to be able to update the AVRs firmware straight from the I2C master. But, so far (mid-2018), I haven't found an I2C bootloader that fits directly the TinyX5 family, addressing its several limitations:
+In these situations, it is quite convenient to be able to update the AVRs' firmware directly from a single entry point, the I2C master. Depending on the main microcontroller type, the ATtiny updates can even be done wirelessly. However, until now (mid-2018), there doesn't seem to be an I2C bootloader that directly suits the TinyX5 family, addressing its various limitations:
 
-* It doesn't have dedicated hardware to handle I2C, only the USI (Universal Serial Interface).
-* It lacks a protected memory area for the bootloader.
-* It is not possible to redirect the interruption vectors to the bootloader.
+* It does not have dedicated hardware to handle I2C, only the USI (Universal Serial Interface).
+* Lacks a bootloader protected memory area.
+* Unable to redirect interrupt vectors to the bootloader.
 
-That's why I started writing this one.
+That is why this project began ...
 
 ## Usage:
 
@@ -33,6 +33,8 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 ## Version History:
 
+**v1.5** \- 2020\-07\-03: Functional Release: Optional commands READEEPR and WRITEEPR have been added to read and write data to the EEPROM as well as the READDEVS command that allows reading the device signature, fuses, and lock bits. A few code fixes and a "pre-main" startup file reduction allows getting an additional flash memory page for applications. The overall project repository was restructured, now the I2C libraries and examples are held on separate git repositories to handle the versioning independently. Added an experimental [PlatformIO project](/timonel-bootloader-io) folder to handle the bootloader building in a more structured way. However, for the moment, the [Make version](/timonel-bootloader) is still the recommended one.
+
 **v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved. [Interactive master](/timonel-twim-ss) test program improved with streamlined libs (see it [working](http://youtu.be/-7GOMToGvzI)). [Multi-slave master](/timonel-twim-ms) test program added (see it [working](http://youtu.be/PM9X1thrdOY)).
 
 **v1.3** \- 2019\-06\-06: Functional Release: Bootloader inline functions \(smaller code\) and low fuse auto clock tweaking\. Support for 1\, 2\, 8 and 16 MHz clock speed in user\-application mode\. TWI master UploadApplication refactoring\, now supports both types of page address calculation and both modes of **APP\_USE\_TPL\_PG**. Several bug fixes.
@@ -48,8 +50,6 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 **v0.8** \- 2018\-09\-16: First functional pre\-release\.
 
 **v0.7** \- 2018\-09\-07: Non\-functional\.
-
-**v0.4** \- 2018\-08\-10: Non\-functional\.
 
 ## Credits:
 
