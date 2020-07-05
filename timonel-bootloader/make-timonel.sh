@@ -32,8 +32,8 @@ MAK_OPT="";
 
 ARG1=${1:-$CFG_DFT};
 ARG2=$2;    # ARG2=${2:-timonel};
-ARG3=$3;    # ARG3=${3:-13};
-ARG4=$4;    # ARG4=${4:-1B80};
+ARG3=$3;    # ARG3=${3:-11};
+ARG4=$4;    # ARG4=${4:-1C00};
 ARG5=$5;    # ARG5=${5:-1};
 ARG6=$6;    # ARG6=${6:-false};
 
