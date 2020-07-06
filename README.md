@@ -1,7 +1,7 @@
 ![timonel-bootloader](https://github.com/casanovg/timonel/blob/media/timonel-code.png)
 ## ATtiny85 I2C Bootloader
 
-Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. It is designed to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, Arduino, RPi, BeagleBone, etc.) serving as I2C master and one or more ATtiny85 as I2C slaves that perform peripheral functions.
+Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. It is designed to enable AVR firmware updates in scenarios where there is a more powerful MCU (ESP8266, ESP32, Arduino, RPi, BeagleBone, etc.) serving as I2C master and one or more ATtiny85 as I2C slaves that perform peripheral functions.
 
 Some cases:
 
@@ -20,11 +20,11 @@ That is why this project began ...
 ## Usage:
 
 * [Install](/timonel-bootloader/README.md#Installation) "timonel.hex" on a Tiny85 (bare chips or Digisparks).
-* Compile your [application program](/apps) and convert the generated ".hex" into an array of bytes to be included in "timonel-twim-ss" or "timonel-twim-ms" (e.g. uint8\_t payload[size] = { 0xaa, 0xbb, ...}; ). Use "[tml-hexparser](/timonel-hexparser)" for helping to create the array (payload).
-* Use [VS Code](http://code.visualstudio.com) + [PlatformIO](http://platformio.org) to compile and install "[timonel-twim-ss.bin](/timonel-twim-ss)" or "[timonel-twim-ms.bin](/timonel-twim-ms)" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. **Note:** the ".bin" file provided contains a small payload demo that sends an SOS by blinking PB1.
+* Build your application program as usual, then use "[tml-hexparser](/timonel-hexparser)" to convert the ".hex" file into a byte array to be included in "[timonel-twim-ss.bin](/timonel-twim-ss)" or "[timonel-twim-ms.bin](/timonel-twim-ms)".
+* Use [VS Code](http://code.visualstudio.com) + [PlatformIO](http://platformio.org) to compile and install "[timonel-twim-ss.bin](/timonel-twim-ss)" or "[timonel-twim-ms.bin](/timonel-twim-ms)" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. **Note:** The supplied ".bin" file contains a small payload demo that blinks PB1 on the Tiny85.
 * Connect both chips by **I2C** (SDA, SCL and ground).
-* Open an asynchronous terminal (e.g. [MobaXterm](http://mobaxterm.mobatek.net)) connected to the serial port of the I2C master (9600 N 8 1).
-* Run the commands shown on screen for erasing and flashing new firmware on the Tiny85.
+* Open an asynchronous terminal (e.g. [MobaXterm](http://mobaxterm.mobatek.net)) connected to the serial port of the I2C master (115200 N 8 1).
+* Run the "timonel-twim-ss" commands shown on screen for erasing and flashing new firmware on the Tiny85.
 * It is also possible to update the bootloader itself by using "[timonel-updater](/timonel-updater)" (based on the micronucleus upgrade program).
 
 ## Contributing:
