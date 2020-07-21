@@ -5,7 +5,7 @@ Timonel is an I2C bootloader for ATtiny85/45/25 microcontrollers. It is designed
 
 Some cases:
 
-* A small robot controlled by an ESP32 where each limb specific functions are delegated to several Tiny85 through an I2C bus.
+* A small robot controlled by an ESP8266 where each limb specific functions are delegated to several Tiny85 through an I2C bus.
 * Multisensor IoT setups, where each Tiny85 is a node that handles one or more sensors.
 * etc ...
 
@@ -20,12 +20,55 @@ That is why this project began ...
 ## Usage:
 
 * [Install](/timonel-bootloader/README.md#Installation) "timonel.hex" on a Tiny85 (bare chips or Digisparks).
-* Build your application program as usual, then use "[tml-hexparser](/timonel-hexparser)" to convert the ".hex" file into a byte array to be included in "[timonel-twim-ss.bin](/timonel-twim-ss)" or "[timonel-twim-ms.bin](/timonel-twim-ms)".
-* Use [VS Code](http://code.visualstudio.com) + [PlatformIO](http://platformio.org) to compile and install "[timonel-twim-ss.bin](/timonel-twim-ss)" or "[timonel-twim-ms.bin](/timonel-twim-ms)" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. **Note:** The supplied ".bin" file contains a small payload demo that blinks PB1 on the Tiny85.
+* Build your application program as usual, then use "[tml-hexparser](/timonel-hexparser)" to convert the ".hex" file into a byte array "payload.h" to be included in the "data/payloads" folder of "[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)" or "[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)".
+* Use [VS Code](http://code.visualstudio.com) + [PlatformIO](http://platformio.org) to compile and install "[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)" or "[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)" (containing the payload) in an arduino-compatible MCU. It has been tested with ESP8266 ESP01 and NodeMCU. **Note:** The supplied ".bin" file contains a small payload demo that blinks PB1 on the Tiny85.
 * Connect both chips by **I2C** (SDA, SCL and ground).
 * Open an asynchronous terminal (e.g. [MobaXterm](http://mobaxterm.mobatek.net)) connected to the serial port of the I2C master (115200 N 8 1).
 * Run the "timonel-twim-ss" commands shown on screen for erasing and flashing new firmware on the Tiny85.
 * It is also possible to update the bootloader itself by using "[timonel-updater](/timonel-updater)" (based on the micronucleus upgrade program).
+
+## Repository organization:
+~~~
+timonel                           
+│
+├── timonel-bootloader : Bootloader main folder. It gets built with "avr-gcc" and "make", using the provided scripts.
+│   ├── configs        : Several setups to balance features with memory usage. To be called from the "make-timonel.sh" script.
+│   ├── releases       : Binary files folder, this is where the compiler output is saved.
+│   ├── ...
+│   ├─ make-timonel.sh : Bootloader build script. Use "./make-timonel.sh --help" for usage options and parameters.
+│   └─ flash-timonel-bootloader.sh : Flashing script. It takes a given binary from "releases" and flashes it with "avrdude".
+│
+├── timonel-bootloader-io : Bootloader implemented as a PlatformIO experimental project.
+│   ├── configs           : Several setups to balance features with memory usage. Selected from "platformio.ini".
+│   ├── ...
+│   └─ platformio.ini     : This file controls all the settings and building parameters.
+│
+├── timonel-hexparser   : Utility to convert a ".hex" binary file into a ".h" payload to be included in I2C master apps.
+│   ├── appl-flashable  : Put here application firmware ".hex" files.
+│   ├── appl-payload    : Here are saved the apps, converted to ".h" files by the hexparser.
+│   ├── ...
+│   └─ make-payload.sh  : Hexparser firmware conversion script.
+│
+├── timonel-updater       : Utility to convert a Timonel binary into a bootloader ".h" update payload for am I2C master.
+│   ├── tmlupd-flashable  : Put here Timonel bootloader ".hex" binary files.
+│   ├── tmlupd-flashable  : Here are saved the ".h" Timonel payloads for updating the bootloader.
+│   ├── ...
+│   └─ make-updater.sh    : Timonel bootloader updater conversion script.
+~~~
+
+## Dependence on other repositories:
+
+#### Libraries
+
+* **[Nb_Micro](https://github.com/casanovg/Nb_Micro)**: Arduino library to control devices that implement the NB command set over an I2C bus.
+* **[Nb_TimonelTwiM](https://github.com/casanovg/Nb_TimonelTwiM)**: Arduino library for uploading firmware to a microcontroller running the Timonel bootloader. It uses the NbMicro library to access the I2C bus.
+* **[Nb_TwiBus](https://github.com/casanovg/Nb_TwiBus)**: Arduino library to scan the I2C bus in search of connected devices addresses and data. It uses the TimonelTwiM library bootloader object definition.
+* **[nb-twi-cmd](https://github.com/casanovg/nb-twi-cmd)**: NB TWI (I2C) command set.
+
+#### Demo I2C master test applications
+
+* **[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)**: Timonel I2C master **single slave**. Serial console-based application that allows sending commands to a device that runs the bootloader from an ESP8266.
+* **[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)**: Timonel I2C master **multi slave**. Serial console-based application that runs a loop that flashes, deletes and runs a user application on several Tiny85's running the bootloader from an ESP8266.
 
 ## Contributing:
 
