@@ -32,8 +32,8 @@ MAK_OPT="";
 
 ARG1=${1:-$CFG_DFT};
 ARG2=$2;    # ARG2=${2:-timonel};
-ARG3=$3;    # ARG3=${3:-13};
-ARG4=$4;    # ARG4=${4:-1B80};
+ARG3=$3;    # ARG3=${3:-11};
+ARG4=$4;    # ARG4=${4:-1C00};
 ARG5=$5;    # ARG5=${5:-1};
 ARG6=$6;    # ARG6=${6:-false};
 
@@ -60,14 +60,18 @@ function print_help {
     echo "  -a --all    Generates all Timonel configurations.";    
     echo "";
     echo "Examples:";
+    echo "";
     echo "  $" $0;
+    echo "";
     echo "  Generates a binary file based on \"tml-t85-std\" defaults->FW_NAME=timonel,";
     echo "  TWI_ADDR=11, START_ADDR=0x1B80, CLK_SPEED=1 (MHz), AUTO_TWEAK=false.";
     echo "";
     echo "  $ $0 tml-t85-full";
+    echo "";
     echo "  Generates a \"timonel.hex\" binary file based on \"tml-t85-full\" config.";
     echo "";    
     echo "  $ $0 tml-t85-small new-test 17 1B00 8 false";
+    echo "";
     echo "  Generates a \"new-test.hex\" binary file based on \"tml-t85-small\" config,";
     echo "  assigning TWI address 17 to the device, setting 0x1B00 device memory position";
     echo "  as bootloader start, setting the device low fuse to operate at 8 MHz";

@@ -454,6 +454,9 @@ inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
             return;
         }        
 #endif  // EEPROM_ACCESS
+        default: {
+            UsiTwiTransmitByte(UNKNOWNC);
+        }
     }
 }
 

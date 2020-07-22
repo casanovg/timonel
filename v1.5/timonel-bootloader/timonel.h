@@ -141,6 +141,7 @@
 #define ID_CHAR_1       78          /* N */
 #define ID_CHAR_2       66          /* B */
 #define ID_CHAR_3       84          /* T */
+#define ID_CHAR_4       116         /* t */
 
 // Flags byte
 #define FL_INIT_1       0           /* Flag bit 1 (1)  : Two-step initialization STEP 1 */
