@@ -1,10 +1,6 @@
-# Timonel Bootloader v1.5
+Timonel Bootloader v1.5 - External I2C Library
 
-Changes from previous version:
-
-* **Slightly smaller bootloader footprint:** some memory got by removing unused pre-checks from the "crt1.S" initialization file (before calling main), and tweaking compiler options. Now smallest bootloader size, when compiled using the "tml-t85-small" @8Mhz configuration, is ~880 bytes (less than 14 pages). This leaves **7.3 Kbytes (114 pages) available for the user application** on an ATtiny85.
-* **READDEVS command added:** this optional command allows getting the device signature bytes, lock, and fuse bits from the device.
-* **READEEPR and WRITEEPR commands added:** These optional commands are to read and write data to the device's EEPROM. The extended features flag 5 "EEPROM_ACCESS" includes/excludes both commands from the bootloader binary.
+This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader)", but the USI-based, interrupt free I2C driver is implemented as an external library.
 
 ## Compilation
 
