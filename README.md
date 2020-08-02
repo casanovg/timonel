@@ -69,6 +69,7 @@ timonel
 
 * **[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)**: Timonel I2C master **single slave**. Serial console-based application that allows sending commands to a device that runs the bootloader from an ESP8266.
 * **[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)**: Timonel I2C master **multi slave**. Serial console-based application that runs a loop that flashes, deletes and runs a user application on several Tiny85's running the bootloader from an ESP8266.
+* **[timonel-ota-demo](https://github.com/casanovg/timonel-ota-demo)**: This demo application shows a series of steps performed by an ESP8266 I2C master to check a website for updates, **retrieve a new firmware file from the internet**, and update an ATtiny85 slave microcontroller over the I2C bus.
 
 ## Contributing:
 
