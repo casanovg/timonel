@@ -17,11 +17,6 @@ In these situations, it is quite convenient to be able to update the AVRs' firmw
 
 That is why this project began ...
 
-## Demos:
-
-* [Interactive master](/timonel-twim-ss) video: [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
-* [Multi-slave master](/timonel-twim-ms) video: [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
-
 ## Usage:
 
 * [Install](/timonel-bootloader/README.md#Installation) "timonel.hex" on a Tiny85 (bare chips or Digisparks).
@@ -70,11 +65,17 @@ timonel
 * **[Nb_TwiBus](https://github.com/casanovg/Nb_TwiBus)**: Arduino library to scan the I2C bus in search of connected devices addresses and data. It uses the TimonelTwiM library bootloader object definition.
 * **[nb-twi-cmd](https://github.com/casanovg/nb-twi-cmd)**: NB TWI (I2C) command set.
 
-#### Demo I2C master test applications
+#### I2C master test applications
 
 * **[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)**: Timonel I2C master **single slave**. Serial console-based application that allows sending commands to a device that runs the bootloader from an ESP8266.
 * **[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)**: Timonel I2C master **multi slave**. Serial console-based application that runs a loop that flashes, deletes and runs a user application on several Tiny85's running the bootloader from an ESP8266.
 * **[timonel-ota-demo](https://github.com/casanovg/timonel-ota-demo)**: This demo application shows a series of steps performed by an ESP8266 I2C master to check a website for updates, **retrieve a new firmware file from the internet**, and update an ATtiny85 slave microcontroller over the I2C bus.
+
+## Demo videos:
+
+* **Interactive master** (timonel-mss-esp8266): [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
+* **Multi-slave master** (timonel-mms-esp8266): [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
+* **Over-the-air demo** (timonel-ota-demo): [https://www.youtube.com/watch?v=4Jkap5PMG0U](https://www.youtube.com/watch?v=4Jkap5PMG0U&cc_load_policy=1).
 
 ## Contributing:
 
