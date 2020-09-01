@@ -17,6 +17,11 @@ In these situations, it is quite convenient to be able to update the AVRs' firmw
 
 That is why this project began ...
 
+## Demos:
+
+* [Interactive master](/timonel-twim-ss) video: [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
+* [Multi-slave master](/timonel-twim-ms) video: [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
+
 ## Usage:
 
 * [Install](/timonel-bootloader/README.md#Installation) "timonel.hex" on a Tiny85 (bare chips or Digisparks).
@@ -26,11 +31,6 @@ That is why this project began ...
 * Open an asynchronous terminal (e.g. [MobaXterm](http://mobaxterm.mobatek.net)) connected to the serial port of the I2C master (115200 N 8 1).
 * Run the "timonel-twim-ss" commands shown on screen for erasing and flashing new firmware on the Tiny85.
 * It is also possible to update the bootloader itself by using "[timonel-updater](/timonel-updater)" (based on the micronucleus upgrade program).
-
-## Demos:
-
-* [Interactive master](/timonel-twim-ss) video: [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
-* [Multi-slave master](/timonel-twim-ms) video: [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
 
 ## Repository organization:
 ~~~
