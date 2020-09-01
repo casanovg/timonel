@@ -27,6 +27,11 @@ That is why this project began ...
 * Run the "timonel-twim-ss" commands shown on screen for erasing and flashing new firmware on the Tiny85.
 * It is also possible to update the bootloader itself by using "[timonel-updater](/timonel-updater)" (based on the micronucleus upgrade program).
 
+## Demos:
+
+* [Interactive master](/timonel-twim-ss) video: [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
+* [Multi-slave master](/timonel-twim-ms) video: [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
+
 ## Repository organization:
 ~~~
 timonel                           
@@ -79,7 +84,7 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 **v1.5** \- 2020\-07\-03: Functional Release: Optional commands READEEPR and WRITEEPR have been added to read and write data to the EEPROM as well as the READDEVS command that allows reading the device signature, fuses, and lock bits. A few code fixes and a "pre-main" startup file reduction allows getting an additional flash memory page for applications. The overall project repository was restructured, now the I2C master side libraries and examples are held on separate git repositories to handle the versioning independently. Added an experimental [PlatformIO project](/timonel-bootloader-io) folder to handle the bootloader building in a more structured way. However, for the moment, the [Make version](/timonel-bootloader) is still the recommended one.
 
-**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved. [Interactive master](/timonel-twim-ss) test program improved with streamlined libs (see it [working](http://youtu.be/-7GOMToGvzI)). [Multi-slave master](/timonel-twim-ms) test program added (see it [working](http://youtu.be/PM9X1thrdOY)).
+**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved.
 
 **v1.3** \- 2019\-06\-06: Functional Release: Bootloader inline functions \(smaller code\) and low fuse auto clock tweaking\. Support for 1\, 2\, 8 and 16 MHz clock speed in user\-application mode\. TWI master UploadApplication refactoring\, now supports both types of page address calculation and both modes of **APP\_USE\_TPL\_PG**. Several bug fixes.
 
