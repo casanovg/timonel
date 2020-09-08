@@ -57,38 +57,6 @@
 #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
-// Pointer-to-function type
-typedef void (*const fptr_t)(void);
-
-// TWI driver operational modes
-typedef enum {
-    STATE_CHECK_RECEIVED_ADDRESS = 0,
-    STATE_SEND_DATA_BYTE = 1,
-    STATE_RECEIVE_ACK_AFTER_SENDING_DATA = 2,
-    STATE_CHECK_RECEIVED_ACK = 3,
-    STATE_RECEIVE_DATA_BYTE = 4,
-    STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK = 5
-} OverflowState;
-
-// Memory management and flags data pack
-typedef struct m_pack {
-    uint16_t page_addr;  // Flash memory page address
-    uint8_t page_ix;     // Flash memory page index
-    uint8_t flags;       // Bit: 8, 7, 6, 5: not used; 4: exit; 3: delete app; 2, 1: initialized
-#if AUTO_PAGE_ADDR
-    uint8_t app_reset_lsb;  // Application first byte: reset vector LSB
-    uint8_t app_reset_msb;  // Application second byte: reset vector MSB
-#endif                      // AUTO_PAGE_ADDR
-} MemPack;                  // "Memory pack" structure
-
-// USI TWI driver globals
-static uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-static uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-static uint8_t rx_byte_count = 0;  // Bytes received in RX buffer
-static uint8_t rx_head = 0, rx_tail = 0;
-static uint8_t tx_head = 0, tx_tail = 0;
-static OverflowState device_state;
-
 // Bootloader prototypes
 inline static void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
 inline static void ResetPrescaler(void) __attribute__((always_inline));
@@ -707,8 +675,6 @@ inline void RestorePrescaler(void) {
 */
 void UsiTwiTransmitByte(const uint8_t data_byte) {
     tx_head = ((tx_head + 1) & TWI_TX_BUFFER_MASK);  // Update the TX buffer index
-    while (tx_head == tx_tail) {
-    };                               // Wait until there is free space in the TX buffer
     tx_buffer[tx_head] = data_byte;  // Write the data byte into the TX buffer
 }
 
@@ -772,15 +738,14 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {  // If data register low-order bit = 1, start the send data mode
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                    // DATA RECEIVED                                                          >>
+                    // Address bit 0 is = 1, processing the received command & sending data   >>
                     uint8_t command_size = rx_byte_count;                //                    >>
-                    static uint8_t command[MST_PACKET_SIZE * 2];         //                     >>
-                    for (uint8_t i = 0; i < command_size; i++) {         //  Call the            >>
-                        while (rx_byte_count-- == 0) {                   //  ReceiveEvent         >>
-                        };                                               //  function to process   >>
-                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  the received data    >>
-                        command[i] = rx_buffer[rx_tail];                 //  (command) ...       >>
-                    }                                                    //                     >>
+                    static uint8_t command[MST_PACKET_SIZE * 2];         //  Read the receive   >>
+                    for (uint8_t i = 0; i < command_size; i++) {         //  buffer, then call   >>
+                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  "ReceiveEvent" to    >>
+                        rx_byte_count--;                                 //  process the received >>
+                        command[i] = rx_buffer[rx_tail];                 //  command and send    >>
+                    }                                                    //  the reply.         >>
                     ReceiveEvent(command, p_mem_pack);                   //                    >>
                     //                                                                        >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -821,7 +786,7 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
                 tx_tail = ((tx_tail + 1) & TWI_TX_BUFFER_MASK);
                 USIDR = tx_buffer[tx_tail];
             } else {
-                // If the buffer is empty ...
+                // If the TX buffer is empty ...
                 SET_USI_TO_RECEIVE_ACK();  // This might be necessary (http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227)
                 SET_USI_TO_WAIT_FOR_TWI_ADDRESS();
                 return false;
@@ -854,9 +819,9 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
         // This mode's cycle should end when a stop condition is detected on the bus.
         case STATE_PUT_BYTE_IN_RX_BUFFER_AND_SEND_ACK: {
             // Put data into buffer
-            rx_byte_count++;
             rx_head = ((rx_head + 1) & TWI_RX_BUFFER_MASK);
             rx_buffer[rx_head] = USIDR;
+            rx_byte_count++;            
             // Next state -> STATE_RECEIVE_DATA_BYTE
             device_state = STATE_RECEIVE_DATA_BYTE;
             SET_USI_TO_SEND_ACK();

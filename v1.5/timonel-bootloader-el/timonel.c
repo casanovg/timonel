@@ -135,7 +135,7 @@ int main(void) {
 #define STR(x) #x
 //#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)                                           // RC oscillator (8 MHz) clock source
-//#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+    //#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;  // With 8 MHz clock source, preserve factory oscillator
     OSCCAL += OSC_FAST;               // calibration and speed it up for TWI to work.
 #elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                                         // HF PLL (16 MHz) clock source
@@ -317,7 +317,7 @@ int main(void) {
                     p_mem_pack->page_ix = 0;
                 }
             }
-        /*..................................
+            /*..................................
           :                                 .
           :   Bootloader NOT initialized     .
           :   --------------------------    .
@@ -362,10 +362,10 @@ int main(void) {
   |  TWI data receive event  |
   |__________________________|
 */
-inline void ReceiveEvent(const uint8_t rx_byte_count) {
-    uint8_t command[MST_PACKET_SIZE * 2] = {0};
-    for (uint8_t i = 0; i < rx_byte_count; i++) {
-        command[i] = UsiTwiReceiveByte();           // Store the data sent by the TWI master in the data buffer
+inline void ReceiveEvent(const uint8_t received_bytes) {
+    static uint8_t command[MST_PACKET_SIZE * 2];
+    for (uint8_t i = 0; i < received_bytes; i++) {
+        command[i] = UsiTwiReceiveByte();  // Store the data sent by the TWI master in the data buffer
     }
     switch (command[0]) {
         case GETTMNLV: {
@@ -416,7 +416,7 @@ inline void ReceiveEvent(const uint8_t rx_byte_count) {
         case READEEPR: {
             Reply_READEEPR(command);
             return;
-        }        
+        }
 #endif  // EEPROM_ACCESS
         default: {
             UsiTwiTransmitByte(UNKNOWNC);
@@ -506,10 +506,10 @@ inline void Reply_WRITPAGE(const uint8_t *command) {
         p_mem_pack->app_reset_lsb = command[1];
         p_mem_pack->app_reset_msb = command[2];
 #endif  // AUTO_PAGE_ADDR
-        // This section modifies the reset vector to point to this bootloader.
-        // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
-        // the reset vector modification MUST BE done by the TWI master's upload program.
-        // Otherwise, Timonel won't have the execution control after power-on reset.
+    // This section modifies the reset vector to point to this bootloader.
+    // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
+    // the reset vector modification MUST BE done by the TWI master's upload program.
+    // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
         reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
@@ -587,15 +587,15 @@ inline void Reply_INITSOFT(void) {
 inline void Reply_READDEVS(void) {
     uint8_t reply[READDEVS_RPLYLN];
     reply[0] = ACKRDEVS;
-    reply[1] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);      // Low fuse bits
-    reply[2] = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);     // High fuse bits
-    reply[3] = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS); // Extended fuse bits
-    reply[4] = boot_lock_fuse_bits_get(GET_LOCK_BITS);          // Device lock bits
-    reply[5] = boot_signature_byte_get(0x00);                   // Signature byte 0
-    reply[6] = boot_signature_byte_get(0x02);                   // Signature byte 1
-    reply[7] = boot_signature_byte_get(0x04);                   // Signature byte 2
-    reply[8] = boot_signature_byte_get(0x01);                   // Calibration data for internal oscillator at 8.0 MHz
-    reply[9] = boot_signature_byte_get(0x03);                   // Calibration data for internal oscillator at 6.4 MHz
+    reply[1] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);       // Low fuse bits
+    reply[2] = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);      // High fuse bits
+    reply[3] = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS);  // Extended fuse bits
+    reply[4] = boot_lock_fuse_bits_get(GET_LOCK_BITS);           // Device lock bits
+    reply[5] = boot_signature_byte_get(0x00);                    // Signature byte 0
+    reply[6] = boot_signature_byte_get(0x02);                    // Signature byte 1
+    reply[7] = boot_signature_byte_get(0x04);                    // Signature byte 2
+    reply[8] = boot_signature_byte_get(0x01);                    // Calibration data for internal oscillator at 8.0 MHz
+    reply[9] = boot_signature_byte_get(0x03);                    // Calibration data for internal oscillator at 6.4 MHz
     for (uint8_t i = 0; i < READDEVS_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -610,14 +610,14 @@ inline void Reply_READDEVS(void) {
 */
 inline void Reply_WRITEEPR(const uint8_t *command) {
     uint8_t reply[WRITEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);    // Set the EEPROM address
-    eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
+    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);  // Set the EEPROM address
+    eeprom_addr &= E2END;                                     // Keep only valid EEPROM addresses
     reply[0] = ACKWTEEP;
-    reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[1] = (uint8_t)(command[1] + command[2] + command[3]);  // Returns the sum of EEPROM address MSB, LSB and data byte
     eeprom_update_byte((uint8_t *)eeprom_addr, command[3]);
     for (uint8_t i = 0; i < WRITEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
-    }    
+    }
 }
 
 /* ____________________
@@ -627,14 +627,14 @@ inline void Reply_WRITEEPR(const uint8_t *command) {
 */
 inline void Reply_READEEPR(const uint8_t *command) {
     uint8_t reply[READEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);    // Set the EEPROM address
-    eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
+    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);  // Set the EEPROM address
+    eeprom_addr &= E2END;                                     // Keep only valid EEPROM addresses
     reply[0] = ACKRDEEP;
     reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);
-    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]);  // Returns the sum of EEPROM address MSB, LSB and data byte
     for (uint8_t i = 0; i < READEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
-    } 
+    }
 }
 #endif  // EEPROM_ACCESS
 
