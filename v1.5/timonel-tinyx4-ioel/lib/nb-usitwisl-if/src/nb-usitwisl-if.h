@@ -97,8 +97,6 @@ bool UsiOverflowHandler(void);
 #define TWI_COLLISION_FLAG USIDC    // This status register flag indicates that a data output collision occurred on the bus
 #define TWI_START_COND_INT USISIE   // This control register bit defines whether an I2C START condition will trigger an interrupt
 #define USI_OVERFLOW_INT USIOIE     // This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt
-#define USI_START_VECTOR USI_START_vect
-#define USI_OVERFLOW_VECTOR USI_OVF_vect
 #endif
 
 #endif  // NB_USITWISL_IF_H
