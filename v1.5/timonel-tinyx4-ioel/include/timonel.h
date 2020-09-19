@@ -18,13 +18,9 @@
 #ifndef TML_CONFIG_H
 #define TML_CONFIG_H
 
-#ifndef __AVR_ATtiny85__
-#define __AVR_ATtiny85__
-#pragma message "   >>>   Run, Timonel, run!   <<<   "
-#endif
-
-#ifdef __AVR_ATtiny44__
-#pragma message "   >>>   Microcontroller ATtiny44 ...   <<<   "
+#ifndef __AVR_ATtiny44__
+#define __AVR_ATtiny44__
+#pragma message "   >>>   Timonel for ATtinyX4 microcontrollers!   <<<   "
 #endif
 
 // Includes

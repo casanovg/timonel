@@ -104,8 +104,16 @@ int main(void) {
       |___________________|
     */
     MCUSR = 0;  // Disable watchdog
-    WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
+#if __AVR_ATtiny85__
+    WDTCR |= ((1 << WDCE) | (1 << WDE));
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#elif __AVR_ATtiny44__
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
+    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#else
+    wdt_disable();
+#endif
+
     cli();  // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
@@ -115,7 +123,7 @@ int main(void) {
 #endif                                    // APP_AUTORUN
     uint16_t led_delay = SHORT_LED_DLY;   // Blinking delay when the bootloader isn't initialized
 #if AUTO_CLK_TWEAK                        // Automatic clock tweaking made at run time, based on low fuse value
-                                          //#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
+//#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
     uint8_t factory_osccal = OSCCAL;      // Preserve factory oscillator calibration
     if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
         // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
@@ -133,9 +141,9 @@ int main(void) {
 #else  // Clock tweaking made at compile time, based on LOW_FUSE variable
 #define XSTR(x) STR(x)
 #define STR(x) #x
-//#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
+                                                         //#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)                                           // RC oscillator (8 MHz) clock source
-    //#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+//#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;  // With 8 MHz clock source, preserve factory oscillator
     OSCCAL += OSC_FAST;               // calibration and speed it up for TWI to work.
 #elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                                         // HF PLL (16 MHz) clock source
@@ -145,7 +153,7 @@ int main(void) {
     ResetPrescaler();  // If using an external CPU clock source, don't reduce its frequency
 #endif                                                                             // LOW_FUSE CLOCK SOURCE
 #if ((LOW_FUSE & 0x80) == 0)                                                       // Prescaler dividing clock by 8
-//#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
+                                      //#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                 // Reset prescaler to divide by 1
 #endif                                                                             // LOW_FUSE PRESCALER BIT
 #endif                                                                             // AUTO_CLK_TWEAK
@@ -317,7 +325,7 @@ int main(void) {
                     p_mem_pack->page_ix = 0;
                 }
             }
-        /*..................................
+            /*..................................
           :                                 .
           :   Bootloader NOT initialized     .
           :   --------------------------    .
