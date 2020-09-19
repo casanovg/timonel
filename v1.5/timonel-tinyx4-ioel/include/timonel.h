@@ -1,10 +1,10 @@
 /*
- *  Timonel - TWI Bootloader for TinyX5 MCUs
+ *  Timonel - TWI Bootloader for TinyX4 MCUs
  *  Author: Gustavo Casanova
  *  ..............................................
  *  File: timonel.h (Main bootloader headers)
  *  .............................................. 
- *  Version: 1.5 "Sandra" / 2020-07-22 "Ext-Lib"
+ *  Version: 1.5 "Sandra" / 2020-09-19 "Canada"
  *  gustavo.casanova@nicebots.com
  *  ..............................................
  */
@@ -21,6 +21,10 @@
 #ifndef __AVR_ATtiny85__
 #define __AVR_ATtiny85__
 #pragma message "   >>>   Run, Timonel, run!   <<<   "
+#endif
+
+#ifdef __AVR_ATtiny44__
+#pragma message "   >>>   Microcontroller ATtiny44 ...   <<<   "
 #endif
 
 // Includes

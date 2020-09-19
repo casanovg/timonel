@@ -4,7 +4,7 @@
  *  .............................................
  *  File: nb-usitwisl-if.h (Slave driver headers)
  *  .............................................
- *  Version: 1.0.1 / 2020-09-07
+ *  Version: 1.0.2 / 2020-09-19
  *  gustavo.casanova@nicebots.com
  *  .............................................
  *  Based on work by Atmel (AVR312) et others
@@ -97,6 +97,6 @@ bool UsiOverflowHandler(void);
 #define TWI_COLLISION_FLAG USIDC    // This status register flag indicates that a data output collision occurred on the bus
 #define TWI_START_COND_INT USISIE   // This control register bit defines whether an I2C START condition will trigger an interrupt
 #define USI_OVERFLOW_INT USIOIE     // This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt
-#endif
+#endif                              // ATtinyX4
 
 #endif  // NB_USITWISL_IF_H
