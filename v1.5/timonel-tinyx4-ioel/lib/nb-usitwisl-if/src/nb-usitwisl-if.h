@@ -63,7 +63,7 @@ bool UsiOverflowHandler(void);
 
 // -----------------------------------------------------------------------------------
 
-// Device Dependent Defines
+// Device dependent defines
 #if defined(__AVR_ATtiny25__) | \
     defined(__AVR_ATtiny45__) | \
     defined(__AVR_ATtiny85__)

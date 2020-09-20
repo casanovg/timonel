@@ -56,10 +56,10 @@ void UsiTwiTransmitByte(const uint8_t data_byte) {
     tx_byte_count++;                                 // Update TX buffer used positions counter
 }
 
-/*  ___________________________
-   |                           |
-   | USI TWI byte reception    |
-   |___________________________|
+/* ___________________________
+  |                           |
+  | USI TWI byte reception    |
+  |___________________________|
 */
 uint8_t UsiTwiReceiveByte(void) {
     while (!rx_byte_count) {
@@ -69,10 +69,10 @@ uint8_t UsiTwiReceiveByte(void) {
     return rx_buffer[rx_tail];                       // Return data from the RX buffer
 }
 
-/*  _______________________________
-   |                               |
-   | USI TWI driver initialization |
-   |_______________________________|
+/* _______________________________
+  |                               |
+  | USI TWI driver initialization |
+  |_______________________________|
 */
 void UsiTwiDriverInit(void) {
     // Initialize USI for TWI Slave mode.
@@ -85,10 +85,10 @@ void UsiTwiDriverInit(void) {
     SET_USI_TO_WAIT_FOR_TWI_ADDRESS();      // Wait for TWI start condition and address from master */
 }
 
-/*  _______________________________________________________
-   |                                                       |
-   | TWI start condition handler (Interrupt-like function) |
-   |_______________________________________________________|
+/* _______________________________________________________
+  |                                                       |
+  | TWI start condition handler (Interrupt-like function) |
+  |_______________________________________________________|
 */
 inline void TwiStartHandler(void) {
     SET_USI_SDA_AS_INPUT();  // Float the SDA line
@@ -115,10 +115,10 @@ inline void TwiStartHandler(void) {
     SET_USI_TO_SHIFT_8_ADDRESS_BITS();
 }
 
-/*  ______________________________________________________
-   |                                                      |
-   | USI 4-bit overflow handler (Interrupt-like function) |
-   |______________________________________________________|
+/* ______________________________________________________
+  |                                                      |
+  | USI 4-bit overflow handler (Interrupt-like function) |
+  |______________________________________________________|
 */
 inline bool UsiOverflowHandler(void) {
     switch (device_state) {
