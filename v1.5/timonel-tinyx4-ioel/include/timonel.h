@@ -18,10 +18,10 @@
 #ifndef TML_CONFIG_H
 #define TML_CONFIG_H
 
-#ifndef __AVR_ATtiny44__
-#define __AVR_ATtiny44__
-#pragma message "   >>>   Timonel for ATtinyX4 microcontrollers!   <<<   "
-#endif
+// #ifndef __AVR_ATtiny84__
+// #define __AVR_ATtiny84__
+// #pragma message "   >>>   Timonel for ATtinyX4 microcontrollers!   <<<   "
+// #endif
 
 // Includes
 #include <avr/boot.h>

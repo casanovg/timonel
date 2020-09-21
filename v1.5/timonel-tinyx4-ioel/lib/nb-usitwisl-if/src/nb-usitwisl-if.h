@@ -82,8 +82,8 @@ bool UsiOverflowHandler(void);
 #define USI_OVERFLOW_INT USIOIE     // This control register bit defines whether an USI 4-bit counter overflow will trigger an interrupt
 #endif                              // ATtinyX5
 
-#if defined(__AVR_ATtiny84__) | \
-    defined(__AVR_ATtiny44__)
+#if defined(__AVR_ATtiny44__) | \
+    defined(__AVR_ATtiny84__)
 #define DDR_USI DDRA
 #define PORT_USI PORTA
 #define PIN_USI PINA

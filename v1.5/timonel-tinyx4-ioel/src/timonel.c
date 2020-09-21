@@ -104,16 +104,17 @@ int main(void) {
       |___________________|
     */
     MCUSR = 0;  // Disable watchdog
-#if __AVR_ATtiny85__
+#if defined(__AVR_ATtiny25__) | \
+    defined(__AVR_ATtiny45__) | \
+    defined(__AVR_ATtiny85__)
     WDTCR |= ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
-#elif __AVR_ATtiny44__
+#endif
+#if defined(__AVR_ATtiny44__) | \
+    defined(__AVR_ATtiny84__)
     WDTCSR |= (1 << WDCE) | (1 << WDE);
     WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
-#else
-    wdt_disable();
 #endif
-
     cli();  // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
