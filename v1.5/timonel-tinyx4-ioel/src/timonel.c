@@ -110,7 +110,8 @@ int main(void) {
     WDTCR |= ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
 #endif
-#if defined(__AVR_ATtiny44__) | \
+#if defined(__AVR_ATtiny24__) | \
+    defined(__AVR_ATtiny44__) | \
     defined(__AVR_ATtiny84__)
     WDTCSR |= (1 << WDCE) | (1 << WDE);
     WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout

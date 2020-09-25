@@ -1,5 +1,5 @@
 /*
- *  NB TWI interrupt-free USI-hardware driver
+ *  NB NB USI-device interrupt-free TWI driver
  *  Author: Gustavo Casanova
  *  .............................................
  *  File: nb-usitwisl-if.h (Slave driver headers)
