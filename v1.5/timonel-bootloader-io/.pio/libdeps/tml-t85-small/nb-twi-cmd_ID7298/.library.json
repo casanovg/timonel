@@ -1,0 +1,28 @@
+{
+    "name": "nb-twi-cmd", 
+    "repository": {
+        "url": "https://github.com/casanovg/nb-twi-cmd.git", 
+        "type": "git"
+    }, 
+    "platforms": [], 
+    "frameworks": [], 
+    "version": "0.7.0", 
+    "authors": [
+        {
+            "maintainer": false, 
+            "name": "Gustavo Casanova", 
+            "url": "https://github.com/casanovg", 
+            "email": null
+        }
+    ], 
+    "keywords": [
+        "protocol", 
+        "nb-twi-cmd", 
+        "twi", 
+        "communications", 
+        "command set", 
+        "i2c"
+    ], 
+    "id": 7298, 
+    "description": "Declares the NB communication protocol over TWI (I2C)."
+}

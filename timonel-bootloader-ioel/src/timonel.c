@@ -6,9 +6,9 @@
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
  *  Timonel - TWI Bootloader for TinyX5 MCUs
- *  Author: Gustavo Casanova
+ *  gustavo.casanova@nicebots.com
  *  ..............................................
- *  Version: 1.5 "Sandra" / 2020-07-22 "Ext-Lib"
+ *  Version: 1.6 "Sandra" / 2020-09-27 "Ext-Lib"
  *  gustavo.casanova@nicebots.com
  */
 
@@ -29,12 +29,12 @@
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
 #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 11 (valid range: 8 to 35 decimal)"
 #undef TWI_ADDR
-#define TWI_ADDR 11  // Timonel TWI default address: 11 (0x0B)
+#define TWI_ADDR 15  // Timonel TWI default address: 15 (0x0F)
 #endif               // 8 <= TWI_ADDR <= 35
 
 // This bootloader ...
 #define TIMONEL_VER_MJR 1  // Timonel version major number
-#define TIMONEL_VER_MNR 5  // Timonel version major number
+#define TIMONEL_VER_MNR 6  // Timonel version major number
 
 // Configuration checks
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
@@ -104,9 +104,19 @@ int main(void) {
       |___________________|
     */
     MCUSR = 0;  // Disable watchdog
-    WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
-    cli();  // Disable interrupts
+#if defined(__AVR_ATtiny25__) | \
+    defined(__AVR_ATtiny45__) | \
+    defined(__AVR_ATtiny85__)
+    WDTCR |= ((1 << WDCE) | (1 << WDE));
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#endif                                                  // AVR_ATtinyX5
+#if defined(__AVR_ATtiny24__) | \
+    defined(__AVR_ATtiny44__) | \
+    defined(__AVR_ATtiny84__)
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
+    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#endif                                                   // AVR_ATtinyX4
+    cli();                                               // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
 #endif                                // ENABLE_LED_UI
@@ -135,7 +145,7 @@ int main(void) {
 #define STR(x) #x
 //#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)                                           // RC oscillator (8 MHz) clock source
-    //#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+//#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;  // With 8 MHz clock source, preserve factory oscillator
     OSCCAL += OSC_FAST;               // calibration and speed it up for TWI to work.
 #elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                                         // HF PLL (16 MHz) clock source
@@ -145,7 +155,7 @@ int main(void) {
     ResetPrescaler();  // If using an external CPU clock source, don't reduce its frequency
 #endif                                                                             // LOW_FUSE CLOCK SOURCE
 #if ((LOW_FUSE & 0x80) == 0)                                                       // Prescaler dividing clock by 8
-//#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
+                                      //#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                 // Reset prescaler to divide by 1
 #endif                                                                             // LOW_FUSE PRESCALER BIT
 #endif                                                                             // AUTO_CLK_TWEAK
@@ -317,7 +327,7 @@ int main(void) {
                     p_mem_pack->page_ix = 0;
                 }
             }
-        /*..................................
+            /*..................................
           :                                 .
           :   Bootloader NOT initialized     .
           :   --------------------------    .

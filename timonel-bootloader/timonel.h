@@ -4,7 +4,7 @@
  *  ...........................................
  *  File: timonel.h (Main bootloader headers)
  *  ........................................... 
- *  Version: 1.5 "Sandra" / 2020-06-06
+ *  Version: 1.6 "Sandra" / 2020-09-27
  *  gustavo.casanova@nicebots.com
  *  ...........................................
  */
@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../../nb-twi-cmd/src/nb-twi-cmd.h"
+#include "../../nb-twi-cmd/src/nb-twi-cmd.h"
 
 // Memory management and flags data pack
 typedef struct m_pack {
