@@ -1,0 +1,11 @@
+{
+    "name": "nb-usitwisl-if",
+    "version": "1.0.2",    
+    "keywords": "nb-usitwisl-if, i2c, twi, master, communications, bootloader, atmelavr",
+    "description": "USI-device interrupt-free TWI (I2C) slave driver for ATtiny85 and similar microcontrollers",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/casanovg/nb-usitwisl-if.git"
+    },
+    "platforms": "atmelavr"
+}

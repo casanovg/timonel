@@ -65,17 +65,11 @@ timonel
 * **[Nb_TwiBus](https://github.com/casanovg/Nb_TwiBus)**: Arduino library to scan the I2C bus in search of connected devices addresses and data. It uses the TimonelTwiM library bootloader object definition.
 * **[nb-twi-cmd](https://github.com/casanovg/nb-twi-cmd)**: NB TWI (I2C) command set.
 
-#### I2C master test applications
+#### Demo I2C master test applications
 
 * **[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)**: Timonel I2C master **single slave**. Serial console-based application that allows sending commands to a device that runs the bootloader from an ESP8266.
 * **[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)**: Timonel I2C master **multi slave**. Serial console-based application that runs a loop that flashes, deletes and runs a user application on several Tiny85's running the bootloader from an ESP8266.
 * **[timonel-ota-demo](https://github.com/casanovg/timonel-ota-demo)**: This demo application shows a series of steps performed by an ESP8266 I2C master to check a website for updates, **retrieve a new firmware file from the internet**, and update an ATtiny85 slave microcontroller over the I2C bus.
-
-## Demo videos:
-
-* **Interactive master** (timonel-mss-esp8266): [https://www.youtube.com/watch?v=-7GOMToGvzI](https://www.youtube.com/watch?v=-7GOMToGvzI&cc_load_policy=1).
-* **Multi-slave master** (timonel-mms-esp8266): [https://www.youtube.com/watch?v=PM9X1thrdOY](https://www.youtube.com/watch?v=PM9X1thrdOY&cc_load_policy=1).
-* **Over-the-air demo** (timonel-ota-demo): [https://www.youtube.com/watch?v=4Jkap5PMG0U](https://www.youtube.com/watch?v=4Jkap5PMG0U&cc_load_policy=1).
 
 ## Contributing:
 
@@ -83,9 +77,11 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 ## Version History:
 
-**v1.5** \- 2020\-07\-03: Functional Release: Optional commands READEEPR and WRITEEPR have been added to read and write data to the EEPROM as well as the READDEVS command that allows reading the device signature, fuses, and lock bits. A few code fixes and a "pre-main" startup file reduction allows getting an additional flash memory page (64 bytes) for applications. The overall project repository was restructured, now the I2C master side libraries and examples are held on separate git repositories to handle the versioning independently. Added an experimental [PlatformIO project](/timonel-bootloader-io) folder to handle the bootloader building in a more structured way. However, for the moment, the [Make version](/timonel-bootloader) is still the recommended one.
+**v1.6** \- 2020\-09\-25: Functional Release: Supported devices range extended to all AVR microprocessors with Universal Serial Interface (USI). However, at release time, it's only thoroughly tested on the ATtinyX5 and ATtinyX4 series.
 
-**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" takes less than 1 KB\, leaving 7 KB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved.
+**v1.5** \- 2020\-07\-03: Functional Release: Optional commands READEEPR and WRITEEPR have been added to read and write data to the EEPROM as well as the READDEVS command that allows reading the device signature, fuses, and lock bits. A few code fixes and a "pre-main" startup file reduction allows getting an additional flash memory page for applications. The overall project repository was restructured, now the I2C libraries and examples are held on separate git repositories to handle the versioning independently. Added an experimental [PlatformIO project](/timonel-bootloader-io) folder to handle the bootloader building in a more structured way. However, for the moment, the [Make version](/timonel-bootloader) is still the recommended one.
+
+**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved. [Interactive master](/timonel-twim-ss) test program improved with streamlined libs (see it [working](http://youtu.be/-7GOMToGvzI)). [Multi-slave master](/timonel-twim-ms) test program added (see it [working](http://youtu.be/PM9X1thrdOY)).
 
 **v1.3** \- 2019\-06\-06: Functional Release: Bootloader inline functions \(smaller code\) and low fuse auto clock tweaking\. Support for 1\, 2\, 8 and 16 MHz clock speed in user\-application mode\. TWI master UploadApplication refactoring\, now supports both types of page address calculation and both modes of **APP\_USE\_TPL\_PG**. Several bug fixes.
 
