@@ -41,9 +41,14 @@
 #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
-#if (SPM_PAGESIZE > 64)
-#error "Timonel only supports pagesizes up to 64 bytes"
+
+#if (TIMONEL_START >= FLASHEND)
+#error "Timonel start location is outside the device memory map, please correct TIMONEL_START"
 #endif
+
+// #if (SPM_PAGESIZE > 64)
+// #error "Timonel only supports pagesizes up to 64 bytes"
+// #endif
 
 #if (!(AUTO_PAGE_ADDR) && !(CMD_SETPGADDR))
 #error "If the AUTO_PAGE_ADDR option is disabled, then CMD_SETPGADDR must be enabled in tml-config.h!"
