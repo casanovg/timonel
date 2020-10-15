@@ -93,7 +93,7 @@ case ${ARG1} in
             echo "MAKING ->" ${TML_CFG};
             echo "";
             make all CONFIG=${TML_CFG} TARGET=${TML_CFG};
-            mv ${TML_CFG}${HEX_SFX} ./${BIN_DIR};
+            mv ${TML_CFG}${HEX_SFX} ./${BIN_DIR}/;
             make clean_all CONFIG=${TML_CFG} TARGET=${TML_CFG};
         done
         exit;
