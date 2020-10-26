@@ -64,8 +64,9 @@
 #define USI_OVERFLOW_INT USIOIE
 #endif
 
-// ATtiny2313
-#if defined(__AVR_ATtiny2313__)
+// ATtinyX313
+#if defined(__AVR_ATtiny2313__) | \
+    defined(__AVR_ATtiny4313__)
 #define DDR_USI DDRB
 #define PORT_USI PORTB
 #define PIN_USI PINB
@@ -99,8 +100,10 @@
 #define USI_OVERFLOW_INT USIOIE
 #endif
 
-// ATtiny26
-#if defined(__AVR_ATtiny26__)
+// ATtinyX61
+#if defined(__AVR_ATtiny261__) | \
+    defined(__AVR_ATtiny461__) | \
+    defined(__AVR_ATtiny861__)
 #define DDR_USI DDRB
 #define PORT_USI PORTB
 #define PIN_USI PINB
@@ -114,22 +117,6 @@
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
-
-// ATtinyX61
-#if defined(__AVR_ATtiny261__) | \
-    defined(__AVR_ATtiny461__) | \
-    defined(__AVR_ATtiny861__)
-#define DDR_USI DDRB
-#define PORT_USI PORTB
-#define PIN_USI PINB
-#define PORT_USI_SDA PB0
-#define PORT_USI_SCL PB2
-#define PIN_USI_SDA PINB0
-#define PIN_USI_SCL PINB2
-#define USI_START_COND_INT USISIF
-#define USI_START_VECTOR USI_START_vect
-#define USI_OVERFLOW_VECTOR USI_OVF_vect
 #endif
 
 // ATmega
