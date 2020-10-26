@@ -119,25 +119,45 @@
 #define USI_OVERFLOW_INT USIOIE
 #endif
 
-// ATmega
-#if defined(__AVR_ATmega165__) |  \
-    defined(__AVR_ATmega169__) |  \
-    defined(__AVR_ATmega325__) |  \
-    defined(__AVR_ATmega3250__) | \
-    defined(__AVR_ATmega645__) |  \
-    defined(__AVR_ATmega6450__) | \
-    defined(__AVR_ATmega329__) |  \
-    defined(__AVR_ATmega3290__)
-#define DDR_USI DDRE
-#define PORT_USI PORTE
-#define PIN_USI PINE
-#define PORT_USI_SDA PE5
-#define PORT_USI_SCL PE4
-#define PIN_USI_SDA PINE5
-#define PIN_USI_SCL PINE4
-#define USI_START_COND_INT USISIF
-#define USI_START_VECTOR USI_START_vect
-#define USI_OVERFLOW_VECTOR USI_OVERFLOW_vect
+// ATtiny43
+#if defined(__AVR_ATtiny43U__)
+#define DDR_USI DDRB
+#define PORT_USI PORTB
+#define PIN_USI PINB
+#define PORT_USI_SDA PORTB4
+#define PORT_USI_SCL PORTB6
+#define PIN_USI_SDA PINB4
+#define PIN_USI_SCL PINB6
+#define TWI_START_COND_FLAG USISIF
+#define USI_OVERFLOW_FLAG USIOIF
+#define TWI_STOP_COND_FLAG USIPF
+#define TWI_COLLISION_FLAG USIDC
+#define TWI_START_COND_INT USISIE
+#define USI_OVERFLOW_INT USIOIE
 #endif
+
+// ATmega
+// #if defined(__AVR_ATmega165__) |  \
+//     defined(__AVR_ATmega169__) |  \
+//     defined(__AVR_ATmega325__) |  \
+//     defined(__AVR_ATmega3250__) | \
+//     defined(__AVR_ATmega645__) |  \
+//     defined(__AVR_ATmega6450__) | \
+//     defined(__AVR_ATmega329__) |  \
+//     defined(__AVR_ATmega3290__)
+// #define DDR_USI DDRE
+// #define PORT_USI PORTE
+// #define PIN_USI PINE
+// #define PORT_USI_SDA PE5
+// #define PORT_USI_SCL PE4
+// #define PIN_USI_SDA PINE5
+// #define PIN_USI_SCL PINE4
+// #define TWI_START_COND_FLAG USISIF
+// #define USI_OVERFLOW_FLAG USIOIF
+// #define TWI_STOP_COND_FLAG USIPF
+// #define TWI_COLLISION_FLAG USIDC
+// #define TWI_START_COND_INT USISIE
+// #define USI_OVERFLOW_INT USIOIE
+// #endif
 
 #endif  // HARDWARE_MAPPING_H
