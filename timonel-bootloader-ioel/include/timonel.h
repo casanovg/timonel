@@ -1,10 +1,10 @@
 /*
- *  Timonel - TWI Bootloader for TinyX5 MCUs
+ *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
  *  ..............................................
  *  File: timonel.h (Main bootloader headers)
  *  .............................................. 
- *  Version: 1.6 "Sandra" / 2020-09-27 "Ext-Lib"
+ *  Version: 1.6 "Sandra" / 2020-10-29 "Ext-Lib"
  *  gustavo.casanova@nicebots.com
  *  ..............................................
  */

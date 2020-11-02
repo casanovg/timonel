@@ -5,10 +5,10 @@
  *      | |_| | | | | |_| | | | | ____| |
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
- *  Timonel - TWI Bootloader for TinyX5 MCUs
- *  gustavo.casanova@nicebots.com
+ *  Timonel - TWI Bootloader for ATtiny MCUs
+ *  Author: Gustavo Casanova
  *  ..............................................
- *  Version: 1.6 "Sandra" / 2020-09-27 "Ext-Lib"
+ *  Version: 1.6 "Sandra" / 2020-10-29 "Ext-Lib"
  *  gustavo.casanova@nicebots.com
  */
 
@@ -40,7 +40,6 @@
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
 #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
-
 
 #if (TIMONEL_START >= FLASHEND)
 #error "Timonel start location is outside the device memory map, please correct TIMONEL_START"
@@ -107,16 +106,19 @@ int main(void) {
     MCUSR = 0;  // Disable watchdog
 #if defined(__AVR_ATtiny25__) | \
     defined(__AVR_ATtiny45__) | \
-    defined(__AVR_ATtiny85__)
+    defined(__AVR_ATtiny85__) | \
+    defined(__AVR_ATtiny4313__) | \
+    defined(__AVR_ATtiny87__) | \
+    defined(__AVR_ATtiny167__) | \
+    defined(__AVR_ATtiny261__) | \
+    defined(__AVR_ATtiny461__) | \
+    defined(__AVR_ATtiny861__)
     WDTCR |= ((1 << WDCE) | (1 << WDE));
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
-#endif                                                  // AVR_ATtinyX5
-#if defined(__AVR_ATtiny24__) | \
-    defined(__AVR_ATtiny44__) | \
-    defined(__AVR_ATtiny84__)
+#else
     WDTCSR |= (1 << WDCE) | (1 << WDE);
     WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
-#endif                                                   // AVR_ATtinyX4
+#endif
     cli();                                               // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
