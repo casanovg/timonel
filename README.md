@@ -73,7 +73,7 @@ timonel
 
 ## Contributing:
 
-Contributions are welcome! If you want to add a new feature, please feel free to create a pull request or open an issue :o)
+Contributions are welcome! If you want to add a new feature, please feel free to create a pull request, open an issue, or start a [discussion](https://github.com/casanovg/timonel/discussions) :o)
 
 ## Version History:
 
