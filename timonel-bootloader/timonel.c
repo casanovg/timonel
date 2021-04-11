@@ -88,7 +88,7 @@ inline static void TwiStartHandler(void) __attribute__((always_inline));
 inline static bool UsiOverflowHandler(MemPack *p_mem_pack) __attribute__((always_inline));
 
 // USI TWI driver basic operations prototypes
-void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void);
+inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
 inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
@@ -696,7 +696,7 @@ void UsiTwiTransmitByte(const uint8_t data_byte) {
   | USI TWI driver initialization |
   |_______________________________|
 */
-void UsiTwiDriverInit(void) {
+inline void UsiTwiDriverInit(void) {
     // Initialize USI for TWI Slave mode.
     tx_tail = tx_head = 0;                  // Flush TWI TX buffers
     rx_tail = rx_head = rx_byte_count = 0;  // Flush TWI RX buffers
@@ -851,7 +851,7 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
 // USI TWI basic operations functions
 // ----------------------------------------------------------------------------
 // Set USI to detect start and shift 7 address bits + 1 direction bit in.
-void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
+inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
     SET_USI_TO_DETECT_TWI_START();   // Detect start condition
     SET_USI_TO_SHIFT_8_DATA_BITS();  // Shift 8 bits
 }
@@ -911,7 +911,7 @@ inline void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) {
 }
 // ............................................................................
 // Clear all USI status register interrupt flags, except start condition.
-void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
+inline void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
     USISR = (0 << TWI_START_COND_FLAG) |
             (1 << USI_OVERFLOW_FLAG) |
             (1 << TWI_STOP_COND_FLAG) |
