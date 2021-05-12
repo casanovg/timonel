@@ -42,7 +42,7 @@ if [ -f "$FIRMWARE" ]
 then
     echo "";
 	echo "[[[ Flashing Timonel for operating @ $ARG2 MHz ]]]";
-	avrdude -c USBasp -p attiny85 -B3 -U flash:w:.\\releases\\$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+	avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 else
 	echo ""
 	echo "WARNING: Firmware file \"$FIRMWARE\" not found, please check it!" >&2
