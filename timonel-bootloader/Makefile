@@ -50,8 +50,8 @@ PROGRAMMER ?= -c USBasp
 
 # Tools:
 AVRDUDE = avrdude $(PROGRAMMER) -p $(MCU) 
-#CC = avr-gcc
-CC = /usr/local/bin/avr-7.2.0/bin/avr-gcc
+CC = avr-gcc
+#CC = /usr/local/bin/avr-7.2.0/bin/avr-gcc
 
 # Compiler options
 CFLAGS += -Wall -g2 -Os -std=gnu99

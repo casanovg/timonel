@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../../nb-twi-cmd/src/nb-twi-cmd.h"
+#include "../../nb-twi-cmd/src/nb-twi-cmd.h"
 
 // Memory management and flags data pack
 typedef struct m_pack {
