@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ........................................................
 # File: make-upload-default.sh
 # Project: Timonel - TWI Bootloader
