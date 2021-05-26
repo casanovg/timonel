@@ -575,7 +575,7 @@ inline void Reply_READFLSH(const uint8_t *command) {
         reply[reply_len - 1] += (uint8_t)(reply[i]);  // Checksum accumulator
     }
     reply[reply_len - 1] += (uint8_t)(command[1]);  // Add Received address MSB to checksum
-    reply[reply_len - 1] += (uint8_t)(command[2]);  // Add Received address MSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[2]);  // Add Received address LSB to checksum
     for (uint8_t i = 0; i < reply_len; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
