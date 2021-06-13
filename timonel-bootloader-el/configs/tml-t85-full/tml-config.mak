@@ -50,8 +50,8 @@ TARGET = timonel
 
 # Timonel required libraries path:
 # --------------------------------
-#LIBDIR = ../../../nb-usitwisl-if/src
-#CMDDIR = ../../nb-twi-cmd/src
+LIBDIR = ../../../../nb-usitwisl-if/src
+CMDDIR = ../../../../nb-twi-cmd/src
 
 # Settings for running at 1 Mhz starting from Timonel v1.1
 FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
