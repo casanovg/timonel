@@ -58,26 +58,26 @@
 #endif
 
 // Bootloader prototypes
-inline static void ReceiveEvent(MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
 inline static void ResetPrescaler(void) __attribute__((always_inline));
 inline static void RestorePrescaler(void) __attribute__((always_inline));
 inline static void Reply_GETTMNLV(MemPack *p_mem_pack) __attribute__((always_inline));
 inline static void Reply_EXITTMNL(MemPack *p_mem_pack) __attribute__((always_inline));
 inline static void Reply_DELFLASH(MemPack *p_mem_pack) __attribute__((always_inline));
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
-inline static void Reply_STPGADDR(MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
 #endif  // CMD_SETPGADDR || !AUTO_PAGE_ADDR
-inline static void Reply_WRITPAGE(MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
 #if CMD_READFLASH
-inline static void Reply_READFLSH() __attribute__((always_inline));
+inline static void Reply_READFLSH(const uint8_t *command) __attribute__((always_inline));
 #endif  // CMD_READFLASH
 inline static void Reply_INITSOFT(MemPack *p_mem_pack) __attribute__((always_inline));
 #if CMD_READDEVS
 inline static void Reply_READDEVS(void) __attribute__((always_inline));
 #endif  // CMD_READDEVS
 #if EEPROM_ACCESS
-inline static void Reply_WRITEEPR() __attribute__((always_inline));
-inline static void Reply_READEEPR() __attribute__((always_inline));
+inline static void Reply_WRITEEPR(const uint8_t *command) __attribute__((always_inline));
+inline static void Reply_READEEPR(const uint8_t *command) __attribute__((always_inline));
 #endif  // EEPROM_ACCESS
 
 // USI TWI driver prototypes
@@ -107,9 +107,6 @@ inline static void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
 inline static void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
 inline static void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
 
-// Globals
-static uint8_t command[MST_PACKET_SIZE * 2];
-
 // Main function
 int main(void) {
     /* ___________________
@@ -131,7 +128,7 @@ int main(void) {
     WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
 #else
     WDTCSR |= (1 << WDCE) | (1 << WDE);
-    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0)); // 2 seconds timeout
+    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
 #endif
     cli();  // Disable interrupts
 #if ENABLE_LED_UI
@@ -386,7 +383,7 @@ int main(void) {
   |  TWI data receive event  |
   |__________________________|
 */
-inline void ReceiveEvent(MemPack *p_mem_pack) {
+inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
     switch (command[0]) {
         case GETTMNLV: {
             Reply_GETTMNLV(p_mem_pack);
@@ -402,17 +399,17 @@ inline void ReceiveEvent(MemPack *p_mem_pack) {
         }
 #if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
         case STPGADDR: {
-            Reply_STPGADDR(p_mem_pack);
+            Reply_STPGADDR(command, p_mem_pack);
             return;
         }
 #endif  // CMD_SETPGADDR || !AUTO_PAGE_ADDR
         case WRITPAGE: {
-            Reply_WRITPAGE(p_mem_pack);
+            Reply_WRITPAGE(command, p_mem_pack);
             return;
         }
 #if CMD_READFLASH
         case READFLSH: {
-            Reply_READFLSH();
+            Reply_READFLSH(command);
             return;
         }
 #endif  // CMD_READFLASH
@@ -430,11 +427,11 @@ inline void ReceiveEvent(MemPack *p_mem_pack) {
 #endif  // CMD_READDEVS
 #if EEPROM_ACCESS
         case WRITEEPR: {
-            Reply_WRITEEPR();
+            Reply_WRITEEPR(command);
             return;
         }
         case READEEPR: {
-            Reply_READEEPR();
+            Reply_READEEPR(command);
             return;
         }        
 #endif  // EEPROM_ACCESS
@@ -501,7 +498,7 @@ inline void Reply_DELFLASH(MemPack *p_mem_pack) {
   |   Reply_STPGADDR   |
   |____________________|
 */
-inline void Reply_STPGADDR(MemPack *p_mem_pack) {
+inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = {0};
 	p_mem_pack->page_addr = ((command[1] << 8) | command[2]);  // Sets the flash memory page base address
     p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);              // Keep only pages' base addresses
@@ -518,8 +515,9 @@ inline void Reply_STPGADDR(MemPack *p_mem_pack) {
   |   Reply_WRITPAGE   |
   |____________________|
 */
-inline void Reply_WRITPAGE(MemPack *p_mem_pack) {
+inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[WRITPAGE_RPLYLN] = {0};
+    uint8_t page_loop_start = 0;
     reply[0] = ACKWTPAG;
     if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
 #if AUTO_PAGE_ADDR
@@ -533,18 +531,15 @@ inline void Reply_WRITPAGE(MemPack *p_mem_pack) {
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
         reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
-        for (uint8_t i = 3; i < (MST_PACKET_SIZE + 1); i += 2) {
-            boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-            reply[1] += (uint8_t)((command[i + 1]) + command[i]);
-            p_mem_pack->page_ix += 2;
-        }
+        page_loop_start = 3;
     } else {
-        for (uint8_t i = 1; i < (MST_PACKET_SIZE + 1); i += 2) {
-            boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-            reply[1] += (uint8_t)((command[i + 1]) + command[i]);
-            p_mem_pack->page_ix += 2;
-        }
+        page_loop_start = 1;
     }
+    for (uint8_t i = page_loop_start; i < (MST_PACKET_SIZE + 1); i += 2) {
+        boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
+        reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+        p_mem_pack->page_ix += 2;
+    }    
 #if CHECK_PAGE_IX
     if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
 #else
@@ -564,37 +559,24 @@ inline void Reply_WRITPAGE(MemPack *p_mem_pack) {
   |   Reply_READFLSH   |
   |____________________|
 */
-inline void Reply_READFLSH() {
-    const uint8_t reply_len = (SLV_PACKET_SIZE + 2);  // Reply length: ack + memory positions requested + checksum
+inline void Reply_READFLSH(const uint8_t *command) {
+    const uint8_t reply_len = (command[3] + 2);  // Reply length: ack + memory positions requested + checksum
     uint8_t reply[reply_len];
     reply[0] = ACKRDFSH;
     reply[reply_len - 1] = 0;  // Checksum initialization
     // Point the initial memory position to the received address, then
     // advance to fill the reply with the requested data amount.
-    
-    const __flash uint8_t *mem_position = (uint8_t*)(*(uint16_t*)&command[1]);
+    const __flash uint8_t *mem_position;
+	mem_position = (void *)((command[1] << 8) | command[2]);	
     for (uint8_t i = 1; i < command[3] + 1; i++) {
-        reply[i] = *(mem_position++);                   // Actual memory position data
-        reply[reply_len - 1] += (uint8_t)(reply[i]);    // Checksum accumulator
+        reply[i] = (*(mem_position++) & 0xFF);        // Actual memory position data
+        reply[reply_len - 1] += (uint8_t)(reply[i]);  // Checksum accumulator
     }
-    reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address MSB to checksum
-    reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address LSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[1]);  // Add Received address MSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[2]);  // Add Received address LSB to checksum
     for (uint8_t i = 0; i < reply_len; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
-    
-    // THIS WORKS 1
-	// const __flash uint8_t *mem_position = (uint8_t *)((command[2] << 8) | command[1]);
-    // for (uint8_t i = 1; i < command[3] + 1; i++) {
-        // reply[i] = (*(mem_position++) & 0xFF);          // Actual memory position data
-        // reply[reply_len - 1] += (uint8_t)(reply[i]);    // Checksum accumulator
-    // }
-    // reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address MSB to checksum
-    // reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address LSB to checksum
-    // for (uint8_t i = 0; i < reply_len; i++) {
-        // UsiTwiTransmitByte(reply[i]);
-    // }
-    
 #if ENABLE_LED_UI
     LED_UI_PORT ^= (1 << LED_UI_PIN);  // Blinks whenever a memory data block is sent
 #endif                                 // ENABLE_LED_UI
@@ -641,7 +623,7 @@ inline void Reply_READDEVS(void) {
   |   Reply_WRITEEPR   |
   |____________________|
 */
-inline void Reply_WRITEEPR() {
+inline void Reply_WRITEEPR(const uint8_t *command) {
     uint8_t reply[WRITEEPR_RPLYLN] = {0};
 	uint16_t eeprom_addr = ((command[1] << 8) | command[2]);	// Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
@@ -658,7 +640,7 @@ inline void Reply_WRITEEPR() {
   |   Reply_READEEPR   |
   |____________________|
 */
-inline void Reply_READEEPR() {
+inline void Reply_READEEPR(const uint8_t *command) {
     uint8_t reply[READEEPR_RPLYLN] = {0};
 	uint16_t eeprom_addr = ((command[1] << 8) | command[2]);  	// Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
@@ -767,16 +749,16 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {  // If data register low-order bit = 1, start the send data mode
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                    // Address bit 0 is = 1, processing the received command & sending data    >>
-                    uint8_t command_size = rx_byte_count;                //                     >>
-                    //static uint8_t command[MST_PACKET_SIZE * 2];       //  Read the receive    >>
-                    for (uint8_t i = 0; i < command_size; i++) {         //  buffer, then call    >>
-                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  "ReceiveEvent" to     >>
-                        rx_byte_count--;                                 //  process the received  >>
-                        command[i] = rx_buffer[rx_tail];                 //  command and send     >>
-                    }                                                    //  the reply.          >>
-                    ReceiveEvent(p_mem_pack);                            //                     >>
-                    //                                                                         >>
+                    // Address bit 0 is = 1, processing the received command & sending data   >>
+                    uint8_t command_size = rx_byte_count;                //                    >>
+                    static uint8_t command[MST_PACKET_SIZE * 2];         //  Read the receive   >>
+                    for (uint8_t i = 0; i < command_size; i++) {         //  buffer, then call   >>
+                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  "ReceiveEvent" to    >>
+                        rx_byte_count--;                                 //  process the received >>
+                        command[i] = rx_buffer[rx_tail];                 //  command and send    >>
+                    }                                                    //  the reply.         >>
+                    ReceiveEvent(command, p_mem_pack);                   //                    >>
+                    //                                                                        >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
