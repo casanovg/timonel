@@ -767,16 +767,16 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
             if ((USIDR == 0) || ((USIDR >> 1) == TWI_ADDR)) {
                 if (USIDR & 0x01) {  // If data register low-order bit = 1, start the send data mode
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                    // Address bit 0 is = 1, processing the received command & sending data   >>
-                    uint8_t command_size = rx_byte_count;                //                    >>
-                    //static uint8_t command[MST_PACKET_SIZE * 2];       //  Read the receive   >>
-                    for (uint8_t i = 0; i < command_size; i++) {         //  buffer, then call   >>
-                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  "ReceiveEvent" to    >>
-                        rx_byte_count--;                                 //  process the received >>
-                        command[i] = rx_buffer[rx_tail];                 //  command and send    >>
-                    }                                                    //  the reply.         >>
-                    ReceiveEvent(p_mem_pack);                            //                    >>
-                    //                                                                        >>
+                    // Address bit 0 is = 1, processing the received command & sending data    >>
+                    uint8_t command_size = rx_byte_count;                //                     >>
+                    //static uint8_t command[MST_PACKET_SIZE * 2];       //  Read the receive    >>
+                    for (uint8_t i = 0; i < command_size; i++) {         //  buffer, then call    >>
+                        rx_tail = ((rx_tail + 1) & TWI_RX_BUFFER_MASK);  //  "ReceiveEvent" to     >>
+                        rx_byte_count--;                                 //  process the received  >>
+                        command[i] = rx_buffer[rx_tail];                 //  command and send     >>
+                    }                                                    //  the reply.          >>
+                    ReceiveEvent(p_mem_pack);                            //                     >>
+                    //                                                                         >>
                     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     // Next state -> STATE_SEND_DATA_BYTE
                     device_state = STATE_SEND_DATA_BYTE;
