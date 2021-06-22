@@ -8,7 +8,7 @@
  *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
  *  ..............................................
- *  Version: 1.6 "Sandra" / 2021-06-17 "Alt"
+ *  Version: 1.7 "Sandra" / 2021-06-21 "Alt"
  *  gustavo.casanova@nicebots.com
  */
 
@@ -521,25 +521,26 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     reply[0] = ACKWTPAG;
     if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
 #if AUTO_PAGE_ADDR
-        p_mem_pack->app_reset_lsb = command[1];
-        p_mem_pack->app_reset_msb = command[2];
+        p_mem_pack->app_reset_lsb = command[2];
+        p_mem_pack->app_reset_msb = command[1];
+        
 #endif  // AUTO_PAGE_ADDR
         // This section modifies the reset vector to point to this bootloader.
         // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
         // the reset vector modification MUST BE done by the TWI master's upload program.
         // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-        reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
+        reply[1] += (uint8_t)((command[1]) + command[2]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
         page_loop_start = 3;
     } else {
         page_loop_start = 1;
     }
     for (uint8_t i = page_loop_start; i < (MST_PACKET_SIZE + 1); i += 2) {
-        boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-        reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+        boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i] << 8) | command[i + 1]));
+        reply[1] += (uint8_t)((command[i]) + command[i + 1]);
         p_mem_pack->page_ix += 2;
-    }    
+    }
 #if CHECK_PAGE_IX
     if ((reply[1] != command[MST_PACKET_SIZE + 1]) || (p_mem_pack->page_ix > SPM_PAGESIZE)) {
 #else
