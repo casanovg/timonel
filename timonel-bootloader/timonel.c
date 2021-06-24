@@ -34,7 +34,7 @@
 
 // This bootloader ...
 #define TIMONEL_VER_MJR 1  // Timonel version major number
-#define TIMONEL_VER_MNR 6  // Timonel version major number
+#define TIMONEL_VER_MNR 7  // Timonel version major number
 
 // Configuration checks
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
@@ -521,9 +521,8 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     reply[0] = ACKWTPAG;
     if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
 #if AUTO_PAGE_ADDR
-        p_mem_pack->app_reset_lsb = command[2];
         p_mem_pack->app_reset_msb = command[1];
-        
+        p_mem_pack->app_reset_lsb = command[2];
 #endif  // AUTO_PAGE_ADDR
         // This section modifies the reset vector to point to this bootloader.
         // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
