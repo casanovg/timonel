@@ -1,12 +1,12 @@
 /*
  *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
- *  ..............................................
+ *  ................................................
  *  File: timonel.h (Main bootloader headers)
- *  ..............................................
- *  Version: 1.7 "Sandra" / 2021-06-21 "Alt"
+ *  ................................................
+ *  Version: 1.6 "Sandra" / 2021-06-21 "Big-endian"
  *  gustavo.casanova@nicebots.com
- *  ..............................................
+ *  ................................................
  */
 
 /*
@@ -77,14 +77,14 @@ typedef struct m_pack {
 #endif                      /* TWO_STEP_INIT */
 
 // Bit 5
-#ifndef USE_WDT_RESET /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
+#ifndef USE_WDT_RESET       /* Use watchdog for resetting instead of jumping to TIMONEL_START.     */
 #define USE_WDT_RESET true
 #endif /* USE_WDT_RESET */
 
 // Bit 6
-#ifndef APP_AUTORUN      /* If this option is set to true (1), the user application loaded will */
-#define APP_AUTORUN true /* start automatically after a timeout when the bootloader is not      */
-#endif /* APP_AUTORUN */ /* initialized. Otherwise, It has to be launched by the TWI master.    */
+#ifndef APP_AUTORUN         /* If this option is set to true (1), the user application loaded will */
+#define APP_AUTORUN true    /* start automatically after a timeout when the bootloader is not      */
+#endif /* APP_AUTORUN */    /* initialized. Otherwise, It has to be launched by the TWI master.    */
 
 // Bit 7
 #ifndef CMD_READFLASH       /* This option enables the READFLSH command. It can be useful for      */
@@ -116,8 +116,8 @@ typedef struct m_pack {
 
 // Bit 4
 #ifndef CMD_READDEVS
-#define CMD_READDEVS false /* This option enables the READDEVS command. It allows reading all     */
-#endif /* CMD_READDEVS */  /* fuse bits, lock bits, and device signature imprint table.           */
+#define CMD_READDEVS false  /* This option enables the READDEVS command. It allows reading all     */
+#endif /* CMD_READDEVS */   /* fuse bits, lock bits, and device signature imprint table.           */
 
 // Bit 5
 #ifndef EEPROM_ACCESS       /* This option enables the READEEPR and WRITEEPR commands, which allow */
@@ -134,54 +134,54 @@ typedef struct m_pack {
 /* ------------------------------------------------------------------------------------ */
 
 // TWI commands Xmit packet size
-#define MST_PACKET_SIZE 32 /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
-#define SLV_PACKET_SIZE 32 /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
+#define MST_PACKET_SIZE 32  /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
+#define SLV_PACKET_SIZE 32  /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
 
 // Led UI settings
-#ifndef LED_UI_PIN        /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
-#define LED_UI_PIN PB1    /* bootloader commands could activate it at run time. Please check the */
-#endif /* LED_UI_PIN */   /* connections to be sure that there are no power circuits attached.   */
-                          /* NOTE: This value can be set externally as a makefile option and it  */
-                          /* is shown in the GETTMNLV command.                                   */
-#define LED_UI_DDR DDRB   /* Activity monitor led data register.                                 */
-#define LED_UI_PORT PORTB /* Activity monitor led port.                                          */
+#ifndef LED_UI_PIN          /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
+#define LED_UI_PIN PB1      /* bootloader commands could activate it at run time. Please check the */
+#endif /* LED_UI_PIN */     /* connections to be sure that there are no power circuits attached.   */
+                            /* NOTE: This value can be set externally as a makefile option and it  */
+                            /* is shown in the GETTMNLV command.                                   */
+#define LED_UI_DDR DDRB     /* Activity monitor led data register.                                 */
+#define LED_UI_PORT PORTB   /* Activity monitor led port.                                          */
 
 // Timonel ID characters
-#define ID_CHAR_1 78  /* N */
-#define ID_CHAR_2 66  /* B */
-#define ID_CHAR_3 84  /* T */
-#define ID_CHAR_4 116 /* t */
+#define ID_CHAR_1 78        /* N */
+#define ID_CHAR_2 66        /* B */
+#define ID_CHAR_3 84        /* T */
+#define ID_CHAR_4 116       /* t */
 
 // Flags byte
-#define FL_INIT_1 0    /* Flag bit 1 (1)  : Two-step initialization STEP 1 */
-#define FL_INIT_2 1    /* Flag bit 2 (2)  : Two-step initialization STEP 2 */
-#define FL_DEL_FLASH 2 /* Flag bit 3 (4)  : Delete flash memory            */
-#define FL_EXIT_TML 3  /* Flag bit 4 (8)  : Exit Timonel & run application */
-#define FL_BIT_5 4     /* Flag bit 5 (16) : Not used */
-#define FL_BIT_6 5     /* Flag bit 6 (32) : Not used */
-#define FL_BIT_7 6     /* Flag bit 7 (64) : Not used */
-#define FL_BIT_8 7     /* Flag bit 8 (128): Not used */
+#define FL_INIT_1 0         /* Flag bit 1 (1)  : Two-step initialization STEP 1 */
+#define FL_INIT_2 1         /* Flag bit 2 (2)  : Two-step initialization STEP 2 */
+#define FL_DEL_FLASH 2      /* Flag bit 3 (4)  : Delete flash memory            */
+#define FL_EXIT_TML 3       /* Flag bit 4 (8)  : Exit Timonel & run application */
+#define FL_BIT_5 4          /* Flag bit 5 (16) : Not used */
+#define FL_BIT_6 5          /* Flag bit 6 (32) : Not used */
+#define FL_BIT_7 6          /* Flag bit 7 (64) : Not used */
+#define FL_BIT_8 7          /* Flag bit 8 (128): Not used */
 
 // Length constants for command replies
-#define GETTMNLV_RPLYLN 12 /* GETTMNLV command reply length */
-#define STPGADDR_RPLYLN 2  /* STPGADDR command reply length */
-#define WRITPAGE_RPLYLN 2  /* WRITPAGE command reply length */
-#define READDEVS_RPLYLN 10 /* READDEVS command reply length */
-#define WRITEEPR_RPLYLN 2  /* WRITEEPR command reply length */
-#define READEEPR_RPLYLN 3  /* READEEPR command reply length */
+#define GETTMNLV_RPLYLN 12  /* GETTMNLV command reply length */
+#define STPGADDR_RPLYLN 2   /* STPGADDR command reply length */
+#define WRITPAGE_RPLYLN 2   /* WRITPAGE command reply length */
+#define READDEVS_RPLYLN 10  /* READDEVS command reply length */
+#define WRITEEPR_RPLYLN 2   /* WRITEEPR command reply length */
+#define READEEPR_RPLYLN 3   /* READEEPR command reply length */
 
 // Memory page definitions
-#define RESET_PAGE 0 /* Interrupt vector table address start location. */
+#define RESET_PAGE 0        /* Interrupt vector table address start location. */
 
 // Fuses' constants
-#ifndef LOW_FUSE           /* When AUTO_CLK_TWEAK is disabled, this value must match the low fuse */
-#define LOW_FUSE 0x62      /* setting, otherwise, the bootloader will not work. If AUTO_CLK_TWEAK */
-#endif /* LOW_FUSE */      /* is enabled, this value is irrelevant.                               */
-                           /* NOTE: This value can be set externally as a makefile option and it  */
-                           /* is shown in the GETTMNLV command.                                   */
-#define HFPLL_CLK_SRC 0x01 /* HF PLL (16 MHz) clock source low fuse value */
-#define RCOSC_CLK_SRC 0x02 /* RC oscillator (8 MHz) clock source low fuse value */
-#define LFUSE_PRESC_BIT 7  /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
+#ifndef LOW_FUSE            /* When AUTO_CLK_TWEAK is disabled, this value must match the low fuse */
+#define LOW_FUSE 0x62       /* setting, otherwise, the bootloader will not work. If AUTO_CLK_TWEAK */
+#endif /* LOW_FUSE */       /* is enabled, this value is irrelevant.                               */
+                            /* NOTE: This value can be set externally as a makefile option and it  */
+                            /* is shown in the GETTMNLV command.                                   */
+#define HFPLL_CLK_SRC 0x01  /* HF PLL (16 MHz) clock source low fuse value */
+#define RCOSC_CLK_SRC 0x02  /* RC oscillator (8 MHz) clock source low fuse value */
+#define LFUSE_PRESC_BIT 7   /* Prescaler bit position in low fuse (FUSE_CKDIV8) */
 
 // Non-blocking delays
 #define SHORT_EXIT_DLY 0x0A /* Long exit delay */
@@ -190,9 +190,9 @@ typedef struct m_pack {
 #define LONG_LED_DLY 0x1FF  /* Short led delay */
 
 // CPU clock calibration value
-#define OSC_FAST 0x4C /* Offset for when the low fuse is set below 16 MHz.   */
-                      /* NOTE: The sum of this value plus the factory OSCCAL */
-                      /* value is shown in the GETTMNLV command.             */
+#define OSC_FAST 0x4C       /* Offset for when the low fuse is set below 16 MHz.   */
+                            /* NOTE: The sum of this value plus the factory OSCCAL */
+                            /* value is shown in the GETTMNLV command.             */
 
 // Erase temporary page buffer macro
 #define BOOT_TEMP_BUFF_ERASE (_BV(__SPM_ENABLE) | _BV(CTPB))
@@ -392,7 +392,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX4
 
 // ATtinyX313
 #if defined(__AVR_ATtiny2313__) | \
@@ -410,7 +410,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX313
 
 // ATtinyX7
 #if defined(__AVR_ATtiny87__) | \
@@ -428,7 +428,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX7
 
 // ATtinyX61
 #if defined(__AVR_ATtiny261__) | \
@@ -447,7 +447,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX61
 
 // ATtiny43
 #if defined(__AVR_ATtiny43U__)
@@ -464,6 +464,6 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtiny43
 
-#endif  // TML_CONFIG_H
+#endif // TML_CONFIG_H
