@@ -7,8 +7,8 @@
  *
  *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
- *  ................................................
- *  Version: 1.6 "Sandra" / 2021-06-21 "Big-endian"
+ *  ...................................................
+ *  Version: 1.6 "Sandra" / 2021-06-25 "Little-endian"
  *  gustavo.casanova@nicebots.com
  */
 
@@ -499,10 +499,10 @@ inline void Reply_DELFLASH(MemPack *p_mem_pack) {
 */
 inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = {0};
-    p_mem_pack->page_addr = ((command[1] << 8) | command[2]);  // Sets the flash memory page base address
-    p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);              // Keep only pages' base addresses
+    p_mem_pack->page_addr = ((command[2] << 8) | command[1]);   // Sets the flash memory page base address
+    p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               // Keep only pages' base addresses
     reply[0] = AKPGADDR;
-    reply[1] = (uint8_t)(command[1] + command[2]);  // Returns the sum of MSB and LSB of the page address
+    reply[1] = (uint8_t)(command[2] + command[1]);              // Returns the sum of MSB and LSB of the page address
     for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -520,22 +520,22 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     reply[0] = ACKWTPAG;
     if ((p_mem_pack->page_addr + p_mem_pack->page_ix) == RESET_PAGE) {
 #if AUTO_PAGE_ADDR
-        p_mem_pack->app_reset_msb = command[1];
-        p_mem_pack->app_reset_lsb = command[2];
+        p_mem_pack->app_reset_lsb = command[1];
+        p_mem_pack->app_reset_msb = command[2];
 #endif  // AUTO_PAGE_ADDR
         // This section modifies the reset vector to point to this bootloader.
         // WARNING: This only works when CMD_SETPGADDR is disabled. If CMD_SETPGADDR is enabled,
         // the reset vector modification MUST BE done by the TWI master's upload program.
         // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-        reply[1] += (uint8_t)((command[1]) + command[2]);  // Reply checksum accumulator
+        reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
         page_loop_start = 3;
     } else {
         page_loop_start = 1;
     }
     for (uint8_t i = page_loop_start; i < (MST_PACKET_SIZE + 1); i += 2) {
-        boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i] << 8) | command[i + 1]));
+        boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
         reply[1] += (uint8_t)((command[i]) + command[i + 1]);
         p_mem_pack->page_ix += 2;
     }
@@ -566,13 +566,13 @@ inline void Reply_READFLSH(const uint8_t *command) {
     // Point the initial memory position to the received address, then
     // advance to fill the reply with the requested data amount.
     const __flash uint8_t *mem_position;
-    mem_position = (void *)((command[1] << 8) | command[2]);    
+    mem_position = (void *)((command[2] << 8) | command[1]);    
     for (uint8_t i = 1; i < command[3] + 1; i++) {
         reply[i] = (*(mem_position++) & 0xFF);          // Actual memory position data
         reply[reply_len - 1] += (uint8_t)(reply[i]);    // Checksum accumulator
     }
-    reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address MSB to checksum
-    reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address LSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[2] + command[1]);      // Add Received address MSB to checksum
+    //reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address LSB to checksum
     for (uint8_t i = 0; i < reply_len; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -624,7 +624,7 @@ inline void Reply_READDEVS(void) {
 */
 inline void Reply_WRITEEPR(const uint8_t *command) {
     uint8_t reply[WRITEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) | command[2]);    // Set the EEPROM address
+    uint16_t eeprom_addr = ((command[2] << 8) | command[1]);    // Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKWTEEP;
     reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of EEPROM address MSB, LSB and data byte
@@ -641,7 +641,7 @@ inline void Reply_WRITEEPR(const uint8_t *command) {
 */
 inline void Reply_READEEPR(const uint8_t *command) {
     uint8_t reply[READEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) | command[2]);    // Set the EEPROM address
+    uint16_t eeprom_addr = ((command[2] << 8) | command[1]);    // Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKRDEEP;
     reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);
