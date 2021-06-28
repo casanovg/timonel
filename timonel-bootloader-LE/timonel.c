@@ -459,7 +459,6 @@ inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     reply[7] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
     reply[8] = *mem_position;                                // Trampoline first byte LSB
     reply[9] = *(++mem_position);                            // Trampoline second byte MSB
-    
     reply[10] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);  // Low fuse bits
     reply[11] = OSCCAL;                                      // Internal RC oscillator calibration
     p_mem_pack->flags |= (1 << FL_INIT_1);                   // First-step of single or two-step initialization
