@@ -447,7 +447,7 @@ inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
 */
 inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     const __flash uint8_t *mem_position;
-    mem_position = (void *)(TIMONEL_START - 1);
+    mem_position = (void *)(TIMONEL_START - 2);
     uint8_t reply[GETTMNLV_RPLYLN];
     reply[0] = ACKTMNLV;
     reply[1] = ID_CHAR_3;                                    // "T" Signature
@@ -455,10 +455,11 @@ inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     reply[3] = TIMONEL_VER_MNR;                              // Minor version number
     reply[4] = TML_FEATURES;                                 // Optional features
     reply[5] = TML_EXT_FEATURES;                             // Extended optional features
-    reply[6] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
-    reply[7] = (TIMONEL_START & 0xFF);                       // Bootloader start address LSB
-    reply[8] = *mem_position;                                // Trampoline second byte (MSB)
-    reply[9] = *(--mem_position);                            // Trampoline first byte (LSB)
+    reply[6] = (TIMONEL_START & 0xFF);                       // Bootloader start address LSB
+    reply[7] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
+    reply[8] = *mem_position;                                // Trampoline first byte LSB
+    reply[9] = *(++mem_position);                            // Trampoline second byte MSB
+    
     reply[10] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);  // Low fuse bits
     reply[11] = OSCCAL;                                      // Internal RC oscillator calibration
     p_mem_pack->flags |= (1 << FL_INIT_1);                   // First-step of single or two-step initialization
