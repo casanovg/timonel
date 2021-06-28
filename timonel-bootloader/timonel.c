@@ -7,8 +7,8 @@
  *
  *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
- *  ...................................................
- *  Version: 1.6 "Sandra" / 2021-06-25 "Little-endian"
+ *  ..............................................
+ *  Version: 1.6 "Sandra" / 2020-10-29
  *  gustavo.casanova@nicebots.com
  */
 
