@@ -502,7 +502,7 @@ inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
     p_mem_pack->page_addr = ((command[2] << 8) | command[1]);  // Sets the flash memory page base address
     p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);              // Keep only pages' base addresses
     reply[0] = AKPGADDR;
-    reply[1] = (uint8_t)(command[2] + command[1]);  // Returns the sum of MSB and LSB of the page address
+    reply[1] = (uint8_t)(command[1] + command[2]);  // Returns the sum of LSB and MSB of the page address
     for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -536,7 +536,7 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
     }
     for (uint8_t i = page_loop_start; i < (MST_PACKET_SIZE + 1); i += 2) {
         boot_page_fill((p_mem_pack->page_addr + p_mem_pack->page_ix), ((command[i + 1] << 8) | command[i]));
-        reply[1] += (uint8_t)((command[i + 1]) + command[i]);
+        reply[1] += (uint8_t)((command[i]) + command[i + 1]);
         p_mem_pack->page_ix += 2;
     }
 #if CHECK_PAGE_IX
@@ -571,8 +571,8 @@ inline void Reply_READFLSH(const uint8_t *command) {
         reply[i] = (*(mem_position++) & 0xFF);          // Actual memory position data
         reply[reply_len - 1] += (uint8_t)(reply[i]);    // Checksum accumulator
     }
-    reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address MSB to checksum
     reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address LSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address MSB to checksum
     for (uint8_t i = 0; i < reply_len; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -627,7 +627,7 @@ inline void Reply_WRITEEPR(const uint8_t *command) {
     uint16_t eeprom_addr = ((command[2] << 8) | command[1]);    // Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKWTEEP;
-    reply[1] = (uint8_t)(command[2] + command[1] + command[3]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of the EEPROM address LSB, MSB, and data byte
     eeprom_update_byte((uint8_t *)eeprom_addr, command[3]);
     for (uint8_t i = 0; i < WRITEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
@@ -645,7 +645,7 @@ inline void Reply_READEEPR(const uint8_t *command) {
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKRDEEP;
     reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);
-    reply[2] = (uint8_t)(command[2] + command[1] + reply[1]);   // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]);   // Returns the sum of EEPROM address LSB, MSB and data byte
     for (uint8_t i = 0; i < READEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     } 
