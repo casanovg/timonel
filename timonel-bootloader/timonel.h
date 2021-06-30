@@ -134,8 +134,8 @@ typedef struct m_pack {
 /* ------------------------------------------------------------------------------------ */
 
 // TWI commands Xmit packet size
-#define MST_PACKET_SIZE 32 /* Master-to-slave Xmit packet size: always even values, min=2, max=32 */
-#define SLV_PACKET_SIZE 32 /* Slave-to-master Xmit packet size: always even values, min=2, max=32 */
+#define MST_PACKET_SIZE 64 /* Master-to-slave Xmit packet size: always even values, min=2, max=64 */
+#define SLV_PACKET_SIZE 64 /* Slave-to-master Xmit packet size: always even values, min=2, max=64 */
 
 // Led UI settings
 #ifndef LED_UI_PIN        /* GPIO pin to monitor activity. If ENABLE_LED_UI is enabled, some     */
@@ -299,7 +299,7 @@ typedef struct m_pack {
 // Driver buffer definitions
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
-#define TWI_RX_BUFFER_SIZE 64
+#define TWI_RX_BUFFER_SIZE 128
 #endif /* TWI_RX_BUFFER_SIZE */
 
 #define TWI_RX_BUFFER_MASK (TWI_RX_BUFFER_SIZE - 1)
@@ -310,7 +310,7 @@ typedef struct m_pack {
 
 // Allowed TX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_TX_BUFFER_SIZE
-#define TWI_TX_BUFFER_SIZE 64
+#define TWI_TX_BUFFER_SIZE 128
 #endif /* TWI_TX_BUFFER_SIZE */
 
 #define TWI_TX_BUFFER_MASK (TWI_TX_BUFFER_SIZE - 1)

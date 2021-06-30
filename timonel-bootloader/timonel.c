@@ -29,7 +29,7 @@
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
 #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 11 (valid range: 8 to 35 decimal)"
 #undef TWI_ADDR
-#define TWI_ADDR 11         // Timonel TWI default address: 11 (0x0B)
+#define TWI_ADDR 14         // Timonel TWI default address: 14 (0x0E)
 #endif // 8 <= TWI_ADDR <= 35
 
 // This bootloader ...
@@ -50,7 +50,11 @@
 #endif
 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
-#pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
+#pragma GCC warning "The commands packets size should be half the size of the I2C buffers!"
+#endif
+
+#if ((MST_PACKET_SIZE > 32) || (SLV_PACKET_SIZE > 32))
+#pragma GCC warning "Commands packet sizes greater than 32 bytes could affect the handshake reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
