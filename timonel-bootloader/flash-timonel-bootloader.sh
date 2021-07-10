@@ -11,6 +11,7 @@
 ARG1=${1:-timonel}
 ARG2=${2:-1}
 ARG3=${3:-usbasp}
+ARG4=${4:-COM1}
 
 FIRMWARE="./releases/$ARG1.hex";
 
@@ -48,7 +49,7 @@ then
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 			;;
 		stk500 | STK500)
-			avrdude -c STK500 -P COM1 -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+			avrdude -c STK500 -P $ARG4 -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 			;;
 		*)
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
