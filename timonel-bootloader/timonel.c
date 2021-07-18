@@ -53,8 +53,8 @@
 #pragma GCC warning "The commands packets size should be half the size of the I2C buffers!"
 #endif
 
-#if ((MST_PACKET_SIZE > 32) || (SLV_PACKET_SIZE > 32))
-#pragma GCC warning "Commands packet sizes greater than 32 bytes could affect the handshake reliability!"
+#if ((MST_PACKET_SIZE > 64) || (SLV_PACKET_SIZE > 64))
+#pragma GCC warning "Commands packet sizes greater than 64 bytes could affect the handshake reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
