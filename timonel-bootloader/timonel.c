@@ -7,8 +7,8 @@
  *
  *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
- *  ...................................................
- *  Version: 1.6 "Sandra" / 2021-06-25 "Little-endian"
+ *  ..............................................
+ *  Version: 1.6 "Sandra" / 2020-10-29
  *  gustavo.casanova@nicebots.com
  */
 
@@ -29,7 +29,7 @@
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
 #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 11 (valid range: 8 to 35 decimal)"
 #undef TWI_ADDR
-#define TWI_ADDR 11         // Timonel TWI default address: 11 (0x0B)
+#define TWI_ADDR 14         // Timonel TWI default address: 14 (0x0E)
 #endif // 8 <= TWI_ADDR <= 35
 
 // This bootloader ...
@@ -50,7 +50,11 @@
 #endif
 
 #if ((MST_PACKET_SIZE > (TWI_RX_BUFFER_SIZE / 2)) || ((SLV_PACKET_SIZE > (TWI_TX_BUFFER_SIZE / 2))))
-#pragma GCC warning "Don't set transmission data size too high to avoid affecting the TWI reliability!"
+#pragma GCC warning "The commands packets size should be half the size of the I2C buffers!"
+#endif
+
+#if ((MST_PACKET_SIZE > 64) || (SLV_PACKET_SIZE > 64))
+#pragma GCC warning "Commands packet sizes greater than 64 bytes could affect the handshake reliability!"
 #endif
 
 #if ((CYCLESTOEXIT > 0) && (CYCLESTOEXIT < 10))
@@ -447,7 +451,7 @@ inline void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) {
 */
 inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     const __flash uint8_t *mem_position;
-    mem_position = (void *)(TIMONEL_START - 1);
+    mem_position = (void *)(TIMONEL_START - 2);
     uint8_t reply[GETTMNLV_RPLYLN];
     reply[0] = ACKTMNLV;
     reply[1] = ID_CHAR_3;                                    // "T" Signature
@@ -455,10 +459,10 @@ inline void Reply_GETTMNLV(MemPack *p_mem_pack) {
     reply[3] = TIMONEL_VER_MNR;                              // Minor version number
     reply[4] = TML_FEATURES;                                 // Optional features
     reply[5] = TML_EXT_FEATURES;                             // Extended optional features
-    reply[6] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
-    reply[7] = (TIMONEL_START & 0xFF);                       // Bootloader start address LSB
-    reply[8] = *mem_position;                                // Trampoline second byte (MSB)
-    reply[9] = *(--mem_position);                            // Trampoline first byte (LSB)
+    reply[6] = (TIMONEL_START & 0xFF);                       // Bootloader start address LSB
+    reply[7] = ((TIMONEL_START & 0xFF00) >> 8);              // Bootloader start address MSB
+    reply[8] = *mem_position;                                // Trampoline first byte LSB
+    reply[9] = *(++mem_position);                            // Trampoline second byte MSB
     reply[10] = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);  // Low fuse bits
     reply[11] = OSCCAL;                                      // Internal RC oscillator calibration
     p_mem_pack->flags |= (1 << FL_INIT_1);                   // First-step of single or two-step initialization
@@ -499,10 +503,10 @@ inline void Reply_DELFLASH(MemPack *p_mem_pack) {
 */
 inline void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) {
     uint8_t reply[STPGADDR_RPLYLN] = {0};
-    p_mem_pack->page_addr = ((command[2] << 8) | command[1]);   // Sets the flash memory page base address
-    p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);               // Keep only pages' base addresses
+    p_mem_pack->page_addr = ((command[2] << 8) | command[1]);  // Sets the flash memory page base address
+    p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);              // Keep only pages' base addresses
     reply[0] = AKPGADDR;
-    reply[1] = (uint8_t)(command[2] + command[1]);              // Returns the sum of MSB and LSB of the page address
+    reply[1] = (uint8_t)(command[1] + command[2]);  // Returns the sum of LSB and MSB of the page address
     for (uint8_t i = 0; i < STPGADDR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -528,7 +532,7 @@ inline void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) {
         // the reset vector modification MUST BE done by the TWI master's upload program.
         // Otherwise, Timonel won't have the execution control after power-on reset.
         boot_page_fill((RESET_PAGE), (0xC000 + ((TIMONEL_START / 2) - 1)));
-        reply[1] += (uint8_t)((command[2]) + command[1]);  // Reply checksum accumulator
+        reply[1] += (uint8_t)((command[1]) + command[2]);  // Reply checksum accumulator
         p_mem_pack->page_ix += 2;
         page_loop_start = 3;
     } else {
@@ -571,8 +575,8 @@ inline void Reply_READFLSH(const uint8_t *command) {
         reply[i] = (*(mem_position++) & 0xFF);          // Actual memory position data
         reply[reply_len - 1] += (uint8_t)(reply[i]);    // Checksum accumulator
     }
-    reply[reply_len - 1] += (uint8_t)(command[2] + command[1]);      // Add Received address MSB to checksum
-    //reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address LSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[1]);      // Add Received address LSB to checksum
+    reply[reply_len - 1] += (uint8_t)(command[2]);      // Add Received address MSB to checksum
     for (uint8_t i = 0; i < reply_len; i++) {
         UsiTwiTransmitByte(reply[i]);
     }
@@ -627,7 +631,7 @@ inline void Reply_WRITEEPR(const uint8_t *command) {
     uint16_t eeprom_addr = ((command[2] << 8) | command[1]);    // Set the EEPROM address
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKWTEEP;
-    reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[1] = (uint8_t)(command[1] + command[2] + command[3]); // Returns the sum of the EEPROM address LSB, MSB, and data byte
     eeprom_update_byte((uint8_t *)eeprom_addr, command[3]);
     for (uint8_t i = 0; i < WRITEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
@@ -645,7 +649,7 @@ inline void Reply_READEEPR(const uint8_t *command) {
     eeprom_addr &= E2END;                                       // Keep only valid EEPROM addresses
     reply[0] = ACKRDEEP;
     reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);
-    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]);   // Returns the sum of EEPROM address MSB, LSB and data byte
+    reply[2] = (uint8_t)(command[1] + command[2] + reply[1]);   // Returns the sum of EEPROM address LSB, MSB and data byte
     for (uint8_t i = 0; i < READEEPR_RPLYLN; i++) {
         UsiTwiTransmitByte(reply[i]);
     } 

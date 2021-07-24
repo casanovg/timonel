@@ -1,14 +1,14 @@
 # .......................................................
 # File: tml-config.mak
-# Project: Timonel - TWI Bootloader for TinyX5 MCUs
+# Project: Timonel - TWI Bootloader for TinyX313 MCUs
 # .......................................................
 # 2019-06-06 gustavo.casanova@nicebots.com
 # .......................................................
 
-# Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Standard: Page address calculation, exit timeout and WDT reset enabled
+# Microcontroller: ATtiny2313 @ 1 MHz
+# Configuration:   Small: Only CMD_SETPGADDR enabled
 
-MCU = attiny85
+MCU = attiny2313
 
 # Hexadecimal address for bootloader section to begin. To calculate the best value:
 # - make clean; make main.hex; ### output will list data: 2124 (or something like that)
@@ -17,31 +17,31 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 1C00
+TIMONEL_START = 320
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
 # Allowed range: 8 to 35 (0x08 to 0x23)
 
-TIMONEL_TWI_ADDR = 11
+TIMONEL_TWI_ADDR = 10
 
 # Bootloader optional features:
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = false
-AUTO_PAGE_ADDR = true
+ENABLE_LED_UI  = true
+AUTO_PAGE_ADDR = false
 APP_USE_TPL_PG = false
-CMD_SETPGADDR  = false
+CMD_SETPGADDR  = true
 TWO_STEP_INIT  = false
-USE_WDT_RESET  = true
-APP_AUTORUN    = true
+USE_WDT_RESET  = false
+APP_AUTORUN    = false
 CMD_READFLASH  = false
 CMD_READDEVS   = false
 EEPROM_ACCESS  = false
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
-LOW_FUSE       = 0x62
+LOW_FUSE       = 0x64
 LED_UI_PIN     = PB1
 
 # Project name:
@@ -54,7 +54,7 @@ TARGET = timonel
 CMDDIR = ../../nb-libs/cmd
 
 # Settings for running at 1 Mhz starting from Timonel v1.1
-FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
+FUSEOPT = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0x9b:m -U efuse:w:0xfe:m
 FUSEOPT_DISABLERESET = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:0x5d:m -U efuse:w:0xfe:m
 
 #---------------------------------------------------------------------

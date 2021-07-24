@@ -11,10 +11,11 @@
 ARG1=${1:-timonel}
 ARG2=${2:-1}
 ARG3=${3:-usbasp}
+ARG4=${4:-COM1}
 
 FIRMWARE="./releases/$ARG1.hex";
 
-HIGH_FUSE=0xD5;
+HIGH_FUSE=0x9B;
 EXTENDED_FUSE=0xFE;
 
 case $ARG2 in
@@ -32,7 +33,7 @@ case $ARG2 in
 		;;
 	1)	# echo "";
 		# echo "Low fuse set for one MHz internal clock source.";
-		LOW_FUSE=0x62;
+		LOW_FUSE=0x64;
 		;;
 	*)	echo ""
 		echo $"Usage: $0 firmware {16|8|2|1}";
@@ -48,7 +49,7 @@ then
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 			;;
 		stk500 | STK500)
-			avrdude -c STK500 -P COM1 -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+			avrdude -c STK500 -P $ARG4 -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
 			;;
 		*)
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;

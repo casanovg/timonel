@@ -130,7 +130,7 @@ if [ ! -z "${ARG5}" ]; then
         1)
             # echo "";
             # echo "Low fuse set for one MHz internal clock source.";
-            LOW_FUSE=0x62;
+            LOW_FUSE=0x64;
             CLK_SOURCE="RC OSC";
             ;;
         *)

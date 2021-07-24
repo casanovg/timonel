@@ -29,7 +29,7 @@ TIMONEL_TWI_ADDR = 11
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = false
+ENABLE_LED_UI  = true
 AUTO_PAGE_ADDR = false
 APP_USE_TPL_PG = false
 CMD_SETPGADDR  = true
