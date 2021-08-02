@@ -134,26 +134,29 @@ typedef struct m_pack {
 /* ---    Below options cannot be modified in "tml-config.mak", only in this file.  --- */
 /* ------------------------------------------------------------------------------------ */
 
+// TWI commands' Xmit packet size.
+// Please always use even values: Min = 2, Max = 64 bytes
+// 
+// Micro		Flash mem	Page size
+// ...........  ........... ...........
 // attiny25		2 KB		32 bytes
 // attiny24		2 KB		32 bytes
 // attiny2313A	2 KB		32 bytes
 // attiny261	2 KB		32 bytes
-
+// ...........  ........... ...........
 // attiny45		4 KB		64 bytes
 // attiny44		4 KB		64 bytes
 // attiny4313	4 KB		64 bytes
 // attiny461	4 KB		64 bytes
 // attiny43U	4 KB		64 bytes
-
+// ...........  ........... ...........
 // attiny85		8 KB		64 bytes
 // attiny84		8 KB		64 bytes
 // attiny861	8 KB		64 bytes
-
+// ...........  ........... ...........
 // attiny87		8 KB		128 bytes
 // attiny167	16 KB		128 bytes
-
-// TWI commands' Xmit packet size.
-// Please always use even values: Min = 2, Max = 64 bytes
+//
 #if defined(__AVR_ATtiny85__) | \
     defined(__AVR_ATtiny84__) | \
 	defined(__AVR_ATtiny861__)
@@ -340,6 +343,7 @@ typedef struct m_pack {
 /////////////////////////////////////////////////////////////////////////////
 
 // Driver buffer definitions
+
 // Allowed RX buffer sizes: 1, 2, 4, 8, 16, 32, 64, 128 or 256
 #ifndef TWI_RX_BUFFER_SIZE
 //#define TWI_RX_BUFFER_SIZE 32
@@ -424,20 +428,21 @@ static uint8_t tx_head = 0, tx_tail = 0;
 static OverflowState device_state;
 
 // USI TWI hardware mapping
-// ------------------------
-// DDR_USI = I2C data direction register
-// PORT_USI = I2C output register
-// PIN_USI = I2C input register
-// PORT_USI_SDA = I2C SDA output register
-// PORT_USI_SCL = I2C SCL output register
-// PIN_USI_SDA = I2C SDA input register
-// PIN_USI_SCL = I2C SDL input register
-// TWI_START_COND_FLAG = Status register flag: indicates an I2C START condition on the bus (can trigger an interrupt)
-// USI_OVERFLOW_FLAG = Status register flag: indicates a complete bit reception/transmission (can trigger an interrupt)
-// TWI_STOP_COND_FLAG = Status register flag: indicates an I2C STOP condition on the bus
-// TWI_COLLISION_FLAG = Status register flag: indicates a data output collision on the bus
-// TWI_START_COND_INT = Control register bit: defines whether an I2C START condition triggers an interrupt
-// USI_OVERFLOW_INT = Control register bit: defines whether a USI 4-bit counter overflow triggers an interrupt
+// Driver function		Description
+// .............................................................................
+// DDR_USI:             I2C data direction register
+// PORT_USI:			I2C output register
+// PIN_USI:				I2C input register
+// PORT_USI_SDA:		I2C SDA output register
+// PORT_USI_SCL:		I2C SCL output register
+// PIN_USI_SDA:			I2C SDA input register
+// PIN_USI_SCL:			I2C SCL input register
+// TWI_START_COND_FLAG:	Status register flag: indicates an I2C START condition on the bus (can trigger an interrupt)
+// USI_OVERFLOW_FLAG:	Status register flag: indicates a complete bit reception/transmission (can trigger an interrupt)
+// TWI_STOP_COND_FLAG:	Status register flag: indicates an I2C STOP condition on the bus
+// TWI_COLLISION_FLAG:	Status register flag: indicates a data output collision on the bus
+// TWI_START_COND_INT:	Control register bit: defines whether an I2C START condition triggers an interrupt
+// USI_OVERFLOW_INT:	Control register bit: defines whether a USI 4-bit counter overflow triggers an interrupt
 
 // ATtinyX5
 #if defined(__AVR_ATtiny25__) | \
@@ -475,7 +480,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX4
 
 // ATtinyX313
 #if defined(__AVR_ATtiny2313__) | \
@@ -493,7 +498,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX313
 
 // ATtinyX7
 #if defined(__AVR_ATtiny87__) | \
@@ -511,7 +516,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX7
 
 // ATtinyX61
 #if defined(__AVR_ATtiny261__) | \
@@ -530,7 +535,7 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtinyX61
 
 // ATtiny43
 #if defined(__AVR_ATtiny43U__)
@@ -547,6 +552,6 @@ static OverflowState device_state;
 #define TWI_COLLISION_FLAG USIDC
 #define TWI_START_COND_INT USISIE
 #define USI_OVERFLOW_INT USIOIE
-#endif
+#endif // ATtiny43
 
 #endif  // TML_CONFIG_H
