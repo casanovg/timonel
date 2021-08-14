@@ -2,7 +2,7 @@
 # File: Makefile
 # Project: Timonel - TWI Bootloader
 # ........................................................
-# 2020-06-20 gustavo.casanova@nicebots.com
+# 2020-08-09 gustavo.casanova@gmail.com
 #
 
 CONFIG ?= tml-t85-std
@@ -13,14 +13,14 @@ CFG_DIR ?= configs
 # Program the device with
 #     make fuse    			# to set the clock generator, boot section size etc.
 #     make flash   			# to load the boot loader into flash
-#     make disablereset		# use external reset line for IO (CAUTION: this is not easy to enable again, see README)
+#     make disablereset		# use external reset line for IO (CAUTION: this is not easy to enable again!)
 
 ## Automatic project name (after the enclosing directory)
 #TARGET = $(lastword $(subst /, ,$(CURDIR)))
 
 CFLAGS =
 CONFIGPATH = $(CFG_DIR)/$(CONFIG)
-include $(CONFIGPATH)/tml-config.mak
+include $(CONFIGPATH).mak
 
 ##########################################################
 # Make command line parameters
@@ -32,7 +32,7 @@ ifeq ($(TARGET),)
 endif
 
 ifeq ($(TIMONEL_TWI_ADDR),)
-	TIMONEL_TWI_ADDR = 11
+	TIMONEL_TWI_ADDR = 14
 endif
 
 ifeq ($(TIMONEL_START),)

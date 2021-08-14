@@ -5,7 +5,7 @@
  *  File: timonel.h (Main bootloader headers)
  *  ........................................... 
  *  Version: 1.6 "Sandra" / 2020-10-29
- *  gustavo.casanova@nicebots.com
+ *  gustavo.casanova@gmail.com
  *  ...........................................
  */
 
@@ -15,8 +15,8 @@
  *****************************************************************************
  */
 
-#ifndef TML_CONFIG_H
-#define TML_CONFIG_H
+#ifndef TIMONEL_H
+#define TIMONEL_H
 
 //#pragma message "   >>>   Run, Timonel, run!   <<<   "
 
@@ -219,15 +219,34 @@ typedef struct m_pack {
 // Memory page definitions
 #define RESET_PAGE 0		// Interrupt vector table address start location.
 
-// Fuses' constants
-#ifndef LOW_FUSE           	// When AUTO_CLK_TWEAK is disabled, this value must match the low fuse
-#define LOW_FUSE 0x62      	// setting, otherwise, the bootloader will not work. If AUTO_CLK_TWEAK
-#endif /* LOW_FUSE */      	// is enabled, this value is irrelevant.
-							// NOTE: This value can be set externally as a makefile option and it
-							// is shown in the GETTMNLV command.
-#define HFPLL_CLK_SRC 0x01	// HF PLL (16 MHz) clock source low fuse value
-#define RCOSC_CLK_SRC 0x02	// RC oscillator (8 MHz) clock source low fuse value
-#define LFUSE_PRESC_BIT 7	// Prescaler bit position in low fuse (FUSE_CKDIV8)
+// Fuses constants
+#if defined(__AVR_ATtiny25__) | \
+	defined(__AVR_ATtiny45__) | \
+	defined(__AVR_ATtiny85__) | \
+	defined(__AVR_ATtiny24__) | \
+	defined(__AVR_ATtiny44__) | \
+    defined(__AVR_ATtiny84__)
+	#ifndef LOW_FUSE           	// When AUTO_CLK_TWEAK is disabled, this value must match the low fuse
+	#define LOW_FUSE 0x62      	// setting, otherwise, the bootloader will not work. If AUTO_CLK_TWEAK
+	#endif /* LOW_FUSE */      	// is enabled, this value is irrelevant.
+								// NOTE: This value can be set externally as a makefile option and it
+								// is shown in the GETTMNLV command.
+	#define HFPLL_CLK_SRC 0x01	// HF PLL (16 MHz) clock source low fuse value
+	#define RCOSC_CLK_SRC 0x02	// RC oscillator (8 MHz) clock source low fuse value
+	#define LFUSE_PRESC_BIT 7	// Prescaler bit position in low fuse (FUSE_CKDIV8)
+#elif defined(__AVR_ATtiny2313__) | \
+	  defined(__AVR_ATtiny4313__)
+	#ifndef LOW_FUSE           	// When AUTO_CLK_TWEAK is disabled, this value must match the low fuse
+	#define LOW_FUSE 0x64      	// setting, otherwise, the bootloader will not work. If AUTO_CLK_TWEAK
+	#endif /* LOW_FUSE */      	// is enabled, this value is irrelevant.
+								// NOTE: This value can be set externally as a makefile option and it
+								// is shown in the GETTMNLV command.
+	#define HFPLL_CLK_SRC 0x01	// HF PLL (16 MHz) clock source low fuse value
+	#define RCOSC_CLK_SRC 0x02	// RC oscillator (8 MHz) clock source low fuse value
+	#define LFUSE_PRESC_BIT 7	// Prescaler bit position in low fuse (FUSE_CKDIV8)
+#else
+	#define LOW_FUSE 0x62
+#endif // Fuses constants
 
 // Non-blocking delays
 #define SHORT_EXIT_DLY 0x0A // Long exit delay
@@ -338,6 +357,29 @@ typedef struct m_pack {
 
 #define TML_EXT_FEATURES (EF_BIT_7 + EF_BIT_6 + EF_BIT_5 + EF_BIT_4 + EF_BIT_3 + EF_BIT_2 + EF_BIT_1 + EF_BIT_0)
 
+// Bootloader prototypes
+inline static void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void ResetPrescaler(void) __attribute__((always_inline));
+inline static void RestorePrescaler(void) __attribute__((always_inline));
+inline static void Reply_GETTMNLV(MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void Reply_EXITTMNL(MemPack *p_mem_pack) __attribute__((always_inline));
+inline static void Reply_DELFLASH(MemPack *p_mem_pack) __attribute__((always_inline));
+#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
+inline  void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
+#endif // CMD_SETPGADDR || !AUTO_PAGE_ADDR
+inline static void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
+#if CMD_READFLASH
+inline static void Reply_READFLSH(const uint8_t *command) __attribute__((always_inline));
+#endif // CMD_READFLASH
+inline static void Reply_INITSOFT(MemPack *p_mem_pack) __attribute__((always_inline));
+#if CMD_READDEVS
+inline static void Reply_READDEVS(void) __attribute__((always_inline));
+#endif // CMD_READDEVS
+#if EEPROM_ACCESS
+inline static void Reply_WRITEEPR(const uint8_t *command) __attribute__((always_inline));
+inline static void Reply_READEEPR(const uint8_t *command) __attribute__((always_inline));
+#endif // EEPROM_ACCESS
+
 /////////////////////////////////////////////////////////////////////////////
 ////////////      ALL USI TWI DRIVER CONFIG BELOW THIS LINE      ////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -420,12 +462,39 @@ typedef enum {
 } OverflowState;
 
 // USI TWI driver globals
-static uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
-static uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
-static uint8_t rx_byte_count = 0;  // Bytes received in RX buffer
-static uint8_t rx_head = 0, rx_tail = 0;
-static uint8_t tx_head = 0, tx_tail = 0;
-static OverflowState device_state;
+ uint8_t rx_buffer[TWI_RX_BUFFER_SIZE];
+ uint8_t tx_buffer[TWI_TX_BUFFER_SIZE];
+ uint8_t rx_byte_count = 0;  // Bytes received in RX buffer
+ uint8_t rx_head = 0, rx_tail = 0;
+ uint8_t tx_head = 0, tx_tail = 0;
+ OverflowState device_state;
+
+ // USI TWI driver prototypes
+void UsiTwiTransmitByte(const uint8_t data_byte);
+uint8_t UsiTwiReceiveByte(void);
+inline static void UsiTwiDriverInit(void) __attribute__((always_inline));
+inline static void TwiStartHandler(void) __attribute__((always_inline));
+inline static bool UsiOverflowHandler(MemPack *p_mem_pack) __attribute__((always_inline));
+
+// USI TWI driver basic operations prototypes
+inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
+inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
+inline static void SET_USI_TO_RECEIVE_ACK(void) __attribute__((always_inline));
+inline static void SET_USI_TO_DETECT_TWI_START(void) __attribute__((always_inline));
+inline static void SET_USI_TO_DETECT_TWI_RESTART(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_8_DATA_BITS(void) __attribute__((always_inline));
+inline static void SET_USI_TO_SHIFT_1_ACK_BIT(void) __attribute__((always_inline));
+
+// USI TWI driver direction setting prototypes
+inline static void SET_USI_SDA_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AS_INPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SCL_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
+inline static void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
 
 // USI TWI hardware mapping
 // Driver function		Description
@@ -554,4 +623,4 @@ static OverflowState device_state;
 #define USI_OVERFLOW_INT USIOIE
 #endif // ATtiny43
 
-#endif  // TML_CONFIG_H
+#endif  // TIMONEL_H

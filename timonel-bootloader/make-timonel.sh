@@ -34,8 +34,10 @@ ARG1=${1:-$CFG_DFT};
 ARG2=$2;    # ARG2=${2:-timonel};
 ARG3=$3;    # ARG3=${3:-11};
 ARG4=$4;    # ARG4=${4:-1C00};
-ARG5=$5;    # ARG5=${5:-1};
-ARG6=$6;    # ARG6=${6:-false};
+ARG5=$5;    # ARG5=$5;
+ARG6=$6;    # ARG6=$6;
+# ARG5=$5;    # ARG5=${5:-1};
+# ARG6=$6;    # ARG6=${6:-false};
 
 print_help() {
     echo "";
@@ -88,7 +90,7 @@ case ${ARG1} in
         echo "******************************************************"
         echo "* Starting compilation of all Timonel configurations *"
         echo "******************************************************"
-        for TML_CFG in `ls -l ${CFG_DIR} | awk '{print $9}'`; do
+        for TML_CFG in `ls -1 configs | awk -F'.' '{print $1}'`; do
             echo "";
             echo "MAKING ->" ${TML_CFG};
             echo "";
@@ -99,7 +101,7 @@ case ${ARG1} in
         exit;
         ;;
     *)
-        if [ ! -f "./${CFG_DIR}/${ARG1}/${TML_CFG}" ]; then
+        if [ ! -f "./${CFG_DIR}/${ARG1}.mak" ]; then
             echo "";
             echo "Configuration \"${ARG1}\" not found in \"${CFG_DIR}\" directory!";
             exit 1;
@@ -130,7 +132,7 @@ if [ ! -z "${ARG5}" ]; then
         1)
             # echo "";
             # echo "Low fuse set for one MHz internal clock source.";
-            LOW_FUSE=0x64;
+            LOW_FUSE=0x62;
             CLK_SOURCE="RC OSC";
             ;;
         *)

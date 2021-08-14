@@ -9,7 +9,7 @@
  *  Author: Gustavo Casanova
  *  ..............................................
  *  Version: 1.6 "Sandra" / 2020-10-29
- *  gustavo.casanova@nicebots.com
+ *  gustavo.casanova@gmail.com
  */
 
 // Includes
@@ -61,56 +61,6 @@
 #pragma GCC warning "Do not set CYCLESTOEXIT too low, it could make difficult for TWI master to initialize on time!"
 #endif
 
-// Bootloader prototypes
-inline static void ReceiveEvent(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
-inline static void ResetPrescaler(void) __attribute__((always_inline));
-inline static void RestorePrescaler(void) __attribute__((always_inline));
-inline static void Reply_GETTMNLV(MemPack *p_mem_pack) __attribute__((always_inline));
-inline static void Reply_EXITTMNL(MemPack *p_mem_pack) __attribute__((always_inline));
-inline static void Reply_DELFLASH(MemPack *p_mem_pack) __attribute__((always_inline));
-#if (CMD_SETPGADDR || !(AUTO_PAGE_ADDR))
-inline static void Reply_STPGADDR(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
-#endif // CMD_SETPGADDR || !AUTO_PAGE_ADDR
-inline static void Reply_WRITPAGE(const uint8_t *command, MemPack *p_mem_pack) __attribute__((always_inline));
-#if CMD_READFLASH
-inline static void Reply_READFLSH(const uint8_t *command) __attribute__((always_inline));
-#endif // CMD_READFLASH
-inline static void Reply_INITSOFT(MemPack *p_mem_pack) __attribute__((always_inline));
-#if CMD_READDEVS
-inline static void Reply_READDEVS(void) __attribute__((always_inline));
-#endif // CMD_READDEVS
-#if EEPROM_ACCESS
-inline static void Reply_WRITEEPR(const uint8_t *command) __attribute__((always_inline));
-inline static void Reply_READEEPR(const uint8_t *command) __attribute__((always_inline));
-#endif // EEPROM_ACCESS
-
-// USI TWI driver prototypes
-void UsiTwiTransmitByte(const uint8_t data_byte);
-uint8_t UsiTwiReceiveByte(void);
-inline static void UsiTwiDriverInit(void) __attribute__((always_inline));
-inline static void TwiStartHandler(void) __attribute__((always_inline));
-inline static bool UsiOverflowHandler(MemPack *p_mem_pack) __attribute__((always_inline));
-
-// USI TWI driver basic operations prototypes
-inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
-inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
-inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
-inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
-inline static void SET_USI_TO_RECEIVE_ACK(void) __attribute__((always_inline));
-inline static void SET_USI_TO_DETECT_TWI_START(void) __attribute__((always_inline));
-inline static void SET_USI_TO_DETECT_TWI_RESTART(void) __attribute__((always_inline));
-inline static void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) __attribute__((always_inline));
-inline static void SET_USI_TO_SHIFT_8_DATA_BITS(void) __attribute__((always_inline));
-inline static void SET_USI_TO_SHIFT_1_ACK_BIT(void) __attribute__((always_inline));
-
-// USI TWI driver direction setting prototypes
-inline static void SET_USI_SDA_AS_OUTPUT(void) __attribute__((always_inline));
-inline static void SET_USI_SDA_AS_INPUT(void) __attribute__((always_inline));
-inline static void SET_USI_SCL_AS_OUTPUT(void) __attribute__((always_inline));
-inline static void SET_USI_SCL_AS_INPUT(void) __attribute__((always_inline));
-inline static void SET_USI_SDA_AND_SCL_AS_OUTPUT(void) __attribute__((always_inline));
-inline static void SET_USI_SDA_AND_SCL_AS_INPUT(void) __attribute__((always_inline));
-
 // Main function
 int main(void) {
     /* ___________________
@@ -142,41 +92,9 @@ int main(void) {
     uint8_t exit_delay = SHORT_EXIT_DLY;    // Exit-to-app delay when the bootloader isn't initialized
 #endif // APP_AUTORUN
     uint16_t led_delay = SHORT_LED_DLY;     // Blinking delay when the bootloader isn't initialized
-#if AUTO_CLK_TWEAK // Automatic clock tweaking made at run time, based on low fuse value
-//#pragma message "AUTO CLOCK TWEAKING SELECTED: Clock adjustments will be made at run time ..."
-    uint8_t factory_osccal = OSCCAL;        // Preserve factory oscillator calibration
-    if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == RCOSC_CLK_SRC) {
-        // RC oscillator (8 MHz) clock source set in low fuse, calibrating oscillator up ...
-        OSCCAL += OSC_FAST;                 // Speed oscillator up for TWI to work
-    } else if ((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) & 0x0F) == HFPLL_CLK_SRC) {
-        // HF PLL (16 MHz) clock source set in low fuse. No clock tweaking needed ...
-    } else {
-        // Unknown clock source set in low fuse! the prescaler will be reset to 1 to use the external clock as is
-        ResetPrescaler();   // If using an external CPU clock source, don't reduce its frequency
-    }
-    if (!((boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS) >> LFUSE_PRESC_BIT) & true)) {
-        // Prescaler fuse bit set to divide clock by 8, setting the CPU prescaler division factor to 1
-        ResetPrescaler();   // Reset prescaler to divide by 1
-    }
-#else // Clock tweaking made at compile time, based on LOW_FUSE variable
-#define XSTR(x) STR(x)
-#define STR(x) #x
-//#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
-#if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)    // RC oscillator (8 MHz) clock source
-//#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
-    uint8_t factory_osccal = OSCCAL;        // With 8 MHz clock source, preserve factory oscillator
-    OSCCAL += OSC_FAST;                     // calibration and speed it up for TWI to work.
-#elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)  // HF PLL (16 MHz) clock source
-//#pragma message "HF PLL (16 MHz) clock source selected. No clock tweaking needed ..."
-#else // Unknown clock source
-//#pragma GCC warning "UNKNOWN LOW_FUSE CLOCK SETTING! VALID VALUES ARE 0xE1, 0x61, 0xE2 and 0x62"
-    ResetPrescaler();  // If using an external CPU clock source, don't reduce its frequency
-#endif // LOW_FUSE CLOCK SOURCE
-#if ((LOW_FUSE & 0x80) == 0) // Prescaler dividing clock by 8
-//#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
-    ResetPrescaler();                                                               // Reset prescaler to divide by 1
-#endif                                                                              // LOW_FUSE PRESCALER BIT
-#endif                                                                              // AUTO_CLK_TWEAK
+// #############################
+#include "clock-tweaking.h" // ##
+// #############################
     UsiTwiDriverInit();                                                             // Initialize the TWI driver
     __SPM_REG = (_BV(CTPB) | _BV(__SPM_ENABLE));                                    // Prepare to clear the temporary page buffer
     asm volatile("spm");                                                            // Run SPM instruction to complete the clearing
@@ -230,7 +148,7 @@ int main(void) {
         if ((p_mem_pack->flags >> FL_INIT_1) & true) {
 #else
         if (((p_mem_pack->flags >> FL_INIT_1) & true) && ((p_mem_pack->flags >> FL_INIT_2) & true)) {
-#endif  // TWO_STEP_INIT
+#endif // TWO_STEP_INIT
             /*....................
               :                   .
               :     Slow-Ops       .

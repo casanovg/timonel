@@ -2,11 +2,11 @@
 # File: tml-config.mak
 # Project: Timonel - TWI Bootloader for TinyX313 MCUs
 # .......................................................
-# 2021-07-25 gustavo.casanova@nicebots.com
+# 2021-07-25 gustavo.casanova@gmail.com
 # .......................................................
 
 # Microcontroller: ATtiny2313 @ 1 MHz
-# Configuration:   Small: Only CMD_SETPGADDR enabled
+# Configuration:   Test: Small + LEDUI + MemDump
 
 MCU = attiny2313
 
@@ -19,7 +19,7 @@ MCU = attiny2313
 # - NOTE: If make-timonel.sh fails, try a low start address (e.g. 300 hex),
 #         then do the calculation mentioned above.
 
-TIMONEL_START = 4c0
+TIMONEL_START = 3e0
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -31,14 +31,14 @@ TIMONEL_TWI_ADDR = 14
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = false
+ENABLE_LED_UI  = true
 AUTO_PAGE_ADDR = false
 APP_USE_TPL_PG = false
 CMD_SETPGADDR  = true
 TWO_STEP_INIT  = false
 USE_WDT_RESET  = false
 APP_AUTORUN    = false
-CMD_READFLASH  = false
+CMD_READFLASH  = true
 CMD_READDEVS   = false
 EEPROM_ACCESS  = false
 # Warning: Please modify the below options with caution ...

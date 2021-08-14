@@ -2,11 +2,11 @@
 # File: tml-config.mak
 # Project: Timonel - TWI Bootloader for TinyX5 MCUs
 # .......................................................
-# 2019-06-06 gustavo.casanova@nicebots.com
+# 2019-06-06 gustavo.casanova@gmail.com
 # .......................................................
 
 # Microcontroller: ATtiny 85 - 1 MHz
-# Configuration:   Full: All features enabled, except APP_USE_TPL_PG
+# Configuration:   Standard NoRun Dump: Page address calculation, NO exit timeout, WDT reset, READFLASH and EEPROM_ACCESS
 
 MCU = attiny85
 
@@ -17,7 +17,7 @@ MCU = attiny85
 # - round that down to 94 - our new bootloader address is 94 * 64 = 6016, in hex = 1780
 # NOTE: If it doesn't compile, comment the below [# TIMONEL_START = XXXX ] line to
 
-TIMONEL_START = 19C0
+TIMONEL_START = 1B00
 
 # Timonel TWI address (decimal value):
 # -------------------------------------
@@ -29,15 +29,15 @@ TIMONEL_TWI_ADDR = 11
 # -----------------------------
 # These options are commented in the "tmc-config.h" file
 
-ENABLE_LED_UI  = true
+ENABLE_LED_UI  = false
 AUTO_PAGE_ADDR = true
 APP_USE_TPL_PG = false
-CMD_SETPGADDR  = true
-TWO_STEP_INIT  = true
+CMD_SETPGADDR  = false
+TWO_STEP_INIT  = false
 USE_WDT_RESET  = true
-APP_AUTORUN    = true
+APP_AUTORUN    = false
 CMD_READFLASH  = true
-CMD_READDEVS   = true
+CMD_READDEVS   = false
 EEPROM_ACCESS  = true
 # Warning: Please modify the below options with caution ...
 AUTO_CLK_TWEAK = false
