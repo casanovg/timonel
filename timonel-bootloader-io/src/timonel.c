@@ -5,10 +5,10 @@
  *      | |_| | | | | |_| | | | | ____| |
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
- *  Timonel - TWI Bootloader for TinyX5 MCUs
+ *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
- *  ...........................................
- *  Version: 1.5 "Sandra" / 2020-06-06
+ *  ..............................................
+ *  Version: 1.6 "Sandra" / 2023-04-28
  *  gustavo.casanova@nicebots.com
  */
 
@@ -34,15 +34,15 @@
 
 // This bootloader ...
 #define TIMONEL_VER_MJR 1  // Timonel version major number
-#define TIMONEL_VER_MNR 5  // Timonel version major number
+#define TIMONEL_VER_MNR 6  // Timonel version major number
 
 // Configuration checks
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
 #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
-#if (SPM_PAGESIZE > 64)
-#error "Timonel only supports pagesizes up to 64 bytes"
+#if (TIMONEL_START >= FLASHEND)
+#error "Timonel start location is outside the device memory map, please correct TIMONEL_START"
 #endif
 
 #if (!(AUTO_PAGE_ADDR) && !(CMD_SETPGADDR))
@@ -88,7 +88,7 @@ inline static void TwiStartHandler(void) __attribute__((always_inline));
 inline static bool UsiOverflowHandler(MemPack *p_mem_pack) __attribute__((always_inline));
 
 // USI TWI driver basic operations prototypes
-void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void);
+inline static void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) __attribute__((always_inline));
 inline static void SET_USI_TO_SEND_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_RECEIVE_BYTE(void) __attribute__((always_inline));
 inline static void SET_USI_TO_SEND_ACK(void) __attribute__((always_inline));
@@ -115,8 +115,21 @@ int main(void) {
       |___________________|
     */
     MCUSR = 0;  // Disable watchdog
-    WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
+#if defined(__AVR_ATtiny25__) | \
+    defined(__AVR_ATtiny45__) | \
+    defined(__AVR_ATtiny85__) | \
+    defined(__AVR_ATtiny4313__) | \
+    defined(__AVR_ATtiny87__) | \
+    defined(__AVR_ATtiny167__) | \
+    defined(__AVR_ATtiny261__) | \
+    defined(__AVR_ATtiny461__) | \
+    defined(__AVR_ATtiny861__)
+    WDTCR |= ((1 << WDCE) | (1 << WDE));
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#else
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
+    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#endif
     cli();  // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
@@ -683,7 +696,7 @@ void UsiTwiTransmitByte(const uint8_t data_byte) {
   | USI TWI driver initialization |
   |_______________________________|
 */
-void UsiTwiDriverInit(void) {
+inline void UsiTwiDriverInit(void) {
     // Initialize USI for TWI Slave mode.
     tx_tail = tx_head = 0;                  // Flush TWI TX buffers
     rx_tail = rx_head = rx_byte_count = 0;  // Flush TWI RX buffers
@@ -838,7 +851,7 @@ inline bool UsiOverflowHandler(MemPack *p_mem_pack) {
 // USI TWI basic operations functions
 // ----------------------------------------------------------------------------
 // Set USI to detect start and shift 7 address bits + 1 direction bit in.
-void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
+inline void SET_USI_TO_WAIT_FOR_TWI_ADDRESS(void) {
     SET_USI_TO_DETECT_TWI_START();   // Detect start condition
     SET_USI_TO_SHIFT_8_DATA_BITS();  // Shift 8 bits
 }
@@ -898,7 +911,7 @@ inline void SET_USI_TO_SHIFT_8_ADDRESS_BITS(void) {
 }
 // ............................................................................
 // Clear all USI status register interrupt flags, except start condition.
-void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
+inline void SET_USI_TO_SHIFT_8_DATA_BITS(void) {
     USISR = (0 << TWI_START_COND_FLAG) |
             (1 << USI_OVERFLOW_FLAG) |
             (1 << TWI_STOP_COND_FLAG) |

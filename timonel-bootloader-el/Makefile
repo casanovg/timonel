@@ -24,8 +24,8 @@ include $(CONFIGPATH)/tml-config.mak
 
 # Timonel required libraries path:
 # --------------------------------
-LIBDIR = ../../../nb-usitwisl-if/src
-CMDDIR = ../../nb-twi-cmd/src
+LIBDIR = ../../nb-usitwisl-if/src
+CMDDIR = ../nb-twi-cmd/src
 
 ##########################################################
 # Make command line parameters

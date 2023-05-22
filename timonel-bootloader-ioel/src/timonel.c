@@ -5,10 +5,10 @@
  *      | |_| | | | | |_| | | | | ____| |
  *       \__)_|_|_|_|\___/|_| |_|_____)\_)
  *
- *  Timonel - TWI Bootloader for TinyX5 MCUs
+ *  Timonel - TWI Bootloader for ATtiny MCUs
  *  Author: Gustavo Casanova
  *  ..............................................
- *  Version: 1.5 "Sandra" / 2020-07-22 "Ext-Lib"
+ *  Version: 1.6 "Sandra" / 2023-04-28 "Ext-Lib"
  *  gustavo.casanova@nicebots.com
  */
 
@@ -29,20 +29,20 @@
 #if ((TWI_ADDR < 8) || (TWI_ADDR > 35))
 #pragma GCC warning "Timonel TWI address isn't defined or is out of range! Using default value: 11 (valid range: 8 to 35 decimal)"
 #undef TWI_ADDR
-#define TWI_ADDR 11  // Timonel TWI default address: 11 (0x0B)
+#define TWI_ADDR 15  // Timonel TWI default address: 15 (0x0F)
 #endif               // 8 <= TWI_ADDR <= 35
 
 // This bootloader ...
 #define TIMONEL_VER_MJR 1  // Timonel version major number
-#define TIMONEL_VER_MNR 5  // Timonel version major number
+#define TIMONEL_VER_MNR 6  // Timonel version major number
 
 // Configuration checks
 #if (TIMONEL_START % SPM_PAGESIZE != 0)
 #error "TIMONEL_START in makefile must be a multiple of chip's pagesize"
 #endif
 
-#if (SPM_PAGESIZE > 64)
-#error "Timonel only supports pagesizes up to 64 bytes"
+#if (TIMONEL_START >= FLASHEND)
+#error "Timonel start location is outside the device memory map, please correct TIMONEL_START"
 #endif
 
 #if (!(AUTO_PAGE_ADDR) && !(CMD_SETPGADDR))
@@ -104,9 +104,22 @@ int main(void) {
       |___________________|
     */
     MCUSR = 0;  // Disable watchdog
-    WDTCR = ((1 << WDCE) | (1 << WDE));
-    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));
-    cli();  // Disable interrupts
+#if defined(__AVR_ATtiny25__) | \
+    defined(__AVR_ATtiny45__) | \
+    defined(__AVR_ATtiny85__) | \
+    defined(__AVR_ATtiny4313__) | \
+    defined(__AVR_ATtiny87__) | \
+    defined(__AVR_ATtiny167__) | \
+    defined(__AVR_ATtiny261__) | \
+    defined(__AVR_ATtiny461__) | \
+    defined(__AVR_ATtiny861__)
+    WDTCR |= ((1 << WDCE) | (1 << WDE));
+    WDTCR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#else
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
+    WDTCSR = ((1 << WDP2) | (1 << WDP1) | (1 << WDP0));  // 2 seconds timeout
+#endif
+    cli();                                               // Disable interrupts
 #if ENABLE_LED_UI
     LED_UI_DDR |= (1 << LED_UI_PIN);  // Set led pin data direction register for output
 #endif                                // ENABLE_LED_UI
@@ -135,7 +148,7 @@ int main(void) {
 #define STR(x) #x
 //#pragma message "CLOCK TWEAKING AT COMPILE TIME BASED ON LOW_FUSE VARIABLE: " XSTR(LOW_FUSE)
 #if ((LOW_FUSE & 0x0F) == RCOSC_CLK_SRC)                                           // RC oscillator (8 MHz) clock source
-    //#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
+//#pragma message "RC oscillator (8 MHz) clock source selected, calibrating oscillator up ..."
     uint8_t factory_osccal = OSCCAL;  // With 8 MHz clock source, preserve factory oscillator
     OSCCAL += OSC_FAST;               // calibration and speed it up for TWI to work.
 #elif ((LOW_FUSE & 0x0F) == HFPLL_CLK_SRC)                                         // HF PLL (16 MHz) clock source
@@ -145,7 +158,7 @@ int main(void) {
     ResetPrescaler();  // If using an external CPU clock source, don't reduce its frequency
 #endif                                                                             // LOW_FUSE CLOCK SOURCE
 #if ((LOW_FUSE & 0x80) == 0)                                                       // Prescaler dividing clock by 8
-//#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
+                                      //#pragma message "Prescaler dividing clock by 8, setting the CPU prescaler division factor to 1 ..."
     ResetPrescaler();                 // Reset prescaler to divide by 1
 #endif                                                                             // LOW_FUSE PRESCALER BIT
 #endif                                                                             // AUTO_CLK_TWEAK
@@ -317,7 +330,7 @@ int main(void) {
                     p_mem_pack->page_ix = 0;
                 }
             }
-        /*..................................
+            /*..................................
           :                                 .
           :   Bootloader NOT initialized     .
           :   --------------------------    .
@@ -483,7 +496,7 @@ inline void Reply_DELFLASH(void) {
 */
 inline void Reply_STPGADDR(const uint8_t *command) {
     uint8_t reply[STPGADDR_RPLYLN] = {0};
-    p_mem_pack->page_addr = ((command[1] << 8) + command[2]);  // Sets the flash memory page base address
+    p_mem_pack->page_addr = ((command[1] << 8) | command[2]);  // Sets the flash memory page base address
     p_mem_pack->page_addr &= ~(SPM_PAGESIZE - 1);              // Keep only pages' base addresses
     reply[0] = AKPGADDR;
     reply[1] = (uint8_t)(command[1] + command[2]);  // Returns the sum of MSB and LSB of the page address
@@ -552,7 +565,7 @@ inline void Reply_READFLSH(const uint8_t *command) {
     // Point the initial memory position to the received address, then
     // advance to fill the reply with the requested data amount.
     const __flash uint8_t *mem_position;
-    mem_position = (void *)((command[1] << 8) + command[2]);
+    mem_position = (void *)((command[1] << 8) | command[2]);
     for (uint8_t i = 1; i < command[3] + 1; i++) {
         reply[i] = (*(mem_position++) & 0xFF);        // Actual memory position data
         reply[reply_len - 1] += (uint8_t)(reply[i]);  // Checksum accumulator
@@ -610,7 +623,7 @@ inline void Reply_READDEVS(void) {
 */
 inline void Reply_WRITEEPR(const uint8_t *command) {
     uint8_t reply[WRITEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);  // Set the EEPROM address
+    uint16_t eeprom_addr = ((command[1] << 8) | command[2]);  // Set the EEPROM address
     eeprom_addr &= E2END;                                     // Keep only valid EEPROM addresses
     reply[0] = ACKWTEEP;
     reply[1] = (uint8_t)(command[1] + command[2] + command[3]);  // Returns the sum of EEPROM address MSB, LSB and data byte
@@ -627,7 +640,7 @@ inline void Reply_WRITEEPR(const uint8_t *command) {
 */
 inline void Reply_READEEPR(const uint8_t *command) {
     uint8_t reply[READEEPR_RPLYLN] = {0};
-    uint16_t eeprom_addr = ((command[1] << 8) + command[2]);  // Set the EEPROM address
+    uint16_t eeprom_addr = ((command[1] << 8) | command[2]);  // Set the EEPROM address
     eeprom_addr &= E2END;                                     // Keep only valid EEPROM addresses
     reply[0] = ACKRDEEP;
     reply[1] = (uint8_t)eeprom_read_byte((uint8_t *)eeprom_addr);

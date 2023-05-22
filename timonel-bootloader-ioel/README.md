@@ -1,6 +1,6 @@
-# Timonel Bootloader v1.5 - PlatformIO experimental project
+# Timonel Bootloader v1.6 "Ext-Lib" - PlatformIO experimental project
 
-This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader)", but it was implemented as a [PlatformIO](http://platformio.org) experimental project to handle building in a more structured way. Some advantages of using this platform are:
+This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader-el)", but it was implemented as a [PlatformIO](http://platformio.org) experimental project to handle building in a more structured way. Some advantages of using this platform are:
 
 * Development standardization of all components on a single platform: bootloader master and slave sides, I2C libraries, applications, etc. This is possible even with different frameworks: ESP8266, AVR, Arduino, etc.
 * One-click compilation, handled by structured ".ini" and "JSON" files.

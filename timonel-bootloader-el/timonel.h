@@ -4,7 +4,7 @@
  *  ..............................................
  *  File: timonel.h (Main bootloader headers)
  *  .............................................. 
- *  Version: 1.5 "Sandra" / 2020-07-22 "Ext-Lib"
+ *  Version: 1.6 "Sandra" / 2023-04-28 "Ext-Lib"
  *  gustavo.casanova@nicebots.com
  *  ..............................................
  */
@@ -18,10 +18,7 @@
 #ifndef TML_CONFIG_H
 #define TML_CONFIG_H
 
-#ifndef __AVR_ATtiny85__
-#define __AVR_ATtiny85__
-#pragma message "   >>>   Run, Timonel, run!   <<<   "
-#endif
+//#pragma message "   >>>   Run, Timonel, run!   <<<   "
 
 // Includes
 #include <avr/boot.h>
@@ -31,8 +28,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../../nb-twi-cmd/src/nb-twi-cmd.h"
-#include "../../../nb-usitwisl-if/src/nb-usitwisl-if.h"
+#include "../../nb-twi-cmd/src/nb-twi-cmd.h"
+#include "../../nb-usitwisl-if/src/nb-usitwisl-if.h"
 
 /* ====== [   The configuration of the next optional features can be checked   ] ====== */
 /* VVVVVV [   from the I2C master by using the GETTMNLV command.               ] VVVVVV */

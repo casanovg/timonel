@@ -37,7 +37,7 @@ ARG4=$4;    # ARG4=${4:-1C00};
 ARG5=$5;    # ARG5=${5:-1};
 ARG6=$6;    # ARG6=${6:-false};
 
-function print_help {
+print_help() {
     echo "";
     echo "Usage: $0 [(<CONFIG> <FW_NAME> <TWI_ADDR> <START_ADDR>";
     echo "                          (<16>|<8>|<2>|<1>) (<false>|<true>))]";
@@ -93,7 +93,7 @@ case ${ARG1} in
             echo "MAKING ->" ${TML_CFG};
             echo "";
             make all CONFIG=${TML_CFG} TARGET=${TML_CFG};
-            mv ${TML_CFG}${HEX_SFX} ./${BIN_DIR};
+            mv ${TML_CFG}${HEX_SFX} ./${BIN_DIR}/;
             make clean_all CONFIG=${TML_CFG} TARGET=${TML_CFG};
         done
         exit;

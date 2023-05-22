@@ -10,6 +10,8 @@
 
 ARG1=${1:-timonel}
 ARG2=${2:-1}
+ARG3=${3:-usbasp}
+ARG4=${4:-COM1}
 
 FIRMWARE="./releases/$ARG1.hex";
 
@@ -40,13 +42,21 @@ esac
 
 if [ -f "$FIRMWARE" ]
 then
-    echo "";
+  echo "";
 	echo "[[[ Flashing Timonel for operating @ $ARG2 MHz ]]]";
-	avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+
+	case $ARG3 in
+		avrdude | AVRdude | AVRDUDE)
+			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+			;;
+		stk500 | STK500)
+			avrdude -c STK500 -P $ARG4 -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+			;;
+		*)
+			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
+	esac;		
 else
 	echo ""
 	echo "WARNING: Firmware file \"$FIRMWARE\" not found, please check it!" >&2
 	exit 1
 fi
-
-

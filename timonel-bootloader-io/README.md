@@ -1,4 +1,4 @@
-# Timonel Bootloader v1.5 - PlatformIO experimental project
+# Timonel Bootloader v1.6 - PlatformIO experimental project
 
 This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader)", but it was implemented as a [PlatformIO](http://platformio.org) experimental project to handle building in a more structured way. Some advantages of using this platform are:
 
@@ -7,7 +7,7 @@ This folder contains the same bootloader version and functionality as the "[Make
 * Simple and orderly updating of platforms and libraries, with a centralized registry of library versions.
 * GitHub integration, Editor IntelliSense (VS Code).
 
-It is possible that in the future this version will supersede the "Make version", but so far (July 2020), several issues have to be solved:
+It is possible that in the future this version will supersede the "Make version", but so far (April 2023), several issues have to be solved:
 
 * The handling of the various bootloader settings in ".ini" files works, but is not yet polished enough.
 * To resolve the previous point, custom variables have been added in the ".ini" files that are unknown by PlatformiIO, throwing warnings at the time of compilation.

@@ -1,4 +1,4 @@
-# Timonel Bootloader v1.5
+# Timonel Bootloader v1.6
 
 Changes from previous version:
 
