@@ -1,4 +1,4 @@
-Timonel Bootloader v1.5 - External I2C Library
+Timonel Bootloader v1.6 - External I2C Library
 
 This folder contains the same bootloader version and functionality as the "[Make version](/timonel-bootloader)", but the USI-based, interrupt free I2C driver is implemented as an external library.
 
