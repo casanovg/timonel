@@ -42,8 +42,9 @@ esac
 
 if [ -f "$FIRMWARE" ]
 then
-    echo "";
+  echo "";
 	echo "[[[ Flashing Timonel for operating @ $ARG2 MHz ]]]";
+
 	case $ARG3 in
 		avrdude | AVRdude | AVRDUDE)
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
@@ -53,12 +54,9 @@ then
 			;;
 		*)
 			avrdude -c USBasp -p attiny85 -B3 -U flash:w:./releases/$ARG1.hex:i -B 20 -U lfuse:w:$LOW_FUSE:m -U hfuse:w:$HIGH_FUSE:m -U efuse:w:$EXTENDED_FUSE:m;
-	esac;
-			
+	esac;		
 else
 	echo ""
 	echo "WARNING: Firmware file \"$FIRMWARE\" not found, please check it!" >&2
 	exit 1
 fi
-
-
