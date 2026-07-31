@@ -1,6 +1,6 @@
 # Timonel Updater
 
-__NOTE:__ This bootloader updater has been included from the [micronucleus](github.com/micronucleus) project.
+__NOTE:__ This bootloader updater has been included from the [micronucleus](https://github.com/micronucleus) project.
 
 Usage:
 ------
@@ -25,7 +25,7 @@ Examples:
   
 Generates a payload file based on "tml-t85-std" defaults->FW_NAME=timonel, TWI_ADDR=11, START_ADDR=0x1B80, CLK_SPEED=1 (MHz), AUTO_TWEAK=false.
 
-```$ ./make-updater tml-t85-full```
+```$ ./make-updater.sh tml-t85-full```
   
 Generates a payload file based on "tml-t85-full" config.
 
@@ -56,7 +56,7 @@ __Build process:__
    
    ```make clean; make```
    
-   The upgrader hex file is built in the usual way, then combined with upgrade-prefix.hex (which
+   The upgrader hex file is built in the usual way, then combined with updater-prefix.hex (which
    I wrote by hand) to prefix a fake interrupt vector table in the start of the upgrader. This is
    necessary because bootloaders like micronucleus and Fast Tiny & Mega Bootloader only work with
    firmwares which begin with an interrupt vector table, because of the way they mangle the table
@@ -84,6 +84,3 @@ Taking inspiration from computer viruses, when upgrade runs it goes through this
    forwarding any requests to the new bootloader's interrupt vector table. At this point the viral
    upgrader has completed it's life cycle and has disabled itself. It should never run again, booting
    directly in to the bootloader instead.
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTM0NzMwMDEzNF19
--->

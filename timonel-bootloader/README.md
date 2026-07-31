@@ -2,9 +2,13 @@
 
 Changes from previous version:
 
-* **Slightly smaller bootloader footprint:** some memory got by removing unused pre-checks from the "crt1.S" initialization file (before calling main), and tweaking compiler options. Now smallest bootloader size, when compiled using the "tml-t85-small" @8Mhz configuration, is ~880 bytes (less than 14 pages). This leaves **7.3 Kbytes (114 pages) available for the user application** on an ATtiny85.
-* **READDEVS command added:** this optional command allows getting the device signature bytes, lock, and fuse bits from the device.
-* **READEEPR and WRITEEPR commands added:** These optional commands are to read and write data to the device's EEPROM. The extended features flag 5 "EEPROM_ACCESS" includes/excludes both commands from the bootloader binary.
+* **Consistent little-endian byte order:** all multi-byte fields in the bootloader protocol (memory addresses, page data, and checksum accumulation order) now transmit LSB first, as agreed in [discussion #28](https://github.com/casanovg/timonel/discussions/28).
+* **64-byte transmission packets:** the data packet size is now officially 64 bytes (a full SPM page on an ATtiny85), up from 32 bytes.
+* **Extended device support:** added configurations for additional USI-based AVR families (ATtinyX4/X5, ATtiny2313, ATtinyX7, ATtiny26, ATtiny43U).
+* **Code optimizations:** use "|" instead of "+" when building flash addresses, saving 4 bytes per occurrence (thanks to prandeamus).
+* **Consistent "inline" usage:** fixed inconsistencies between declarations and definitions of helper functions (thanks to SMN321).
+* **Script improvements:** STK500 programmer option with COM port support, "#!/bin/bash" shebang fixes, and path backslash fixes.
+* **New configuration:** "tml-t85-test-comm" with features enabled for easy startup.
 
 ## Compilation
 
