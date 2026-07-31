@@ -1,13 +1,13 @@
 # Timonel Hexparser
 
-This utility converts a ".hex" binary file into a ".h" file which contains a byte array to be included in I2C master applications (e.g. "[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)" or "[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)").
+This utility turns a ".hex" binary file into a ".h" file with a byte array, ready to drop into I2C master apps (e.g. "[timonel-mss-esp8266](https://github.com/casanovg/timonel-mss-esp8266)" or "[timonel-mms-esp8266](https://github.com/casanovg/timonel-mms-esp8266)").
 
-The AVR binary files should be placed into the "appl-flashable" folder. They can be generated using any editor + the avr-gcc toolchain, Atmel Studio 7 or the Arduino IDE. If you use Arduino IDE, the compiled .hex files are a bit hard to find, use these instructions to find them: "https://arduino.stackexchange.com/questions/48431/how-to-get-the-firmware-hex-file-from-a-ino-file-containing-the-code".
+Put your AVR binaries in the "appl-flashable" folder. You can build them with any editor + the avr-gcc toolchain, Atmel Studio 7, or the Arduino IDE. With the Arduino IDE the compiled .hex files can be a bit tricky to find — [here's how to locate them](https://arduino.stackexchange.com/questions/48431/how-to-get-the-firmware-hex-file-from-a-ino-file-containing-the-code).
 
-Once that you have the desired .hex in the "appl-flashable" folder, just run
+Once your .hex is in "appl-flashable", just run:
 
-```$ ./make-payload.sh appl-flashable/attiny_firmware.hex``` to convert it into a payload.
+```$ ./make-payload.sh appl-flashable/attiny_firmware.hex```
 
-The script leaves a ".h" file with the same name of the ATtiny firmware file into the "appl-payload" folder.
+The script drops a ".h" file (same name as your firmware) into the "appl-payload" folder.
 
-The resulting payload must then be copied into the I2C master application (e.g. into the "data/payloads" folder of "timonel-mss-esp8266" or "timonel-mms-esp8266"), and the master application must be recompiled and flashed to the master device before being able to flash the payload to the AVR device running Timonel.
+Then copy that payload into the I2C master app (e.g. into the "data/payloads" folder of "timonel-mss-esp8266" or "timonel-mms-esp8266"), recompile it, and flash it to the master device. Only then can you flash the payload to the AVR running Timonel.
