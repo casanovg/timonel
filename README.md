@@ -43,6 +43,18 @@ timonel
 │   ├── ...
 │   └─ platformio.ini     : This file controls all the settings and building parameters.
 │
+├── timonel-bootloader-el : Same bootloader as "timonel-bootloader" (Make version), but with the USI-based, interrupt-free I2C driver implemented as an external library.
+│   ├── configs           : Several setups to balance features with memory usage. To be called from the "make-timonel.sh" script.
+│   ├── releases          : Binary files folder, this is where the compiler output is saved.
+│   ├── ...
+│   ├─ make-timonel.sh    : Bootloader build script. Use "./make-timonel.sh --help" for usage options and parameters.
+│   └─ flash-timonel-bootloader.sh : Flashing script. It takes a given binary from "releases" and flashes it with "avrdude".
+│
+├── timonel-bootloader-ioel : Same bootloader as "timonel-bootloader-el", but implemented as a PlatformIO experimental project.
+│   ├── configs           : Several setups to balance features with memory usage. Selected from "platformio.ini".
+│   ├── ...
+│   └─ platformio.ini     : This file controls all the settings and building parameters.
+│
 ├── timonel-hexparser   : Utility to convert a ".hex" binary file into a ".h" payload to be included in I2C master apps.
 │   ├── appl-flashable  : Put here application firmware ".hex" files.
 │   ├── appl-payload    : Here are saved the apps, converted to ".h" files by the hexparser.
@@ -51,7 +63,7 @@ timonel
 │
 ├── timonel-updater       : Utility to convert a Timonel binary into a bootloader ".h" update payload for am I2C master.
 │   ├── tmlupd-flashable  : Put here Timonel bootloader ".hex" binary files.
-│   ├── tmlupd-flashable  : Here are saved the ".h" Timonel payloads for updating the bootloader.
+│   ├── tmlupd-payload    : Here are saved the ".h" Timonel payloads for updating the bootloader.
 │   ├── ...
 │   └─ make-updater.sh    : Timonel bootloader updater conversion script.
 ~~~
@@ -77,11 +89,11 @@ Contributions are welcome! If you want to add a new feature, please feel free to
 
 ## Version History:
 
-**v1.6** \- 2020\-09\-25: Functional Release: Supported devices range extended to all AVR microprocessors with Universal Serial Interface (USI). However, at release time, it's only thoroughly tested on the ATtinyX5 and ATtinyX4 series.
+**v1.6** \- 2023\-05\-22: Functional Release: Consistent **little\-endian** (LSB first) transmission across all multi\-byte fields in the bootloader protocol, as agreed in [discussion #28](https://github.com/casanovg/timonel/discussions/28). Data packets officially upgraded to **64 bytes** (a full SPM page on ATtiny85). Extended support to additional USI\-based AVR families (ATtinyX4/X5, ATtiny2313, ATtinyX7, ATtiny26, ATtiny43U). Use of "|" instead of "+" when building flash addresses, saving 4 bytes per occurrence. Fixed "inline" keyword inconsistencies and improved scripts (STK500/COM port option, "#!/bin/bash" shebang, path backslashes). Added the "tml\-t85\-test\-comm" configuration for easy startup. Supported devices range extended to all AVR microprocessors with Universal Serial Interface (USI).
 
 **v1.5** \- 2020\-07\-03: Functional Release: Optional commands READEEPR and WRITEEPR have been added to read and write data to the EEPROM as well as the READDEVS command that allows reading the device signature, fuses, and lock bits. A few code fixes and a "pre-main" startup file reduction allows getting an additional flash memory page for applications. The overall project repository was restructured, now the I2C libraries and examples are held on separate git repositories to handle the versioning independently. Added an experimental [PlatformIO project](/timonel-bootloader-io) folder to handle the bootloader building in a more structured way. However, for the moment, the [Make version](/timonel-bootloader) is still the recommended one.
 
-**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved. [Interactive master](/timonel-twim-ss) test program improved with streamlined libs (see it [working](http://youtu.be/-7GOMToGvzI)). [Multi-slave master](/timonel-twim-ms) test program added (see it [working](http://youtu.be/PM9X1thrdOY)).
+**v1.4** \- 2019\-10\-29: Functional Release: Significant memory saving by inlining the TWI driver functions\, now the smaller version "tml\-t85\-small" occupies less than 1 kB\, leaving 7 kB available for user applications\. Speed improvement through a code tuning to transmit 32\-byte packets \(half a page of memory in a Tiny85\)\. User\-application "**autorun**" is now optional. Internal clock configuration support improved. [Interactive master](https://github.com/casanovg/timonel-mss-esp8266) test program improved with streamlined libs (see it [working](http://youtu.be/-7GOMToGvzI)). [Multi-slave master](https://github.com/casanovg/timonel-mms-esp8266) test program added (see it [working](http://youtu.be/PM9X1thrdOY)).
 
 **v1.3** \- 2019\-06\-06: Functional Release: Bootloader inline functions \(smaller code\) and low fuse auto clock tweaking\. Support for 1\, 2\, 8 and 16 MHz clock speed in user\-application mode\. TWI master UploadApplication refactoring\, now supports both types of page address calculation and both modes of **APP\_USE\_TPL\_PG**. Several bug fixes.
 
